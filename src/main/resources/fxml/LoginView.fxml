@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.codeshare.platform.ui.controller.LoginViewController"
+      alignment="CENTER" spacing="20" style="-fx-padding: 20;">
+    
+    <Label text="Code Sharing Platform" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <GridPane vgap="10" hgap="10" alignment="CENTER">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+        
+        <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="usernameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        
+        <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <PasswordField fx:id="passwordField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+    </GridPane>
+    
+    <HBox spacing="20" alignment="CENTER">
+        <Button text="Login" onAction="#handleLogin"/>
+        <Button text="Register" onAction="#handleRegister"/>
+    </HBox>
+    
+    <Label fx:id="messageLabel" textFill="red"/>
+</VBox>

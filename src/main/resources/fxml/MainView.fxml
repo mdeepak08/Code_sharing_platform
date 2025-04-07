@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.codeshare.platform.ui.controller.MainViewController"
+            prefHeight="700.0" prefWidth="1000.0">
+    
+    <top>
+        <MenuBar>
+            <Menu text="File">
+                <MenuItem text="New Project" onAction="#handleNewProject"/>
+                <MenuItem text="Open Project" onAction="#handleOpenProject"/>
+                <MenuItem text="Exit" onAction="#handleExit"/>
+            </Menu>
+            <Menu text="Edit">
+                <MenuItem text="Undo" onAction="#handleUndo"/>
+                <MenuItem text="Redo" onAction="#handleRedo"/>
+            </Menu>
+            <Menu text="Version Control">
+                <MenuItem text="Commit Changes" onAction="#handleCommit"/>
+                <MenuItem text="Switch Branch" onAction="#handleSwitchBranch"/>
+                <MenuItem text="Create Branch" onAction="#handleCreateBranch"/>
+                <MenuItem text="Merge Branch" onAction="#handleMergeBranch"/>
+            </Menu>
+            <Menu text="Help">
+                <MenuItem text="About" onAction="#handleAbout"/>
+            </Menu>
+        </MenuBar>
+    </top>
+    
+    <left>
+        <VBox spacing="10" style="-fx-padding: 10;">
+            <Label text="Projects"/>
+            <ListView fx:id="projectListView" VBox.vgrow="ALWAYS"/>
+            <Button text="Add Project" onAction="#handleAddProject"/>
+        </VBox>
+    </left>
+    
+    <center>
+        <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <Label text="Project Files"/>
+                <TreeView fx:id="fileTreeView" VBox.vgrow="ALWAYS"/>
+            </VBox>
+            <TabPane fx:id="editorTabPane" VBox.vgrow="ALWAYS"/>
+        </SplitPane>
+    </center>
+    
+    <bottom>
+        <HBox spacing="10" style="-fx-padding: 10;">
+            <Label fx:id="statusLabel" text="Ready"/>
+        </HBox>
+    </bottom>
+    
+</BorderPane>

@@ -1,0 +1,50 @@
+/* src/main/resources/styles/code-editor.css */
+
+.code-area {
+    -fx-background-color: #2b2b2b;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 14px;
+}
+
+.code-area .text {
+    -fx-fill: #a9b7c6;
+}
+
+.code-area .lineno {
+    -fx-background-color: #313335;
+    -fx-text-fill: #606366;
+    -fx-padding: 0 5 0 5;
+}
+
+.code-area .keyword {
+    -fx-fill: #cc7832;
+    -fx-font-weight: bold;
+}
+
+.code-area .semicolon {
+    -fx-fill: #cc7832;
+}
+
+.code-area .paren {
+    -fx-fill: #a9b7c6;
+}
+
+.code-area .bracket {
+    -fx-fill: #a9b7c6;
+}
+
+.code-area .brace {
+    -fx-fill: #a9b7c6;
+}
+
+.code-area .string {
+    -fx-fill: #6a8759;
+}
+
+.code-area .comment {
+    -fx-fill: #808080;
+}
+
+.code-area .caret {
+    -fx-stroke: #a9b7c6;
+}
