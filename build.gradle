@@ -13,11 +13,6 @@ springBoot {
 group = 'com.codeshare'
 version = '0.0.1-SNAPSHOT'
 
-springBoot {
-    mainClass = 'com.codeshare.platform.CodeSharingPlatformApplication' // <-- your backend entry point
-}
-
-
 java {
     sourceCompatibility = '17'
 }
@@ -121,4 +116,18 @@ distributions {
 task buildAll {
     dependsOn build, cliJar, cliDistZip, cliDistTar
     description = 'Builds the main application and CLI components'
+}
+
+tasks.register('runCli', JavaExec) {
+    group = 'application'
+    description = 'Run the CodeShare CLI'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass.set('com.codeshare.platform.cli.CodeShareCLI')
+}
+
+tasks.register('runServer', JavaExec) {
+    group = 'application'
+    description = 'Run the Spring Boot Server'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass.set('com.codeshare.platform.CodeSharingPlatformApplication')
 }
