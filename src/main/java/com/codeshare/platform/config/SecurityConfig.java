@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/index.html", "/login.html", "/signup.html", "/error.html", "/project.html", "/dashboard.html").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/cli/**").authenticated()
                 .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
                 .anyRequest().authenticated()
             )

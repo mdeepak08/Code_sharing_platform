@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +17,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.codeshare.platform.util.ConfigManager;
 import com.codeshare.platform.util.FileSync;
@@ -23,6 +30,8 @@ import com.codeshare.platform.util.FileSync;
 public class CodeShareCLI {
     private static final String API_BASE_URL = "http://localhost:8080/api";
     private static String authToken;
+    private static final Logger logger = LoggerFactory.getLogger(CodeShareCLI.class);
+
     
     public static void main(String[] args) {
         if (args.length == 0) {
@@ -68,55 +77,140 @@ public class CodeShareCLI {
         }
     }
     
-    private static void login(String[] args) throws IOException {
+    private static void login(String[] args) { // Removed throws IOException, handle inside
         Console console = System.console();
         if (console == null) {
-            System.out.println("No console available");
+            System.err.println("Error: No console available. Cannot read credentials.");
             return;
         }
-        
+
         String username = console.readLine("Username: ");
         char[] passwordChars = console.readPassword("Password: ");
         String password = new String(passwordChars);
-        
-        // Clear password from memory
+
+        // --- Best Practice: Clear password from memory ASAP ---
         Arrays.fill(passwordChars, ' ');
-        
-        // Perform login request
-        URL url = new URL(API_BASE_URL + "/auth/login");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setDoOutput(true);
-        
-        String jsonInputString = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
-        
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = jsonInputString.getBytes("utf-8");
-            os.write(input, 0, input.length);
-        }
-        
-        // Read response and save token
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-            StringBuilder response = new StringBuilder();
-            String responseLine = null;
-            while ((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
+        // ---
+
+        HttpURLConnection conn = null; // Declare outside try for finally block
+
+        try {
+            URL url = new URL(API_BASE_URL + "/auth/login");
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; utf-8"); // Specify charset
+            conn.setRequestProperty("Accept", "application/json"); // Still good practice to set Accept
+            conn.setDoOutput(true); // Indicate we are sending data
+            conn.setConnectTimeout(10000); // 10 seconds connection timeout
+            conn.setReadTimeout(10000);    // 10 seconds read timeout
+
+            // --- Prepare JSON payload ---
+            String jsonInputString = String.format("{\"username\": \"%s\", \"password\": \"%s\"}", username, password);
+            password = null; // Clear the String version of the password
+
+            // --- Send request payload (try-with-resources) ---
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
             }
-            
-            // Parse JSON response to get token
-            // Simple parsing - in real app use proper JSON parser
-            String responseStr = response.toString();
-            int tokenStart = responseStr.indexOf("\"token\":\"") + 9;
-            int tokenEnd = responseStr.indexOf("\"", tokenStart);
-            authToken = responseStr.substring(tokenStart, tokenEnd);
-            
-            // Save token to local config
-            ConfigManager.saveToken(authToken);
-            
-            System.out.println("Login successful");
+
+            // --- Check server response code ---
+            int responseCode = conn.getResponseCode();
+            System.out.println("DEBUG: Server responded with HTTP code: " + responseCode);
+
+            if (responseCode == HttpURLConnection.HTTP_OK) { // Success (200)
+                // --- Read response body (try-with-resources) ---
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    String responseStr = response.toString();
+                    System.out.println("DEBUG: Raw server response: " + responseStr);
+
+                    // --- Parse response using Regex ---
+                    try {
+                        // Regex explained in previous answer: finds "accessToken":"<value>"
+                        // Slightly improved to be less sensitive to whitespace around colons/braces
+                         Pattern pattern = Pattern.compile("\"data\"\\s*:\\s*\\{\\s*.*?\"accessToken\"\\s*:\\s*\"([^\"]+)\"");
+                         Matcher matcher = pattern.matcher(responseStr);
+
+                        if (matcher.find()) {
+                            // Group 1 contains the captured token value
+                            String extractedToken = matcher.group(1);
+
+                            if (extractedToken != null && !extractedToken.isEmpty()) {
+                                authToken = extractedToken; // Store the token
+
+                                System.out.println("===========================================");
+                                System.out.println("Token extracted successfully using Regex.");
+                                // Avoid printing token unless necessary for debugging
+                                // System.out.println("Token starts with: " + authToken.substring(0, Math.min(10, authToken.length())));
+
+                                ConfigManager.saveToken(authToken); // Save token
+
+                                System.out.println("Login successful!");
+                                // Note: Cannot easily extract server message with this simple Regex
+                                System.out.println("=============================================");
+                            } else {
+                                System.err.println("Login Error: Regex matched, but the extracted 'accessToken' was empty.");
+                            }
+                        } else {
+                             System.err.println("Login Error: Could not find the 'accessToken' pattern in the server response using Regex.");
+                             System.err.println("Response was: " + responseStr);
+                        }
+
+                    } catch (PatternSyntaxException e) {
+                        // This catches errors in your Regex pattern itself
+                        System.err.println("Internal Error: Invalid Regex pattern syntax: " + e.getMessage());
+                    } catch (Exception e) {
+                         // Catch other potential runtime errors during matching
+                        System.err.println("Error during Regex processing: " + e.getMessage());
+                    }
+                    // --- End Regex Parsing ---
+
+                } // End try-with-resources for BufferedReader
+
+            } else { // Handle non-200 responses
+                 System.err.println("Login failed. Server responded with HTTP code: " + responseCode + " " + conn.getResponseMessage());
+                // --- Attempt to read error response body ---
+                 try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
+                   StringBuilder errorResponse = new StringBuilder();
+                   String responseLine;
+                   while ((responseLine = br.readLine()) != null) {
+                       errorResponse.append(responseLine.trim());
+                   }
+                    if (!errorResponse.toString().isEmpty()) {
+                       System.err.println("Server error details: " + errorResponse.toString());
+                   } else {
+                       System.err.println("No detailed error message body received from server.");
+                   }
+                } catch (IOException | NullPointerException e) { // Catch if getErrorStream() is null or fails
+                     System.err.println("Could not read detailed error message from server.");
+                }
+            }
+
+        } catch (MalformedURLException e) {
+            System.err.println("Internal Error: Invalid API URL configured: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Network Error: Could not connect to server or timed out during login.");
+            System.err.println("Details: " + e.getMessage());
+             // Consider logging the stack trace for detailed network debugging if needed
+             // e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                conn.disconnect(); // Always disconnect
+            }
+             // Explicitly nullify potentially sensitive data
+             password = null;
+             username = null;
         }
-    }
+    } // End login method
+
     
     private static void initRepository(String[] args) throws IOException {
         if (args.length < 2) {
@@ -133,6 +227,10 @@ public class CodeShareCLI {
         String projectName = args[1];
         String description = args.length > 2 ? args[2] : "";
         
+        // URL encode parameters
+        String encodedProjectName = URLEncoder.encode(projectName, StandardCharsets.UTF_8.toString());
+        String encodedDescription = URLEncoder.encode(description, StandardCharsets.UTF_8.toString());
+        
         // Get current directory
         File currentDir = new File(System.getProperty("user.dir"));
         
@@ -146,8 +244,14 @@ public class CodeShareCLI {
             }
         }
         
+        // Debug: Show token being used
+        System.out.println("DEBUG: Token length: " + (authToken != null ? authToken.length() : 0));
+        if (authToken != null && authToken.length() > 20) {
+            System.out.println("DEBUG: Token starts with: " + authToken.substring(0, 20) + "...");
+        }
+        
         // Create API request to init repository
-        URL url = new URL(API_BASE_URL + "/cli/init?projectName=" + projectName + "&description=" + description);
+        URL url = new URL(API_BASE_URL + "/cli/init?projectName=" + encodedProjectName + "&description=" + encodedDescription);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Authorization", "Bearer " + authToken);
@@ -182,11 +286,17 @@ public class CodeShareCLI {
             }
         } else {
             System.out.println("Failed to initialize repository: " + responseCode);
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    System.out.println(line);
+            if (conn.getErrorStream() != null) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error reading error stream: " + e.getMessage());
                 }
+            } else {
+                System.out.println("No additional error information available");
             }
         }
     }
@@ -236,7 +346,6 @@ public class CodeShareCLI {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-                
                 // Simple JSON parsing - in real app use proper JSON parser
                 // This is very simplified - in a real app use a proper JSON parser
                 Map<String, String> files = parseFilesFromJson(response.toString());

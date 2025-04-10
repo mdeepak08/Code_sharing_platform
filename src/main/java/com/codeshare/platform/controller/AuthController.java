@@ -83,7 +83,7 @@ public class AuthController {
             String jwt = jwtUtil.generateToken(authentication);
             
             return new ResponseEntity<>(
-                    ApiResponse.success("Login successful", new JwtAuthResponse(jwt)),
+                    ApiResponse.success("Login successful1", new JwtAuthResponse(jwt)),
                     HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(
