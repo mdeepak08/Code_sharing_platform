@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -473,16 +474,15 @@ public class CodeShareCLI {
         }
     }
     
-    // Get current directory
     File currentDir = new File(System.getProperty("user.dir"));
-    
+
     // Check if this is a CodeShare repository
     File configDir = ConfigManager.getRepoConfigDir(currentDir);
     if (!configDir.exists()) {
         System.out.println("Not a CodeShare repository");
         return;
     }
-    
+
     // Load repository config
     Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
     String projectId = config.get("projectId");
@@ -490,43 +490,48 @@ public class CodeShareCLI {
         System.out.println("Invalid repository configuration");
         return;
     }
-    
+
     // Detect local changes
     System.out.println("Detecting changes...");
-    Map<String, String> changes = FileSync.detectLocalChanges(currentDir);
-    
-    if (changes.isEmpty()) {
+    List<String> changedFiles = FileSync.detectLocalChanges(currentDir); // **Corrected**
+
+    if (changedFiles.isEmpty()) {
         System.out.println("No changes detected");
         return;
     }
-    
-    System.out.println("Found " + changes.size() + " changed files");
-    
+
+    System.out.println("Found " + changedFiles.size() + " changed files");
+
     // Push changes in smaller chunks to avoid "input too long" error
     System.out.println("Pushing changes...");
-    
+
     // Split changes into smaller chunks (max 5 files per request)
     final int MAX_FILES_PER_CHUNK = 5;
     Map<String, String> chunk = new HashMap<>();
     int fileCount = 0;
     int chunkCount = 0;
-    
-    for (Map.Entry<String, String> entry : changes.entrySet()) {
-        chunk.put(entry.getKey(), entry.getValue());
+
+    // Iterate through the *changedFiles* list, not the non-existent 'changes' map
+    for (String filePath : changedFiles) {
+        // Read the file content here
+        File file = new File(currentDir, filePath);
+        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+
+        chunk.put(filePath, content);
         fileCount++;
-        
+
         // If chunk is full or this is the last file, send the chunk
-        if (fileCount >= MAX_FILES_PER_CHUNK || fileCount >= changes.size()) {
+        if (fileCount >= MAX_FILES_PER_CHUNK || fileCount >= changedFiles.size()) { // **Corrected**
             pushChunk(projectId, branchName, chunk, commitMessage + (chunkCount > 0 ? " (part " + (chunkCount + 1) + ")" : ""));
             chunk.clear();
             fileCount = 0;
             chunkCount++;
         }
     }
-    
+
     // Save current state after successful push
-    FileSync.saveCurrentState(currentDir, changes);
-    
+    FileSync.saveCurrentState(currentDir, chunk); // **Corrected** - this needs a Map, not a List
+
     System.out.println("Push completed successfully");
 }
 
@@ -567,7 +572,6 @@ private static void pushChunk(String projectId, String branchName, Map<String, S
     }
 }
 
-// Simple method to convert Map to JSON string
 private static String convertMapToJson(Map<String, String> map) {
     StringBuilder json = new StringBuilder("{");
     boolean first = true;
@@ -577,7 +581,7 @@ private static String convertMapToJson(Map<String, String> map) {
         }
         first = false;
         json.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
-            .append(escapeJson(entry.getValue())).append("\"");
+                .append(escapeJson(entry.getValue())).append("\"");
     }
     json.append("}");
     return json.toString();
@@ -586,10 +590,10 @@ private static String convertMapToJson(Map<String, String> map) {
 // Simple method to escape JSON string values
 private static String escapeJson(String input) {
     return input.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
 }
 
 private static void commitChanges(String[] args) throws IOException, NoSuchAlgorithmException {
@@ -598,52 +602,63 @@ private static void commitChanges(String[] args) throws IOException, NoSuchAlgor
         System.out.println("Usage: codeshare commit -m \"commit message\"");
         return;
     }
-    
+
     String commitMessage = args[2];
-    
+
     // Get current directory
     File currentDir = new File(System.getProperty("user.dir"));
-    
+
     // Check if this is a CodeShare repository
     File configDir = ConfigManager.getRepoConfigDir(currentDir);
     if (!configDir.exists()) {
         System.out.println("Not a CodeShare repository");
         return;
     }
-    
-    // Detect local changes
-    System.out.println("Detecting changes...");
-    Map<String, String> changes = FileSync.detectLocalChanges(currentDir);
-    
-    if (changes.isEmpty()) {
-        System.out.println("No changes detected");
-        return;
-    }
-    
-    System.out.println("Found " + changes.size() + " changed files");
-    
+
+        // Detect local changes
+        System.out.println("Detecting changes...");
+        List<String> changedFiles = FileSync.detectLocalChanges(currentDir); // Changed the variable name to changedFiles and type to List<String>
+
+        if (changedFiles.isEmpty()) {
+            System.out.println("No changes detected");
+            return;
+        }
+
+        System.out.println("Found " + changedFiles.size() + " changed files");
+
     // Save the changes for later push
     // We'll create a pending commit directory
     File pendingDir = new File(configDir, "pending");
     if (!pendingDir.exists()) {
         pendingDir.mkdir();
     }
-    
+
     // Save commit message
     try (FileWriter writer = new FileWriter(new File(pendingDir, "message"))) {
         writer.write(commitMessage);
     }
-    
-    // Save changes to a temporary file
-    File changesFile = new File(pendingDir, "changes.json");
-    try (FileWriter writer = new FileWriter(changesFile)) {
-        writer.write(convertMapToJson(changes));
+
+    // Save the list of changed file paths
+    File changesListFile = new File(pendingDir, "changes.list");
+    try (FileWriter writer = new FileWriter(changesListFile)) {
+        for (String relativePath : changedFiles) {
+            writer.write(relativePath + "\n");
+        }
     }
-    
-    // Update the local state
-    FileSync.saveCurrentState(currentDir, changes);
-    
-    System.out.println("Changes committed locally. Use 'codeshare push' to push to remote repository.");
+
+    // Update the local state - now you need to pass the *list of changed files*
+    // so that saveCurrentState can calculate and store the new hashes.
+    Map<String, String> currentHashes = new HashMap<>();
+    for (String relativePath : changedFiles) {
+        File file = new File(currentDir, relativePath);
+        if (file.isFile()) {
+            String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+            currentHashes.put(relativePath, FileSync.calculateHash(content));
+        }
+    }
+    FileSync.saveCurrentState(currentDir, currentHashes);
+
+    System.out.println("Changes committed locally (list of changed files and their hashes saved). Use 'codeshare push' to push to remote repository.");
 }
 
 private static void pullChanges(String[] args) throws IOException, NoSuchAlgorithmException {
@@ -675,18 +690,21 @@ private static void pullChanges(String[] args) throws IOException, NoSuchAlgorit
     }
     
     // Detect local changes first to warn user if there are uncommitted changes
-    Map<String, String> localChanges = FileSync.detectLocalChanges(currentDir);
-    if (!localChanges.isEmpty()) {
-        System.out.println("Warning: You have " + localChanges.size() + " uncommitted local changes.");
-        System.out.print("Do you want to continue? (y/n): ");
-        
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String answer = reader.readLine();
-        if (!answer.equalsIgnoreCase("y")) {
-            System.out.println("Pull aborted");
-            return;
+
+        // Detect local changes first to warn user if there are uncommitted changes
+        List<String> localChanges = FileSync.detectLocalChanges(currentDir); // Change to List<String>
+
+        if (!localChanges.isEmpty()) {
+            System.out.println("Warning: You have " + localChanges.size() + " uncommitted local changes.");
+            System.out.print("Do you want to continue? (y/n): ");
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String answer = reader.readLine();
+            if (!answer.equalsIgnoreCase("y")) {
+                System.out.println("Pull aborted");
+                return;
+            }
         }
-    }
     
     // Pull changes from remote
     System.out.println("Pulling changes from remote...");
@@ -910,3 +928,5 @@ private static void createBranch(String projectId, String branchName) throws IOE
         System.out.println("  login             Login to CodeShare Platform");
     }
 }
+
+

@@ -8,10 +8,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 /**
  * Handles file synchronization between local and remote repositories
  */
@@ -21,43 +22,32 @@ public class FileSync {
     /**
      * Detects changes in the local repository compared to the last known state
      */
-    public static Map<String, String> detectLocalChanges(File repoDir) throws IOException {
-        Map<String, String> changes = new HashMap<>();
-        
-        // Get tracked files from config
-        File configDir = ConfigManager.getRepoConfigDir(repoDir);
-        if (!configDir.exists()) {
-            throw new IOException("Not a CodeShare repository");
-        }
-        
-        // Load last known state
+    public static List<String> detectLocalChanges(File repoDir) throws IOException, NoSuchAlgorithmException {
+        List<String> changedFiles = new ArrayList<>();
         Map<String, String> lastState = loadLastState(repoDir);
-        
-        // Walk through all files in the directory
+
         Files.walk(repoDir.toPath())
-            .filter(path -> Files.isRegularFile(path))
-            .forEach(path -> {
-                try {
-                    File file = path.toFile();
-                    // Skip hidden files and files in the .codeshare directory
-                    if (file.isHidden() || file.getPath().contains("/.codeshare/")) {
-                        return;
+                .filter(Files::isRegularFile)
+                .forEach(path -> {
+                    try {
+                        File file = path.toFile();
+                        if (file.isHidden() || file.getPath().contains("/.codeshare/")) {
+                            return;
+                        }
+
+                        String relativePath = getRelativePath(repoDir, file);
+                        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                        String hash = calculateHash(content);
+
+                        if (!lastState.containsKey(relativePath) || !lastState.get(relativePath).equals(hash)) {
+                            changedFiles.add(relativePath); // Only store the relative path
+                        }
+                    } catch (IOException | NoSuchAlgorithmException e) {
+                        System.err.println("Error processing file: " + path + ": " + e.getMessage());
                     }
-                    
-                    String relativePath = getRelativePath(repoDir, file);
-                    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                    String hash = calculateHash(content);
-                    
-                    if (!lastState.containsKey(relativePath) || !lastState.get(relativePath).equals(hash)) {
-                        changes.put(relativePath, content);
-                    }
-                } catch (IOException | NoSuchAlgorithmException e) {
-                    // Log error but continue with other files
-                    System.err.println("Error processing file: " + path + ": " + e.getMessage());
-                }
-            });
-        
-        return changes;
+                });
+
+        return changedFiles;
     }
     
     /**
@@ -108,7 +98,7 @@ public class FileSync {
     /**
      * Calculates a hash for file content
      */
-    private static String calculateHash(String content) throws NoSuchAlgorithmException {
+    public static String calculateHash(String content) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(content.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(hash);
