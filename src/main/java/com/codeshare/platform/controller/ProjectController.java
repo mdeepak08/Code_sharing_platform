@@ -52,26 +52,30 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProjectDto>> getProjectById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ProjectDto>> getProjectById(@PathVariable Long id, Authentication authentication) {
         Optional<Project> projectOpt = projectService.getProjectById(id);
-        return projectOpt.map(project -> new ResponseEntity<>(ApiResponse.success(convertToDto(project)), HttpStatus.OK))
-                .orElse(new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND));
-    }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProjectDto>>> getAllProjects(Authentication authentication) {
-        String username = authentication.getName();
-        Optional<User> userOpt = userService.getUserByUsername(username);
         
-        if (userOpt.isPresent()) {
-            User currentUser = userOpt.get();
-            // Get only projects owned by this user
-            List<Project> projects = projectService.getProjectsByOwner(currentUser);
-            List<ProjectDto> projectDtos = projects.stream().map(this::convertToDto).collect(Collectors.toList());
-            return new ResponseEntity<>(ApiResponse.success(projectDtos), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.NOT_FOUND);
+        if (projectOpt.isEmpty()) {
+            return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
         }
+        
+        Project project = projectOpt.get();
+        
+        // Check if user has access to this project
+        if (!project.isPublic()) {
+            // If not public, check if user is owner or collaborator
+            String username = authentication != null ? authentication.getName() : null;
+            
+            if (username == null || 
+                (!project.getOwner().getUsername().equals(username) && 
+                 !project.getUserProjects().stream()
+                    .anyMatch(up -> up.getUser().getUsername().equals(username)))) {
+                return new ResponseEntity<>(ApiResponse.error("You don't have access to this project"), 
+                                          HttpStatus.FORBIDDEN);
+            }
+        }
+        
+        return new ResponseEntity<>(ApiResponse.success(convertToDto(project)), HttpStatus.OK);
     }
 
     @GetMapping("/user/{userId}")
@@ -133,6 +137,32 @@ public class ProjectController {
             return new ResponseEntity<>(ApiResponse.success("Collaborator removed successfully", null), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(ApiResponse.error("Project or User not found"), HttpStatus.NOT_FOUND);
+        }
+    }
+
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ProjectDto>>> getAllProjects(Authentication authentication) {
+        try {
+            if (authentication == null) {
+                return new ResponseEntity<>(ApiResponse.error("Authentication required"), HttpStatus.UNAUTHORIZED);
+            }
+            
+            String username = authentication.getName();
+            Optional<User> userOpt = userService.getUserByUsername(username);
+            
+            if (userOpt.isPresent()) {
+                User currentUser = userOpt.get();
+                // Get only projects owned by this user
+                List<Project> projects = projectService.getProjectsByOwner(currentUser);
+                List<ProjectDto> projectDtos = projects.stream().map(this::convertToDto).collect(Collectors.toList());
+                return new ResponseEntity<>(ApiResponse.success(projectDtos), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(ApiResponse.error("Error loading projects: " + e.getMessage()), 
+                                        HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

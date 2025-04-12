@@ -1,0 +1,19 @@
+.file-item, .directory-item {
+    margin: 5px 0;
+    white-space: nowrap;
+}
+
+.directory-name {
+    font-weight: bold;
+    color: #4e73df;
+    cursor: pointer;
+}
+
+.file-link {
+    color: #333;
+    text-decoration: none;
+}
+
+.file-link:hover {
+    text-decoration: underline;
+}

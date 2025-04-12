@@ -142,3 +142,77 @@ function logout() {
     localStorage.removeItem('jwt_token');
     window.location.href = '/login';
 } 
+
+// Function to build a file tree structure from flat list
+function buildFileTree(files) {
+    // Create a root directory
+    const root = { type: 'directory', name: 'root', children: {}, files: [] };
+    
+    // For each file, add it to the directory structure
+    files.forEach(file => {
+        let path = file.path;
+        let parts = path.split('/');
+        let fileName = parts.pop(); // Last part is the file name
+        
+        // Navigate to the right directory node
+        let currentDir = root;
+        for (let part of parts) {
+            if (part === '') continue; // Skip empty parts
+            
+            // Create directory if it doesn't exist
+            if (!currentDir.children[part]) {
+                currentDir.children[part] = { 
+                    type: 'directory', 
+                    name: part, 
+                    children: {}, 
+                    files: [] 
+                };
+            }
+            
+            // Move to this directory
+            currentDir = currentDir.children[part];
+        }
+        
+        // Add the file to the current directory
+        currentDir.files.push({
+            type: 'file',
+            name: fileName,
+            id: file.id,
+            path: file.path
+        });
+    });
+    
+    return root;
+}
+
+// Function to render a file tree recursively
+function renderFileTree(node, container, level = 0) {
+    const indent = '  '.repeat(level);
+    
+    // First render files in this directory
+    node.files.forEach(file => {
+        const fileElement = document.createElement('div');
+        fileElement.className = 'file-item';
+        fileElement.innerHTML = `${indent}<a href="#" class="file-link" data-file-id="${file.id}">${file.name}</a>`;
+        container.appendChild(fileElement);
+    });
+    
+    // Then render subdirectories
+    Object.keys(node.children).sort().forEach(dirName => {
+        const dirNode = node.children[dirName];
+        
+        // Create directory element
+        const dirElement = document.createElement('div');
+        dirElement.className = 'directory-item';
+        dirElement.innerHTML = `${indent}<span class="directory-name">${dirNode.name}/</span>`;
+        container.appendChild(dirElement);
+        
+        // Recursively render its content
+        renderFileTree(dirNode, container, level + 1);
+    });
+}
+
+// Usage
+const fileTree = buildFileTree(files);
+const container = document.getElementById('filesList');
+renderFileTree(fileTree, container);

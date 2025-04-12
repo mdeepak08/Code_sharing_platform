@@ -29,13 +29,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS with your configuration
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/login.html", "/signup.html", "/error.html", "/project.html", "/dashboard.html").permitAll()
-                .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/", "/index.html", "/login.html", "/signup.html", "/error.html", 
+                                "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/cli/**").authenticated()
+                .requestMatchers("/dashboard.html", "/project.html").permitAll() // Allow dashboard and project pages
                 .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
                 .anyRequest().authenticated()
             )
@@ -46,6 +46,7 @@ public class SecurityConfig {
         
         return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

@@ -21,7 +21,9 @@ import com.codeshare.platform.model.Branch;
 import com.codeshare.platform.model.Commit;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.service.BranchService;
 import com.codeshare.platform.service.CliService;
+import com.codeshare.platform.service.FileService;
 import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
 
@@ -38,6 +40,12 @@ public class CliController {
 
     @Autowired
     private ProjectService projectService;
+
+    @Autowired
+    private BranchService branchService;
+
+    @Autowired
+    private FileService fileService;
     
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -80,27 +88,16 @@ public class CliController {
             }
             Project project = projectOpt.get();
             
-            // Validate that user has access to project
-            if (!project.getOwner().getId().equals(currentUser.getId())) {
-                boolean isCollaborator = project.getUserProjects().stream()
-                    .anyMatch(up -> up.getUser().getId().equals(currentUser.getId()));
-                    
-                if (!isCollaborator) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                        new ApiResponse<>(false, "You don't have access to this project", null));
-                }
-            }
-            
-            // Validate branch exists
-            Branch branch = null;
+            // Use the existing service method to get the branch
+            Branch branch;
             try {
                 branch = cliService.getBranchForProject(project, branchName);
             } catch (Exception e) {
                 return ResponseEntity.badRequest().body(
-                    new ApiResponse<>(false, "Branch not found: " + branchName, null));
+                    new ApiResponse<>(false, "Branch error: " + e.getMessage(), null));
             }
             
-            // At this point we have a valid project, user, and branch
+            // Create commit using the existing service
             Commit commit = cliService.pushChanges(projectId, branch.getName(), changes, commitMessage, currentUser);
             return ResponseEntity.ok(new ApiResponse<>(true, "Changes pushed successfully", commit));
         } catch (Exception e) {

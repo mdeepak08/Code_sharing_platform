@@ -1,5 +1,10 @@
-src/main/resources/static/signup.html:ldAKw8LMe177kxwCyZbbMxUaGqx0OFjl0q71J87ePss=
-src/test/java/com/codeshare/platform/CodeSharingPlatformApplicationTests.java:6tJ9YgUy1wgBoAVV6/qv4ROw6XeXCwM389bZStVtpwI=
-src/main/resources/styles/application.css:8aAEHeHHSVIfRe9I/6RxJh22pEsWu/nFavclgZu6AvE=
-src/main/resources/static/project.html:LCuQ2XE+9Ehv/YcJtGi3LkYb7LdWTwW85uspY39K+No=
-src/main/resources/styles/code-editor.css:qHSddBF0BF3ArsghbWqAOQJEWpJZlNsrMK2/n39oWzs=
+src/main/resources/static/error.html:Mq/DNoONvZGtqmCwpn42+2oBa6QwZ+aZeJrnTlqr9bA=
+src/main/resources/application.properties:iChh7fyrCq7RM8IsTb28OgTvQJpIlc/rCow/PTXzWO8=
+src/main/resources/fxml/ProjectView.fxml:KChmozfrqg1EYN4qatAEIpyy30o3yud9Gds6VZiV+UM=
+src/main/resources/static/css/tree-view.css:hGryrDCgDzUc+RH4GfJfvWGpiawvLPa9MgAazaVPZLo=
+src/main/resources/static/css/style.css:LdmSWmHlsvUJPy5QGVs34BFdCA/4wwY0GJoLF1mel5k=
+src/main/java/com/codeshare/platform/util/ConfigManager.java:J0YIY7UUUx4MjUrEEGiAWYLHe/rH/ht2RCRMFlBhNpY=
+src/main/java/com/codeshare/platform/util/FileSync.java:CUHYE/nqS+LynF1qSjkzyTznQ2uXKkkIUn1ZOfmIexw=
+src/main/resources/static/dashboard.html:gmrUnKqbKRV7OYdSII3g2HmrIb81YB0FTKDkaHxHEqM=
+src/main/resources/fxml/LoginView.fxml:c3U9HSa0wl0dmb/lmcH61cUqb+4IlUQXn7mPyNDCtFc=
+src/main/resources/fxml/MainView.fxml:s8NVHFanCUGTmnR1fsg3qTG6iWTWL06yncsZkwOmP8w=

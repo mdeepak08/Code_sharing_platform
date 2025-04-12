@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -19,10 +20,6 @@ import java.util.Map;
  */
 public class FileSync {
     private static final String LAST_STATE_FILE = "last_state";
-    private static final List<String> DEFAULT_IGNORE_PATTERNS = List.of(
-        ".git/", ".codeshare/", "target/", "build/", "node_modules/", "dist/",
-        "bin/", ".idea/", ".gradle/", "*.class", "*.jar", "*.war", "*.ear", "*.log"
-    );
     
     /**
      * Detects changes in the local repository compared to the last known state
@@ -30,95 +27,96 @@ public class FileSync {
     public static List<String> detectLocalChanges(File repoDir) throws IOException, NoSuchAlgorithmException {
         List<String> changedFiles = new ArrayList<>();
         Map<String, String> lastState = loadLastState(repoDir);
-        List<String> ignorePatterns = loadIgnorePatterns(repoDir);
-
-        // Only scan for files in the current directory, not the entire file system
-        scanForChanges(repoDir, repoDir, ignorePatterns, lastState, changedFiles);
-
+        
+        // Create a .gitignore style filter
+        List<String> ignorePatterns = getIgnorePatterns(repoDir);
+        
+        // Walk the directory tree and detect changes
+        Files.walk(repoDir.toPath())
+            .filter(path -> Files.isRegularFile(path) && !shouldIgnore(repoDir, path, ignorePatterns))
+            .forEach(path -> {
+                try {
+                    String relativePath = getRelativePath(repoDir, path.toFile());
+                    String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+                    String hash = calculateHash(content);
+                    
+                    if (!lastState.containsKey(relativePath) || !lastState.get(relativePath).equals(hash)) {
+                        changedFiles.add(relativePath);
+                    }
+                } catch (IOException | NoSuchAlgorithmException e) {
+                    System.err.println("Error processing file: " + path + ": " + e.getMessage());
+                }
+            });
+        
         return changedFiles;
     }
     
     /**
-     * Recursively scan for changes in a directory
+     * Check if a file should be ignored based on .gitignore patterns
      */
-    private static void scanForChanges(File baseDir, File currentDir, List<String> ignorePatterns, 
-                                      Map<String, String> lastState, List<String> changedFiles) 
-                                      throws IOException, NoSuchAlgorithmException {
-        File[] files = currentDir.listFiles();
-        if (files == null) return;
+    private static boolean shouldIgnore(File repoDir, Path path, List<String> ignorePatterns) {
+        // Skip .codeshare directory
+        if (path.toString().contains("/.codeshare/") || path.toString().contains("\\.codeshare\\")) {
+            return true;
+        }
         
-        for (File file : files) {
-            // Skip directories that match ignore patterns
-            if (file.isDirectory()) {
-                String relativePath = getRelativePath(baseDir, file) + "/";
-                boolean shouldSkip = false;
-                
-                for (String pattern : ignorePatterns) {
-                    if (pattern.endsWith("/") && 
-                        (relativePath.equals(pattern) || relativePath.startsWith(pattern))) {
-                        shouldSkip = true;
-                        break;
-                    }
+        // Get the relative path
+        String relativePath = getRelativePath(repoDir, path.toFile());
+        
+        // Check against ignore patterns
+        for (String pattern : ignorePatterns) {
+            // Simplify: just do basic matching
+            if (pattern.endsWith("/")) {
+                // Directory pattern
+                if (relativePath.startsWith(pattern) || 
+                    relativePath.startsWith(pattern.substring(0, pattern.length() - 1))) {
+                    return true;
                 }
-                
-                if (!shouldSkip) {
-                    scanForChanges(baseDir, file, ignorePatterns, lastState, changedFiles);
+            } else if (pattern.startsWith("*")) {
+                // Wildcard at beginning
+                if (relativePath.endsWith(pattern.substring(1))) {
+                    return true;
                 }
-            } 
-            // Process regular files
-            else if (file.isFile()) {
-                String relativePath = getRelativePath(baseDir, file);
-                
-                // Skip files that match ignore patterns
-                boolean shouldSkip = false;
-                for (String pattern : ignorePatterns) {
-                    if (matchesPattern(relativePath, pattern)) {
-                        shouldSkip = true;
-                        break;
-                    }
+            } else if (pattern.endsWith("*")) {
+                // Wildcard at end
+                if (relativePath.startsWith(pattern.substring(0, pattern.length() - 1))) {
+                    return true;
                 }
-                
-                if (shouldSkip) continue;
-                
-                // Check if file has changed
-                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                String hash = calculateHash(content);
-                
-                if (!lastState.containsKey(relativePath) || !lastState.get(relativePath).equals(hash)) {
-                    changedFiles.add(relativePath);
-                }
+            } else if (relativePath.equals(pattern) || relativePath.startsWith(pattern + "/")) {
+                // Exact match or directory prefix
+                return true;
             }
         }
-    }
-    
-    /**
-     * Check if a file path matches an ignore pattern
-     */
-    private static boolean matchesPattern(String path, String pattern) {
-        if (pattern.startsWith("*") && path.endsWith(pattern.substring(1))) {
-            return true;
-        } else if (pattern.endsWith("*") && path.startsWith(pattern.substring(0, pattern.length() - 1))) {
-            return true;
-        } else if (pattern.equals(path)) {
-            return true;
-        }
+        
         return false;
     }
     
     /**
-     * Load ignore patterns from .gitignore or use defaults
+     * Get standard ignore patterns + .gitignore content
      */
-    private static List<String> loadIgnorePatterns(File repoDir) {
-        List<String> patterns = new ArrayList<>(DEFAULT_IGNORE_PATTERNS);
+    private static List<String> getIgnorePatterns(File repoDir) {
+        List<String> patterns = new ArrayList<>();
         
-        File gitIgnore = new File(repoDir, ".gitignore");
-        if (gitIgnore.exists() && gitIgnore.isFile()) {
+        // Standard patterns to ignore
+        patterns.add(".git/");
+        patterns.add(".codeshare/");
+        patterns.add("target/");
+        patterns.add("build/");
+        patterns.add("bin/");
+        patterns.add("out/");
+        patterns.add(".idea/");
+        patterns.add(".gradle/");
+        patterns.add("node_modules/");
+        
+        // Add patterns from .gitignore if it exists
+        File gitignore = new File(repoDir, ".gitignore");
+        if (gitignore.exists() && gitignore.isFile()) {
             try {
-                List<String> userPatterns = Files.readAllLines(gitIgnore.toPath());
-                for (String pattern : userPatterns) {
-                    pattern = pattern.trim();
-                    if (!pattern.isEmpty() && !pattern.startsWith("#")) {
-                        patterns.add(pattern);
+                List<String> gitignoreLines = Files.readAllLines(gitignore.toPath());
+                for (String line : gitignoreLines) {
+                    line = line.trim();
+                    if (!line.isEmpty() && !line.startsWith("#")) {
+                        patterns.add(line);
                     }
                 }
             } catch (IOException e) {
@@ -132,44 +130,27 @@ public class FileSync {
     /**
      * Saves the current state of files after sync
      */
-    public static void saveCurrentState(File repoDir, Map<String, String> files) throws IOException {
+    public static void saveCurrentState(File repoDir, Map<String, String> files) throws IOException, NoSuchAlgorithmException {
         Map<String, String> currentState = new HashMap<>();
         
-        // For each file in the map
+        // For each file in the map, calculate its hash
         for (Map.Entry<String, String> entry : files.entrySet()) {
             String relativePath = entry.getKey();
             String content = entry.getValue();
-            String hash = null;
-            
-            try {
-                hash = calculateHash(content);
-            } catch (NoSuchAlgorithmException e) {
-                System.err.println("Error calculating hash: " + e.getMessage());
-                continue;
-            }
-            
+            String hash = calculateHash(content);
             currentState.put(relativePath, hash);
         }
         
-        // If files is empty, try to load from the actual file system
+        // If no specific files were provided, use the current file system state
         if (files.isEmpty()) {
-            List<String> ignorePatterns = loadIgnorePatterns(repoDir);
+            List<String> ignorePatterns = getIgnorePatterns(repoDir);
             
             Files.walk(repoDir.toPath())
-                .filter(Files::isRegularFile)
+                .filter(path -> Files.isRegularFile(path) && !shouldIgnore(repoDir, path, ignorePatterns))
                 .forEach(path -> {
-                    File file = path.toFile();
-                    String relativePath = getRelativePath(repoDir, file);
-                    
-                    // Skip files that match ignore patterns
-                    for (String pattern : ignorePatterns) {
-                        if (matchesPattern(relativePath, pattern)) {
-                            return;
-                        }
-                    }
-                    
                     try {
-                        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                        String relativePath = getRelativePath(repoDir, path.toFile());
+                        String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
                         String hash = calculateHash(content);
                         currentState.put(relativePath, hash);
                     } catch (IOException | NoSuchAlgorithmException e) {
@@ -178,7 +159,7 @@ public class FileSync {
                 });
         }
         
-        // Save current state
+        // Save the current state
         File configDir = ConfigManager.getRepoConfigDir(repoDir);
         if (!configDir.exists()) {
             configDir.mkdirs();
@@ -233,8 +214,7 @@ public class FileSync {
         String filePath = file.getAbsolutePath();
         
         if (filePath.startsWith(repoPath)) {
-            String relativePath = filePath.substring(repoPath.length() + 1).replace('\\', '/');
-            return relativePath;
+            return filePath.substring(repoPath.length() + 1).replace('\\', '/');
         }
         
         return file.getName();

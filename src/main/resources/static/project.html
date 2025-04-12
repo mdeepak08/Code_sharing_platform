@@ -5,6 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Details - Code Sharing Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+<style>
+  /* Tree View Styles */
+  .file-tree {
+    margin-left: 0;
+    padding-left: 0;
+  }
+  
+  .directory {
+    list-style-type: none;
+    margin: 5px 0;
+    padding-left: 20px;
+  }
+  
+  .directory-name {
+    cursor: pointer;
+    font-weight: bold;
+    color: #4e73df;
+  }
+  
+  .directory-name:before {
+    content: "📁 ";
+  }
+  
+  .file-item {
+    list-style-type: none;
+    margin: 5px 0;
+    padding-left: 20px;
+  }
+  
+  .file-link {
+    color: #333;
+    text-decoration: none;
+  }
+  
+  .file-link:before {
+    content: "📄 ";
+  }
+  
+  .collapsed ul {
+    display: none;
+  }
+</style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -380,5 +423,143 @@
         loadUserInfo();
         loadProjectDetails();
     </script>
+    <script>
+        // Function to build a file tree structure from flat list of files
+        function buildFileTree(files) {
+          const root = {};
+          
+          files.forEach(file => {
+            let path = file.path;
+            let parts = path.split('/');
+            let fileName = parts.pop();
+            
+            let currentDir = root;
+            for (let i = 0; i < parts.length; i++) {
+              let part = parts[i];
+              if (!part) continue;
+              
+              currentDir[part] = currentDir[part] || {files: {}, dirs: {}};
+              currentDir = currentDir[part].dirs;
+            }
+            
+            if (fileName) {
+              currentDir[fileName] = {
+                id: file.id,
+                name: fileName,
+                path: file.path,
+                isFile: true
+              };
+            }
+          });
+          
+          return root;
+        }
+        
+        // Function to render the file tree
+        function renderFileTree(node, container, path = '') {
+          const ul = document.createElement('ul');
+          ul.className = 'file-tree';
+          
+          // First handle directories
+          const dirNames = Object.keys(node).filter(key => !node[key].isFile);
+          dirNames.sort().forEach(dirName => {
+            const li = document.createElement('li');
+            li.className = 'directory';
+            
+            const dirNameSpan = document.createElement('span');
+            dirNameSpan.className = 'directory-name';
+            dirNameSpan.textContent = dirName;
+            dirNameSpan.onclick = function() {
+              this.parentElement.classList.toggle('collapsed');
+            };
+            
+            li.appendChild(dirNameSpan);
+            
+            // Recursively render subdirectories and files
+            if (node[dirName].dirs) {
+              const subContainer = renderFileTree(node[dirName].dirs, container, path + dirName + '/');
+              li.appendChild(subContainer);
+            }
+            
+            ul.appendChild(li);
+          });
+          
+          // Then handle files
+          const fileNames = Object.keys(node).filter(key => node[key].isFile);
+          fileNames.sort().forEach(fileName => {
+            const file = node[fileName];
+            
+            const li = document.createElement('li');
+            li.className = 'file-item';
+            
+            const a = document.createElement('a');
+            a.className = 'file-link';
+            a.textContent = fileName;
+            a.href = '#';
+            a.setAttribute('data-file-id', file.id);
+            a.onclick = function(e) {
+              e.preventDefault();
+              loadFile(file.id);
+            };
+            
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+          
+          return ul;
+        }
+        
+        // Load files for a project
+        async function loadProjectFiles() {
+          try {
+            const projectId = getProjectIdFromUrl();
+            if (!projectId) return;
+            
+            const token = localStorage.getItem('jwt_token');
+            const response = await fetch(`/api/files/project/${projectId}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success && result.data) {
+                // Transform to a simpler format for our tree builder
+                const files = result.data.map(file => ({
+                  id: file.id,
+                  name: file.name,
+                  path: file.path
+                }));
+                
+                // Build and render the file tree
+                const fileTree = buildFileTree(files);
+                const filesList = document.getElementById('filesList');
+                filesList.innerHTML = '';
+                const tree = renderFileTree(fileTree, filesList);
+                filesList.appendChild(tree);
+              } else {
+                document.getElementById('filesList').innerHTML = '<p class="text-muted">No files found in this project.</p>';
+              }
+            } else {
+              document.getElementById('filesList').innerHTML = '<div class="alert alert-danger">Failed to load files.</div>';
+            }
+          } catch (error) {
+            console.error('Error loading files:', error);
+            document.getElementById('filesList').innerHTML = '<div class="alert alert-danger">Error loading files.</div>';
+          }
+        }
+        
+        // Get project ID from URL
+        function getProjectIdFromUrl() {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get('id');
+        }
+        
+        // Initialize when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+          loadProjectFiles();
+        });
+      </script>
 </body>
 </html>
