@@ -35,3 +35,34 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# First, create a .gitignore file
+echo "target/
+build/
+.gradle/
+.idea/
+*.iml
+*.class
+node_modules/
+out/
+bin/
+.settings/
+.vscode/
+.DS_Store" > .gitignore
+
+
+
+# .gitignore file
+.git/
+.codeshare/
+target/
+build/
+.gradle/
+bin/
+node_modules/
+.idea/
+.vscode/
+*.class
+*.jar
+*.war
+*.log

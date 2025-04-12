@@ -79,4 +79,5 @@ public interface CliService {
      * @return The found branch or default branch
      */
     Branch getBranchForProject(Project project, String branchName);
+    
 }

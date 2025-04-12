@@ -2,8 +2,10 @@ package com.codeshare.platform.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +22,9 @@ import com.codeshare.platform.model.Commit;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
 import com.codeshare.platform.service.CliService;
+import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
+
 
 @RestController
 @RequestMapping("/api/cli")
@@ -31,6 +35,9 @@ public class CliController {
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ProjectService projectService;
     
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -61,11 +68,40 @@ public class CliController {
             // Get the user
             User currentUser = getCurrentUser();
             if (currentUser == null) {
-                return ResponseEntity.badRequest().body(
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                     new ApiResponse<>(false, "User not authenticated", null));
             }
             
-            Commit commit = cliService.pushChanges(projectId, branchName, changes, commitMessage, currentUser);
+            // Validate project exists
+            Optional<Project> projectOpt = projectService.getProjectById(projectId);
+            if (projectOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ApiResponse<>(false, "Project not found: " + projectId, null));
+            }
+            Project project = projectOpt.get();
+            
+            // Validate that user has access to project
+            if (!project.getOwner().getId().equals(currentUser.getId())) {
+                boolean isCollaborator = project.getUserProjects().stream()
+                    .anyMatch(up -> up.getUser().getId().equals(currentUser.getId()));
+                    
+                if (!isCollaborator) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        new ApiResponse<>(false, "You don't have access to this project", null));
+                }
+            }
+            
+            // Validate branch exists
+            Branch branch = null;
+            try {
+                branch = cliService.getBranchForProject(project, branchName);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(
+                    new ApiResponse<>(false, "Branch not found: " + branchName, null));
+            }
+            
+            // At this point we have a valid project, user, and branch
+            Commit commit = cliService.pushChanges(projectId, branch.getName(), changes, commitMessage, currentUser);
             return ResponseEntity.ok(new ApiResponse<>(true, "Changes pushed successfully", commit));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(

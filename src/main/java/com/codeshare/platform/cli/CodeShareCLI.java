@@ -5,6 +5,7 @@ import java.io.Console;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -449,91 +450,120 @@ public class CodeShareCLI {
         return -1;
     }
     private static void pushChanges(String[] args) throws IOException, NoSuchAlgorithmException {
-    // Check command arguments
-    if (args.length < 2) {
-        System.out.println("Usage: codeshare push [branch-name] -m \"commit message\"");
-        return;
-    }
-    
-    // Check if token exists
-    if (authToken == null) {
-        System.out.println("Please login first: codeshare login");
-        return;
-    }
-    
-    // Parse branch name and commit message
-    String branchName = null;
-    String commitMessage = "Update";
-    
-    for (int i = 1; i < args.length; i++) {
-        if (args[i].equals("-m") && i + 1 < args.length) {
-            commitMessage = args[i + 1];
-            i++; // Skip the next argument as we've already processed it
-        } else if (!args[i].startsWith("-") && branchName == null) {
-            branchName = args[i];
+        // Check if token exists
+        if (authToken == null) {
+            System.out.println("Please login first: codeshare login");
+            return;
         }
-    }
-    
-    File currentDir = new File(System.getProperty("user.dir"));
-
-    // Check if this is a CodeShare repository
-    File configDir = ConfigManager.getRepoConfigDir(currentDir);
-    if (!configDir.exists()) {
-        System.out.println("Not a CodeShare repository");
-        return;
-    }
-
-    // Load repository config
-    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
-    String projectId = config.get("projectId");
-    if (projectId == null) {
-        System.out.println("Invalid repository configuration");
-        return;
-    }
-
-    // Detect local changes
-    System.out.println("Detecting changes...");
-    List<String> changedFiles = FileSync.detectLocalChanges(currentDir); // **Corrected**
-
-    if (changedFiles.isEmpty()) {
-        System.out.println("No changes detected");
-        return;
-    }
-
-    System.out.println("Found " + changedFiles.size() + " changed files");
-
-    // Push changes in smaller chunks to avoid "input too long" error
-    System.out.println("Pushing changes...");
-
-    // Split changes into smaller chunks (max 5 files per request)
-    final int MAX_FILES_PER_CHUNK = 5;
-    Map<String, String> chunk = new HashMap<>();
-    int fileCount = 0;
-    int chunkCount = 0;
-
-    // Iterate through the *changedFiles* list, not the non-existent 'changes' map
-    for (String filePath : changedFiles) {
-        // Read the file content here
-        File file = new File(currentDir, filePath);
-        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-
-        chunk.put(filePath, content);
-        fileCount++;
-
-        // If chunk is full or this is the last file, send the chunk
-        if (fileCount >= MAX_FILES_PER_CHUNK || fileCount >= changedFiles.size()) { // **Corrected**
-            pushChunk(projectId, branchName, chunk, commitMessage + (chunkCount > 0 ? " (part " + (chunkCount + 1) + ")" : ""));
-            chunk.clear();
-            fileCount = 0;
-            chunkCount++;
+        
+        // Parse branch name and commit message
+        String branchName = null;
+        String commitMessage = "Update";
+        
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equals("-m") && i + 1 < args.length) {
+                commitMessage = args[i + 1];
+                i++; // Skip the next argument as we've already processed it
+            } else if (!args[i].startsWith("-") && branchName == null) {
+                branchName = args[i];
+            }
         }
+        
+        File currentDir = new File(System.getProperty("user.dir"));
+    
+        // Check if this is a CodeShare repository
+        File configDir = ConfigManager.getRepoConfigDir(currentDir);
+        if (!configDir.exists()) {
+            System.out.println("Not a CodeShare repository");
+            return;
+        }
+    
+        // Load repository config
+        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+        String projectId = config.get("projectId");
+        if (projectId == null) {
+            System.out.println("Invalid repository configuration");
+            return;
+        }
+    
+        // If no branch name specified, use the one from config
+        if (branchName == null) {
+            branchName = config.get("branch");
+            if (branchName == null) {
+                System.out.println("No branch specified and no default branch in config");
+                System.out.println("Please specify a branch name: codeshare push <branch-name> -m \"commit message\"");
+                return;
+            }
+        }
+    
+        // Detect local changes
+        System.out.println("Detecting changes...");
+        List<String> changedFiles = FileSync.detectLocalChanges(currentDir);
+    
+        if (changedFiles.isEmpty()) {
+            System.out.println("No changes detected");
+            return;
+        }
+    
+        System.out.println("Found " + changedFiles.size() + " changed files");
+        
+        // Limit the number of files to process to avoid overwhelming the server
+        final int MAX_FILES = 100;
+        if (changedFiles.size() > MAX_FILES) {
+            System.out.println("Warning: Too many files changed. Processing only the first " + MAX_FILES + " files.");
+            changedFiles = changedFiles.subList(0, MAX_FILES);
+        }
+    
+        // Push changes in smaller chunks to avoid "input too long" error
+        System.out.println("Pushing changes...");
+    
+        // Split changes into smaller chunks (max 5 files per request)
+        final int MAX_FILES_PER_CHUNK = 5;
+        Map<String, String> chunk = new HashMap<>();
+        int fileCount = 0;
+        int chunkCount = 0;
+    
+        for (String filePath : changedFiles) {
+            // Read the file content
+            File file = new File(currentDir, filePath);
+            if (!file.exists() || !file.isFile()) {
+                System.out.println("Skipping non-existent file: " + filePath);
+                continue;
+            }
+            
+            try {
+                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                chunk.put(filePath, content);
+                fileCount++;
+                
+                // If chunk is full or this is the last file, send the chunk
+                if (fileCount >= MAX_FILES_PER_CHUNK || fileCount >= changedFiles.size()) {
+                    String chunkMessage = commitMessage;
+                    if (chunkCount > 0) {
+                        chunkMessage += " (part " + (chunkCount + 1) + ")";
+                    }
+                    
+                    try {
+                        pushChunk(projectId, branchName, chunk, chunkMessage);
+                        // Update the current state after each successful chunk
+                        Map<String, String> currentChunk = new HashMap<>(chunk);
+                        FileSync.saveCurrentState(currentDir, currentChunk);
+                    } catch (IOException e) {
+                        System.err.println("Error pushing chunk: " + e.getMessage());
+                        // Continue with next chunk instead of failing completely
+                    }
+                    
+                    chunk.clear();
+                    fileCount = 0;
+                    chunkCount++;
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + filePath + ": " + e.getMessage());
+            }
+        }
+    
+        System.out.println("Push completed");
     }
-
-    // Save current state after successful push
-    FileSync.saveCurrentState(currentDir, chunk); // **Corrected** - this needs a Map, not a List
-
-    System.out.println("Push completed successfully");
-}
 
 private static void pushChunk(String projectId, String branchName, Map<String, String> changes, String commitMessage) throws IOException {
     // Create API request
@@ -562,12 +592,26 @@ private static void pushChunk(String projectId, String branchName, Map<String, S
         System.out.println("Chunk pushed successfully");
     } else {
         System.out.println("Failed to push chunk: " + responseCode);
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
+        
+        // Safely handle error stream which might be null
+        try {
+            InputStream errorStream = conn.getErrorStream();
+            if (errorStream != null) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream, StandardCharsets.UTF_8))) {
+                    StringBuilder errorMessage = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        errorMessage.append(line);
+                    }
+                    System.out.println("Error: " + errorMessage.toString());
+                }
+            } else {
+                System.out.println("Error: No additional information available");
             }
+        } catch (Exception e) {
+            System.out.println("Error reading error response: " + e.getMessage());
         }
+        
         throw new IOException("Failed to push changes, server returned: " + responseCode);
     }
 }
