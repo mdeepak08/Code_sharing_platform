@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -233,4 +234,18 @@ public ResponseEntity<ApiResponse<List<FileDto>>> getFilesByProject(@PathVariabl
             return new ResponseEntity<>(ApiResponse.error("File not found"), HttpStatus.NOT_FOUND);
         }
     }
+
+    // Adjust your FileController.java
+@GetMapping("/{id}/raw")
+public ResponseEntity<String> getRawFileContent(@PathVariable Long id) {
+    Optional<File> fileOpt = fileService.getFileById(id);
+    if (fileOpt.isPresent()) {
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(fileOpt.get().getContent());
+    } else {
+        return ResponseEntity.notFound().build();
+    }
+}
 }

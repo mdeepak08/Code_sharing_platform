@@ -1,14 +1,15 @@
 package com.codeshare.platform.service.impl;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.codeshare.platform.model.File;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.repository.FileRepository;
 import com.codeshare.platform.service.FileService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FileServiceImpl implements FileService {
@@ -22,7 +23,11 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public File createFile(File file) {
-        return fileRepository.save(file);
+            // Preserve whitespace and formatting
+    String content = file.getContent();
+    // Do not trim or modify content formatting
+    file.setContent(content);
+    return fileRepository.save(file);
     }
 
     @Override

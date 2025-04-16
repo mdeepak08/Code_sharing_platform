@@ -68,7 +68,16 @@ src/main/java/com/codeshare/platform/ui/util/AlertHelper.java
 src/main/java/com/codeshare/platform/ui/util/EditorTabManager.java
 src/main/java/com/codeshare/platform/ui/util/SceneManager.java
 src/main/java/com/codeshare/platform/ui/util/SessionManager.java
+src/main/java/com/codeshare/platform/util/ConfigManager.java
+src/main/java/com/codeshare/platform/util/FileSync.java
+src/main/resources/application.properties
+src/main/resources/fxml/LoginView.fxml
+src/main/resources/fxml/MainView.fxml
+src/main/resources/fxml/ProjectView.fxml
+src/main/resources/static/css/style.css
+src/main/resources/static/css/tree-view.css
 src/main/resources/static/dashboard.html
+src/main/resources/static/error.html
 src/main/resources/static/index.html
 src/main/resources/static/js/main.js
 src/main/resources/static/login.html
