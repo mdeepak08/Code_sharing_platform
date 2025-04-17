@@ -3,167 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Details - Code Sharing Platform</title>
+    <title>Project View - Code Sharing Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Add Highlight.js for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-<style>
-  /* Tree View Styles */
-  .file-tree {
-    margin-left: 0;
-    padding-left: 0;
-  }
-  
-  .directory {
-    list-style-type: none;
-    margin: 5px 0;
-    padding-left: 20px;
-  }
-  
-  .directory-name {
-    cursor: pointer;
-    font-weight: bold;
-    color: #4e73df;
-  }
-  
-  .directory-name:before {
-    content: "📁 ";
-  }
-  
-  .file-item {
-    list-style-type: none;
-    margin: 5px 0;
-    padding-left: 20px;
-  }
-  
-  .file-link {
-    color: #333;
-    text-decoration: none;
-  }
-  
-  .file-link:before {
-    content: "📄 ";
-  }
-  
-  .collapsed ul {
-    display: none;
-  }
-
-  .code-editor {
-    background-color: #2b2b2b;
-    border-radius: 4px;
-    overflow: auto;
-    position: relative;
-    min-height: 400px;
-    max-height: 70vh; /* Adjust based on viewport height */
-    display: flex;
-    flex-direction: column;
-  }
-
-  .code-editor pre {
-    margin: 0;
-    padding: 10px;
-    white-space: pre;
-    tab-size: 4;
-    flex-grow: 1;
-    overflow: auto;
-  }
-
-  .code-editor code {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 14px;
-    color: #a9b7c6;
-    display: block;
-    width: 100%;
-  }
-  
-  .editor-actions {
-    position: sticky;
-    bottom: 0;
-    background-color: #2b2b2b;
-    padding: 10px;
-    border-top: 1px solid #444;
-    text-align: right;
-  }
-  
-  /* Modal for code viewing */
-  .code-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7);
-    z-index: 1000;
-  }
-  
-  .code-modal-content {
-    position: relative;
-    margin: 2% auto;
-    width: 90%;
-    height: 90%;
-    background-color: #2b2b2b;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .code-modal-header {
-    padding: 10px;
-    background-color: #333;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .code-modal-body {
-    flex-grow: 1;
-    overflow: auto;
-    padding: 0;
-  }
-  
-  .code-modal-body pre {
-    margin: 0;
-    height: 100%;
-  }
-  
-  .code-modal-footer {
-    padding: 10px;
-    background-color: #333;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    text-align: right;
-  }
-  
-  .close-modal {
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-  }
-</style>
-<script>
-    // Load commonly used languages
-    document.addEventListener('DOMContentLoaded', function() {
-        // Dynamically load the highlight.js script
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js';
-        script.onload = function() {
-            // Initialize highlight.js after loading
-            if (window.hljs) {
-                hljs.highlightAll();
-            }
-        };
-        document.head.appendChild(script);
-    });
-</script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
             <a class="navbar-brand" href="/dashboard.html">Code Sharing Platform</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -180,627 +28,1268 @@
                 </ul>
                 <div class="d-flex align-items-center">
                     <span class="text-light me-3" id="userInfo">Loading...</span>
-                    <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-12">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/dashboard.html">Dashboard</a></li>
-                        <li class="breadcrumb-item active" id="projectName">Project</li>
-                    </ol>
-                </nav>
+    <div class="container">
+        <!-- Project Header -->
+        <div class="gh-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 id="projectTitle">Loading project...</h1>
+                    <p class="description" id="projectDescription"></p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="gh-btn">
+                        <i class="fa fa-star"></i> Star
+                    </button>
+                    <button class="gh-btn">
+                        <i class="fa fa-code-fork"></i> Fork
+                    </button>
+                </div>
             </div>
-        </div>
-
-<!-- Fix the project details section -->
-<div class="row" id="projectDetails">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title" id="projectTitle">Loading project...</h2>
-                <p class="card-text" id="projectDescription"></p>
-                <div id="projectInfo">
-                    <p><strong>Owner:</strong> <span id="projectOwner"></span></p>
-                    <p><strong>Created:</strong> <span id="projectCreated"></span></p>
-                    <p><strong>Visibility:</strong> <span id="projectVisibility"></span></p>
+            
+            <div class="repo-stats">
+                <div class="repo-stat">
+                    <i class="fa fa-code-branch"></i>
+                    <span id="branchCount">0</span> branches
+                </div>
+                <div class="repo-stat">
+                    <i class="fa fa-tag"></i>
+                    <span>0</span> tags
+                </div>
+                <div class="repo-stat">
+                    <i class="fa fa-code"></i>
+                    <span id="fileCount">0</span> files
+                </div>
+                <div class="repo-stat">
+                    <i class="fa fa-user"></i>
+                    Owner: <span id="projectOwner"></span>
+                </div>
+                <div class="repo-stat">
+                    <i class="fa fa-calendar"></i>
+                    Created: <span id="projectCreated"></span>
+                </div>
+                <div class="repo-stat">
+                    <i class="fa fa-eye"></i>
+                    <span id="projectVisibility"></span>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Fix the file explorer and editor layout -->
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Files</h5>
-            </div>
-            <div class="card-body">
-                <div id="filesList">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
+        
+        <!-- Breadcrumb and Branch Selector -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/dashboard.html">Dashboard</a></li>
+                    <li class="breadcrumb-item" id="projectNameBreadcrumb"></li>
+                    <li class="breadcrumb-item active" id="currentPath">.</li>
+                </ol>
+            </nav>
+            
+            <div class="branch-dropdown">
+                <button class="branch-selector dropdown-toggle" id="branchButton">
+                    <i class="fa fa-code-branch"></i>
+                    <span id="currentBranch">main</span>
+                </button>
+                <div class="branch-dropdown-content" id="branchDropdown">
+                    <div class="branch-search">
+                        <input type="text" placeholder="Find a branch..." id="branchSearchInput">
+                    </div>
+                    <div class="branch-dropdown-header">Branches</div>
+                    <div class="branch-list" id="branchList">
+                        <!-- Branch items will be added here dynamically -->
                     </div>
                 </div>
-                <div class="mt-3">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFileModal">Add File</button>
+            </div>
+        </div>
+        
+        <!-- File Explorer -->
+        <div class="file-explorer mb-4">
+            <div class="file-explorer-header">
+                <div class="commit-info">
+                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="commit-avatar">
+                    <span id="lastCommitUser">User</span>
+                    committed <span id="lastCommitTime">recently</span>
                 </div>
+                <a href="#" class="text-small text-decoration-none" id="commitsLink">
+                    <i class="fa fa-history"></i> History
+                </a>
+            </div>
+            
+            <ul class="file-list" id="fileList">
+                <!-- File items will be added here dynamically -->
+                <li class="dir-item">
+                    <i class="fa fa-folder file-icon file-dir-icon"></i>
+                    <a href="#" class="dir-name">Loading...</a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Code Display (Only visible when a file is selected) -->
+        <div class="code-container" id="codeContainer" style="display: none;">
+            <div class="code-header">
+                <div class="code-header-filename" id="currentFileName">No file selected</div>
+                <div class="code-header-actions">
+                    <a href="#" id="rawButton"><i class="fa fa-file-code"></i> Raw</a>
+                    <a href="#" id="downloadButton"><i class="fa fa-download"></i> Download</a>
+                    <a href="#" id="copyButton"><i class="fa fa-copy"></i> Copy</a>
+                    <a href="#" id="fullScreenButton"><i class="fa fa-expand"></i> Full screen</a>
+                </div>
+            </div>
+            <div class="code-content">
+                <table class="code-blob" id="codeTable">
+                    <tbody>
+                        <!-- Code content with line numbers will be added here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" id="currentFileName">No file selected</h5>
-                <button class="btn btn-sm btn-info" id="expandCodeBtn" style="display: none;">View Full Screen</button>
+    
+    <!-- GitHub-like Modal for Full Screen View -->
+    <div class="github-modal" id="fullScreenModal">
+        <div class="github-modal-content">
+            <div class="github-modal-header">
+                <h3 class="github-modal-title" id="modalFileName">File Name</h3>
+                <button class="github-modal-close">&times;</button>
             </div>
-            <div class="card-body p-0">
-                <div id="editor" class="code-editor">
-                    <pre><code>Select a file to edit</code></pre>
-                    <div class="editor-actions">
-                        <button id="saveFileBtn" class="btn btn-success" disabled>Save</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-    <div id="codeModal" class="code-modal">
-        <div class="code-modal-content">
-            <div class="code-modal-header">
-                <h5 id="modalFileName">File Name</h5>
-                <span class="close-modal">&times;</span>
-            </div>
-            <div class="code-modal-body">
+            <div class="github-modal-body">
                 <pre><code id="modalCode"></code></pre>
             </div>
-            <div class="code-modal-footer">
-                <button id="modalSaveBtn" class="btn btn-success">Save</button>
-            </div>
-        </div>
-    </div>
-    <!-- Add File Modal -->
-    <div class="modal fade" id="addFileModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New File</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addFileForm">
-                        <div class="mb-3">
-                            <label for="fileName" class="form-label">File Name</label>
-                            <input type="text" class="form-control" id="fileName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="filePath" class="form-label">File Path (Optional)</label>
-                            <input type="text" class="form-control" id="filePath" placeholder="e.g., src/main/java">
-                        </div>
-                        <div class="mb-3">
-                            <label for="fileContent" class="form-label">Initial Content</label>
-                            <textarea class="form-control" id="fileContent" rows="5"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveNewFileBtn">Add File</button>
-                </div>
-            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script>
-        // Check authentication
-        const token = localStorage.getItem('jwt_token');
-        if (!token) {
-            window.location.href = '/login.html';
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+<style>
+    :root {
+        --gh-border-color: #e1e4e8;
+        --gh-bg-color: #f6f8fa;
+        --gh-text-color: #24292e;
+        --gh-link-color: #0366d6;
+        --gh-secondary-text: #586069;
+        --gh-file-line-active: #fffbdd;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        color: var(--gh-text-color);
+        line-height: 1.5;
+    }
+    
+    .navbar {
+        background-color: #24292e;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        padding: 0.5rem 1rem;
+    }
+    
+    .gh-header {
+        padding: 24px 0;
+        border-bottom: 1px solid var(--gh-border-color);
+        margin-bottom: 16px;
+    }
+    
+    .gh-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+    
+    .gh-header .description {
+        font-size: 14px;
+        color: var(--gh-secondary-text);
+        margin-top: 8px;
+    }
+    
+    .repo-stats {
+        display: flex;
+        gap: 16px;
+        margin-top: 16px;
+    }
+    
+    .repo-stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        color: var(--gh-secondary-text);
+    }
+    
+    .branch-selector {
+        background-color: var(--gh-bg-color);
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+        padding: 5px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gh-text-color);
+        cursor: pointer;
+    }
+    
+    .file-explorer {
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    
+    .file-explorer-header {
+        background-color: var(--gh-bg-color);
+        padding: 16px;
+        border-bottom: 1px solid var(--gh-border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .commit-info {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: var(--gh-secondary-text);
+    }
+    
+    .commit-avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    
+    .file-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .file-item, .dir-item {
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--gh-border-color);
+        display: flex;
+        align-items: center;
+    }
+    
+    .file-item:hover, .dir-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .file-item:last-child, .dir-item:last-child {
+        border-bottom: none;
+    }
+    
+    .file-icon {
+        margin-right: 8px;
+        color: var(--gh-secondary-text);
+    }
+    
+    .file-dir-icon {
+        color: #79b8ff;
+    }
+    
+    .file-name {
+        flex-grow: 1;
+        font-size: 14px;
+        color: var(--gh-link-color);
+        text-decoration: none;
+    }
+    
+    .dir-name {
+        flex-grow: 1;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--gh-link-color);
+        text-decoration: none;
+    }
+    
+    .commit-msg {
+        font-size: 12px;
+        color: var(--gh-secondary-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 400px;
+        margin-left: auto;
+        padding-left: 20px;
+    }
+    
+    .code-container {
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    
+    .code-header {
+        padding: 10px 16px;
+        background-color: var(--gh-bg-color);
+        border-bottom: 1px solid var(--gh-border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .code-header-filename {
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .code-header-actions a {
+        font-size: 14px;
+        color: var(--gh-secondary-text);
+        text-decoration: none;
+        margin-left: 16px;
+    }
+    
+    .code-content {
+        overflow-x: auto;
+    }
+    
+    .code-content pre {
+        margin: 0;
+        padding: 16px;
+        overflow-y: hidden;
+        background-color: white;
+    }
+    
+    .code-content code {
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        tab-size: 4;
+    }
+    
+    .code-line-numbers {
+        float: left;
+        text-align: right;
+        color: #aaa;
+        border-right: 1px solid #e1e4e8;
+        padding: 16px 8px 16px 16px;
+        margin-right: 16px;
+        user-select: none;
+    }
+    
+    .breadcrumb-item a {
+        color: var(--gh-link-color);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--gh-text-color);
+    }
+    
+    /* Styles for directory tree */
+    .directory-structure {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    
+    .directory-structure li {
+        padding: 4px 0;
+    }
+    
+    .directory-structure ul {
+        list-style-type: none;
+        padding-left: 20px;
+    }
+    
+    .directory-toggle {
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .directory-toggle::before {
+        content: "▶";
+        display: inline-block;
+        width: 12px;
+        transition: transform 0.2s;
+    }
+    
+    .directory-toggle.open::before {
+        transform: rotate(90deg);
+    }
+    
+    .file-content {
+        display: none;
+    }
+    
+    /* GitHub-like UI elements */
+    .gh-btn {
+        display: inline-flex;
+        align-items: center;
+        background-color: var(--gh-bg-color);
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+        padding: 5px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--gh-text-color);
+        cursor: pointer;
+        text-decoration: none;
+        line-height: 20px;
+    }
+    
+    .gh-btn:hover {
+        background-color: #f3f4f6;
+        text-decoration: none;
+    }
+    
+    .gh-btn i {
+        margin-right: 4px;
+    }
+    
+    .gh-btn-primary {
+        background-color: #2ea44f;
+        border-color: rgba(27,31,35,0.15);
+        color: white;
+    }
+    
+    .gh-btn-primary:hover {
+        background-color: #2c974b;
+        color: white;
+    }
+    
+    /* Branch dropdown */
+    .branch-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .branch-dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        width: 300px;
+        background-color: white;
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+        box-shadow: 0 8px 24px rgba(149,157,165,0.2);
+        margin-top: 4px;
+    }
+    
+    .branch-dropdown-header {
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--gh-border-color);
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .branch-list {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 8px 0;
+    }
+    
+    .branch-item {
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .branch-item:hover {
+        background-color: var(--gh-bg-color);
+    }
+    
+    .branch-item.active {
+        background-color: #0366d611;
+    }
+    
+    .branch-item i {
+        margin-right: 8px;
+        color: var(--gh-secondary-text);
+    }
+    
+    .branch-name {
+        flex-grow: 1;
+        font-size: 14px;
+    }
+    
+    .dropdown-toggle::after {
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: middle;
+        content: "";
+        border-top: 4px solid;
+        border-right: 4px solid transparent;
+        border-bottom: 0;
+        border-left: 4px solid transparent;
+    }
+    
+    .branch-search {
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--gh-border-color);
+    }
+    
+    .branch-search input {
+        width: 100%;
+        padding: 5px 12px;
+        font-size: 14px;
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+    }
+    
+    /* GitHub code blob table */
+    .code-blob {
+        width: 100%;
+        border-spacing: 0;
+    }
+    
+    .code-blob tr:hover {
+        background-color: var(--gh-bg-color);
+    }
+    
+    .code-blob .line-number {
+        width: 1%;
+        min-width: 50px;
+        padding-right: 10px;
+        padding-left: 10px;
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 12px;
+        line-height: 20px;
+        color: var(--gh-secondary-text);
+        text-align: right;
+        white-space: nowrap;
+        vertical-align: top;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .code-blob .line-content {
+        padding-left: 10px;
+        padding-right: 10px;
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 12px;
+        line-height: 20px;
+        white-space: pre;
+        vertical-align: top;
+    }
+    
+    /* Utility classes */
+    .text-small {
+        font-size: 12px !important;
+    }
+    
+    .text-gray {
+        color: var(--gh-secondary-text) !important;
+    }
+    
+    .d-flex {
+        display: flex !important;
+    }
+    
+    .align-items-center {
+        align-items: center !important;
+    }
+    
+    /* Modal */
+    .github-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+    
+    .github-modal-content {
+        position: relative;
+        margin: 5% auto;
+        width: 80%;
+        max-width: 900px;
+        background-color: #fff;
+        border-radius: 6px;
+        box-shadow: 0 8px 24px rgba(149,157,165,0.2);
+    }
+    
+    .github-modal-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--gh-border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .github-modal-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .github-modal-close {
+        background: transparent;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    
+    .github-modal-body {
+        padding: 16px;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    /* For mobile responsiveness */
+    @media (max-width: 768px) {
+        .commit-msg {
+            display: none;
         }
-
-        // Get project ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const projectId = urlParams.get('id');
         
-        if (!projectId) {
-            alert('Project ID is missing');
-            window.location.href = '/dashboard.html';
+        .code-header-actions {
+            display: none;
         }
-
-        // Load user info
-        async function loadUserInfo() {
-            try {
-                const response = await fetch('/api/auth/user', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success && result.data) {
-                        document.getElementById('userInfo').textContent = `Welcome, ${result.data.username}`;
-                    } else {
-                        document.getElementById('userInfo').textContent = 'Welcome';
-                    }
-                } else {
-                    console.error('Failed to load user info');
-                    document.getElementById('userInfo').textContent = 'Welcome';
-                }
-            } catch (error) {
-                console.error('Error loading user info:', error);
-                document.getElementById('userInfo').textContent = 'Welcome';
-            }
-        }
-
-        // Load project details
-        async function loadProjectDetails() {
-            try {
-                const response = await fetch(`/api/projects/${projectId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success && result.data) {
-                        const project = result.data;
-                        
-                        // Update page title
-                        document.title = `${project.name} - Code Sharing Platform`;
-                        
-                        // Update breadcrumb
-                        document.getElementById('projectName').textContent = project.name;
-                        
-                        // Update project details
-                        document.getElementById('projectTitle').textContent = project.name;
-                        document.getElementById('projectDescription').textContent = project.description || 'No description';
-                        document.getElementById('projectOwner').textContent = project.owner.username;
-                        document.getElementById('projectCreated').textContent = new Date(project.createdAt).toLocaleDateString();
-                        
-                        const isPublic = project.isPublic !== undefined ? project.isPublic : project.public;
-                        document.getElementById('projectVisibility').textContent = isPublic ? 'Public' : 'Private';
-                        
-                        // Load project files
-                        loadProjectFiles();
-                    } else {
-                        alert('Failed to load project details');
-                        window.location.href = '/dashboard.html';
-                    }
-                } else {
-                    alert('Failed to load project details');
-                    window.location.href = '/dashboard.html';
-                }
-            } catch (error) {
-                console.error('Error loading project details:', error);
-                alert('Failed to load project details');
-                window.location.href = '/dashboard.html';
-            }
-        }
-
-        // Load project files
-        async function loadProjectFiles() {
-            try {
-                const response = await fetch(`/api/files/project/${projectId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success && result.data) {
-                        displayFiles(result.data);
-                    } else {
-                        document.getElementById('filesList').innerHTML = '<p class="text-muted">No files yet. Add one!</p>';
-                    }
-                } else {
-                    document.getElementById('filesList').innerHTML = '<div class="alert alert-danger">Failed to load files</div>';
-                }
-            } catch (error) {
-                console.error('Error loading files:', error);
-                document.getElementById('filesList').innerHTML = '<div class="alert alert-danger">Failed to load files</div>';
-            }
-        }
-
-        // Display files
-        function displayFiles(files) {
-            const filesList = document.getElementById('filesList');
-            
-            if (!files || files.length === 0) {
-                filesList.innerHTML = '<p class="text-muted">No files yet. Add one!</p>';
-                return;
-            }
-            
-            filesList.innerHTML = files.map(file => `
-                <div class="file-item" data-file-id="${file.id}">
-                    <a href="#" class="file-link" data-file-id="${file.id}">${file.name}</a>
-                </div>
-            `).join('');
-            
-            // Add click handlers
-            document.querySelectorAll('.file-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const fileId = this.getAttribute('data-file-id');
-                    loadFile(fileId);
-                });
-            });
-        }
-
-        // Load file content
-        // Load file content
-            async function loadFile(fileId) {
-        try {
-            const response = await fetch(`/api/files/${fileId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success && result.data) {
-                    const file = result.data;
-                    
-                    // Update editor title
-                    document.getElementById('currentFileName').textContent = file.name;
-                    
-                    // Create code display elements
-                    const editorDiv = document.getElementById('editor');
-                    const preElement = editorDiv.querySelector('pre') || document.createElement('pre');
-                    const codeElement = preElement.querySelector('code') || document.createElement('code');
-                    
-                    if (!preElement.querySelector('code')) {
-                        preElement.appendChild(codeElement);
-                    }
-                    
-                    if (!editorDiv.querySelector('pre')) {
-                        editorDiv.insertBefore(preElement, editorDiv.querySelector('.editor-actions'));
-                    }
-                    
-                    // Get file extension for language detection
-                    const extension = file.name.split('.').pop();
-                    
-                    // Set appropriate language class
-                    if (extension) {
-                        // Map extension to language
-                        const languageMap = {
-                            'js': 'javascript',
-                            'ts': 'typescript',
-                            'py': 'python',
-                            'java': 'java',
-                            'html': 'html',
-                            'css': 'css',
-                            'json': 'json',
-                            'xml': 'xml',
-                            'md': 'markdown',
-                            'sql': 'sql',
-                            'sh': 'bash',
-                            'bat': 'batch'
-                            // Add more mappings as needed
-                        };
-                        
-                        const language = languageMap[extension] || extension;
-                        codeElement.className = `language-${language}`;
-                    }
-                    
-                    // Set the content while preserving whitespace
-                    codeElement.textContent = file.content || '';
-                    
-                    // Enable save button
-                    document.getElementById('saveFileBtn').disabled = false;
-                    document.getElementById('saveFileBtn').setAttribute('data-file-id', file.id);
-                    
-                    // Show expand button
-                    document.getElementById('expandCodeBtn').style.display = 'block';
-                    document.getElementById('expandCodeBtn').setAttribute('data-file-id', file.id);
-                } else {
-                    alert('Failed to load file content');
-                }
-            } else {
-                alert('Failed to load file content');
-            }
-        } catch (error) {
-            console.error('Error loading file content:', error);
-            alert('Failed to load file content');
+        
+        .repo-stats {
+            flex-wrap: wrap;
         }
     }
+</style>
+<script>
+// Check authentication
+const token = localStorage.getItem('jwt_token');
+if (!token) {
+    window.location.href = '/login.html';
+}
 
-        // Save file
-document.getElementById('saveFileBtn').addEventListener('click', async function() {
-    saveCurrentFile();
-});
+// Global variables
+let currentProject = null;
+let projectFiles = [];
+let projectBranches = [];
+let currentBranch = 'main';
+let currentPath = '';
 
-// Function to save the current file
-async function saveCurrentFile() {
-    const fileId = document.getElementById('saveFileBtn').getAttribute('data-file-id');
-    const codeElement = document.querySelector('#editor code');
-    const content = codeElement ? codeElement.textContent : '';
-    
+// DOM Elements
+const branchButton = document.getElementById('branchButton');
+const branchDropdown = document.getElementById('branchDropdown');
+const branchList = document.getElementById('branchList');
+const branchSearchInput = document.getElementById('branchSearchInput');
+const fullScreenModal = document.getElementById('fullScreenModal');
+const modalClose = document.querySelector('.github-modal-close');
+
+// Get project ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const projectId = urlParams.get('id');
+
+if (!projectId) {
+    alert('Project ID is missing');
+    window.location.href = '/dashboard.html';
+}
+
+// Functions
+function logout() {
+    localStorage.removeItem('jwt_token');
+    window.location.href = '/login.html';
+}
+
+// Initialize
+async function initialize() {
+    await loadUserInfo();
+    await loadProjectDetails();
+    await loadProjectFiles();
+    await loadProjectBranches();
+    setupEventListeners();
+    updateStarButton();
+}
+
+// Load user info
+async function loadUserInfo() {
     try {
-        const response = await fetch(`/api/files/${fileId}/content`, {
-            method: 'PUT',
+        const response = await fetch('/api/auth/user', {
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(content)
+                'Authorization': `Bearer ${token}`
+            }
         });
         
         if (response.ok) {
-            alert('File saved successfully');
+            const result = await response.json();
+            if (result.success && result.data) {
+                document.getElementById('userInfo').textContent = `Welcome, ${result.data.username}`;
+            } else {
+                document.getElementById('userInfo').textContent = 'Welcome';
+            }
         } else {
-            alert('Failed to save file');
+            console.error('Failed to load user info');
+            document.getElementById('userInfo').textContent = 'Welcome';
         }
     } catch (error) {
-        console.error('Error saving file:', error);
-        alert('Failed to save file');
+        console.error('Error loading user info:', error);
+        document.getElementById('userInfo').textContent = 'Welcome';
     }
 }
 
-// Expand code to full screen
-document.getElementById('expandCodeBtn').addEventListener('click', function() {
-    const fileId = this.getAttribute('data-file-id');
-    const fileName = document.getElementById('currentFileName').textContent;
-    const codeContent = document.querySelector('#editor code').textContent;
-    
-    // Set modal content
-    document.getElementById('modalFileName').textContent = fileName;
-    document.getElementById('modalCode').textContent = codeContent;
-    document.getElementById('modalSaveBtn').setAttribute('data-file-id', fileId);
-    
-    // Show modal
-    document.getElementById('codeModal').style.display = 'block';
-});
-
-// Close modal
-document.querySelector('.close-modal').addEventListener('click', function() {
-    document.getElementById('codeModal').style.display = 'none';
-});
-
-// Save from modal
-document.getElementById('modalSaveBtn').addEventListener('click', async function() {
-    const fileId = this.getAttribute('data-file-id');
-    const content = document.getElementById('modalCode').textContent;
-    
+// Load project details
+async function loadProjectDetails() {
     try {
-        const response = await fetch(`/api/files/${fileId}/content`, {
-            method: 'PUT',
+        const response = await fetch(`/api/projects/${projectId}`, {
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(content)
+                'Authorization': `Bearer ${token}`
+            }
         });
         
         if (response.ok) {
-            alert('File saved successfully');
-            // Update the main editor content as well
-            document.querySelector('#editor code').textContent = content;
-            
-            // Close modal
-            document.getElementById('codeModal').style.display = 'none';
+            const result = await response.json();
+            if (result.success && result.data) {
+                currentProject = result.data;
+                
+                // Update page elements
+                document.title = `${currentProject.name} - Code Sharing Platform`;
+                document.getElementById('projectTitle').textContent = currentProject.name;
+                document.getElementById('projectNameBreadcrumb').textContent = currentProject.name;
+                document.getElementById('projectNameBreadcrumb').innerHTML = `<a href="#">${currentProject.name}</a>`;
+                document.getElementById('projectDescription').textContent = currentProject.description || 'No description provided';
+                document.getElementById('projectOwner').textContent = currentProject.owner.username;
+                document.getElementById('projectCreated').textContent = new Date(currentProject.createdAt).toLocaleDateString();
+                
+                const isPublic = currentProject.isPublic !== undefined ? currentProject.isPublic : currentProject.public;
+                document.getElementById('projectVisibility').textContent = isPublic ? 'Public' : 'Private';
+            } else {
+                alert('Failed to load project details');
+                window.location.href = '/dashboard.html';
+            }
         } else {
-            alert('Failed to save file');
+            alert('Failed to load project details');
+            window.location.href = '/dashboard.html';
         }
     } catch (error) {
-        console.error('Error saving file:', error);
-        alert('Failed to save file');
+        console.error('Error loading project details:', error);
+        alert('Failed to load project details');
+        window.location.href = '/dashboard.html';
     }
-});
+}
 
-// Close modal when clicking outside
-window.addEventListener('click', function(event) {
-    const modal = document.getElementById('codeModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-});
-
-        // Add new file
-        document.getElementById('saveNewFileBtn').addEventListener('click', async function() {
-            const fileName = document.getElementById('fileName').value;
-            const filePath = document.getElementById('filePath').value || '';
-            const fileContent = document.getElementById('fileContent').value || '';
-            
-            if (!fileName) {
-                alert('File name is required');
-                return;
-            }
-            
-            const fullPath = filePath ? `${filePath}/${fileName}` : fileName;
-            
-            try {
-                const response = await fetch(`/api/files?projectId=${projectId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: fileName,
-                        path: fullPath,
-                        content: fileContent
-                    })
-                });
-                
-                if (response.ok) {
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addFileModal'));
-                    modal.hide();
-                    
-                    // Reset form
-                    document.getElementById('addFileForm').reset();
-                    
-                    // Reload files
-                    loadProjectFiles();
-                } else {
-                    alert('Failed to create file');
-                }
-            } catch (error) {
-                console.error('Error creating file:', error);
-                alert('Failed to create file');
+// Load project files
+async function loadProjectFiles() {
+    try {
+        const response = await fetch(`/api/files/project/${projectId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
         });
-
-        // Logout function
-        function logout() {
-            localStorage.removeItem('jwt_token');
-            window.location.href = '/login.html';
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                projectFiles = result.data;
+                document.getElementById('fileCount').textContent = projectFiles.length;
+                displayFiles(buildFileTree(projectFiles));
+            } else {
+                document.getElementById('fileList').innerHTML = '<li class="file-item"><span class="text-muted">No files yet. Add some!</span></li>';
+            }
+        } else {
+            document.getElementById('fileList').innerHTML = '<li class="file-item"><div class="alert alert-danger">Failed to load files</div></li>';
         }
+    } catch (error) {
+        console.error('Error loading files:', error);
+        document.getElementById('fileList').innerHTML = '<li class="file-item"><div class="alert alert-danger">Failed to load files</div></li>';
+    }
+}
+// Load project branches
+async function loadProjectBranches() {
+    try {
+        const response = await fetch(`/api/branches/project/${projectId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                projectBranches = result.data;
+                document.getElementById('branchCount').textContent = projectBranches.length;
+                
+                // Find default branch
+                const defaultBranch = projectBranches.find(branch => branch.default);
+                if (defaultBranch) {
+                    currentBranch = defaultBranch.name;
+                    document.getElementById('currentBranch').textContent = currentBranch;
+                }
+                
+                // Populate branch dropdown
+                populateBranchDropdown();
+            }
+        } else {
+            console.error('Failed to load branches');
+        }
+    } catch (error) {
+        console.error('Error loading branches:', error);
+    }
+}
 
-        // Initialize
-        loadUserInfo();
-        loadProjectDetails();
-    </script>
-    <script>
-        // Function to build a file tree structure from flat list of files
-        function buildFileTree(files) {
-          const root = {};
-          
-          files.forEach(file => {
-            let path = file.path;
-            let parts = path.split('/');
-            let fileName = parts.pop();
+// Populate branch dropdown
+function populateBranchDropdown() {
+    branchList.innerHTML = '';
+    
+    projectBranches.forEach(branch => {
+        const branchItem = document.createElement('div');
+        branchItem.className = `branch-item ${branch.name === currentBranch ? 'active' : ''}`;
+        branchItem.dataset.branch = branch.name;
+        
+        branchItem.innerHTML = `
+            <i class="fa fa-code-branch"></i>
+            <span class="branch-name">${branch.name}</span>
+            ${branch.default ? '<span class="badge bg-success text-small">default</span>' : ''}
+        `;
+        
+        branchItem.addEventListener('click', function() {
+            currentBranch = this.dataset.branch;
+            document.getElementById('currentBranch').textContent = currentBranch;
+            branchDropdown.style.display = 'none';
+            loadProjectFiles(); // Reload files for the new branch
+        });
+        
+        branchList.appendChild(branchItem);
+    });
+}
+
+// Build file tree from flat list
+function buildFileTree(files) {
+    const root = { type: 'dir', name: '', path: '', children: {} };
+    
+    files.forEach(file => {
+        let path = file.path;
+        let parts = path.split('/');
+        
+        let currentDir = root;
+        let currentPath = '';
+        
+        for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i];
+            if (!part) continue;
             
-            let currentDir = root;
-            for (let i = 0; i < parts.length; i++) {
-              let part = parts[i];
-              if (!part) continue;
-              
-              currentDir[part] = currentDir[part] || {files: {}, dirs: {}};
-              currentDir = currentDir[part].dirs;
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+            
+            if (!currentDir.children[part]) {
+                currentDir.children[part] = {
+                    type: 'dir',
+                    name: part,
+                    path: currentPath,
+                    children: {}
+                };
             }
             
-            if (fileName) {
-              currentDir[fileName] = {
-                id: file.id,
+            currentDir = currentDir.children[part];
+        }
+        
+        const fileName = parts[parts.length - 1];
+        if (fileName) {
+            currentDir.children[fileName] = {
+                type: 'file',
                 name: fileName,
                 path: file.path,
-                isFile: true
-              };
-            }
-          });
-          
-          return root;
-        }
-        
-        // Function to render the file tree
-        function renderFileTree(node, container, path = '') {
-          const ul = document.createElement('ul');
-          ul.className = 'file-tree';
-          
-          // First handle directories
-          const dirNames = Object.keys(node).filter(key => !node[key].isFile);
-          dirNames.sort().forEach(dirName => {
-            const li = document.createElement('li');
-            li.className = 'directory';
-            
-            const dirNameSpan = document.createElement('span');
-            dirNameSpan.className = 'directory-name';
-            dirNameSpan.textContent = dirName;
-            dirNameSpan.onclick = function() {
-              this.parentElement.classList.toggle('collapsed');
+                id: file.id,
+                content: file.content
             };
-            
-            li.appendChild(dirNameSpan);
-            
-            // Recursively render subdirectories and files
-            if (node[dirName].dirs) {
-              const subContainer = renderFileTree(node[dirName].dirs, container, path + dirName + '/');
-              li.appendChild(subContainer);
-            }
-            
-            ul.appendChild(li);
-          });
-          
-          // Then handle files
-          const fileNames = Object.keys(node).filter(key => node[key].isFile);
-          fileNames.sort().forEach(fileName => {
-            const file = node[fileName];
-            
-            const li = document.createElement('li');
-            li.className = 'file-item';
-            
-            const a = document.createElement('a');
-            a.className = 'file-link';
-            a.textContent = fileName;
-            a.href = '#';
-            a.setAttribute('data-file-id', file.id);
-            a.onclick = function(e) {
-              e.preventDefault();
-              loadFile(file.id);
-            };
-            
-            li.appendChild(a);
-            ul.appendChild(li);
-          });
-          
-          return ul;
         }
-        
-        // Load files for a project
-        async function loadProjectFiles() {
-          try {
-            const projectId = getProjectIdFromUrl();
-            if (!projectId) return;
-            
-            const token = localStorage.getItem('jwt_token');
-            const response = await fetch(`/api/files/project/${projectId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-            
-            if (response.ok) {
-              const result = await response.json();
-              if (result.success && result.data) {
-                // Transform to a simpler format for our tree builder
-                const files = result.data.map(file => ({
-                  id: file.id,
-                  name: file.name,
-                  path: file.path
-                }));
-                
-                // Build and render the file tree
-                const fileTree = buildFileTree(files);
-                const filesList = document.getElementById('filesList');
-                filesList.innerHTML = '';
-                const tree = renderFileTree(fileTree, filesList);
-                filesList.appendChild(tree);
-              } else {
-                document.getElementById('filesList').innerHTML = '<p class="text-muted">No files found in this project.</p>';
-              }
-            } else {
-              document.getElementById('filesList').innerHTML = '<div class="alert alert-danger">Failed to load files.</div>';
-            }
-          } catch (error) {
-            console.error('Error loading files:', error);
-            document.getElementById('filesList').innerHTML = '<div class="alert alert-danger">Error loading files.</div>';
-          }
-        }
-        
-        // Get project ID from URL
-        function getProjectIdFromUrl() {
-          const urlParams = new URLSearchParams(window.location.search);
-          return urlParams.get('id');
-        }
-        
-        // Initialize when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-          loadProjectFiles();
+    });
+    
+    return root;
+}
+
+// Display files
+function displayFiles(root) {
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    
+    // Add parent directory link if we're in a subdirectory
+    if (currentPath !== '') {
+        const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+        const parentItem = document.createElement('li');
+        parentItem.className = 'dir-item';
+        parentItem.innerHTML = `
+            <i class="fa fa-folder file-icon file-dir-icon"></i>
+            <a href="#" class="dir-name" data-path="${parentPath}">..</a>
+        `;
+        parentItem.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            navigateToPath(parentPath);
         });
-      </script>
+        fileList.appendChild(parentItem);
+    }
+    
+    // Find current directory based on path
+    let currentDir = root;
+    if (currentPath) {
+        const pathParts = currentPath.split('/');
+        for (const part of pathParts) {
+            if (part && currentDir.children && currentDir.children[part]) {
+                currentDir = currentDir.children[part];
+            }
+        }
+    }
+    
+    // Display directories first
+    const dirEntries = [];
+    const fileEntries = [];
+    
+    for (const name in currentDir.children) {
+        const entry = currentDir.children[name];
+        if (entry.type === 'dir') {
+            dirEntries.push(entry);
+        } else {
+            fileEntries.push(entry);
+        }
+    }
+    
+    // Sort entries by name
+    dirEntries.sort((a, b) => a.name.localeCompare(b.name));
+    fileEntries.sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Add directories
+    dirEntries.forEach(entry => {
+        const listItem = document.createElement('li');
+        listItem.className = 'dir-item';
+        listItem.innerHTML = `
+            <i class="fa fa-folder file-icon file-dir-icon"></i>
+            <a href="#" class="dir-name" data-path="${entry.path}">${entry.name}</a>
+        `;
+        listItem.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            navigateToPath(entry.path);
+        });
+        fileList.appendChild(listItem);
+    });
+    
+    // Add files
+    fileEntries.forEach(entry => {
+        const listItem = document.createElement('li');
+        listItem.className = 'file-item';
+        
+        // Determine file icon based on extension
+        let fileIconClass = 'fa-file';
+        const ext = entry.name.split('.').pop().toLowerCase();
+        if (['java', 'js', 'ts', 'py', 'rb', 'php', 'c', 'cpp', 'h', 'cs'].includes(ext)) {
+            fileIconClass = 'fa-file-code';
+        } else if (['md', 'txt', 'log'].includes(ext)) {
+            fileIconClass = 'fa-file-alt';
+        } else if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext)) {
+            fileIconClass = 'fa-file-image';
+        } else if (['pdf'].includes(ext)) {
+            fileIconClass = 'fa-file-pdf';
+        } else if (['zip', 'rar', 'tar', 'gz'].includes(ext)) {
+            fileIconClass = 'fa-file-archive';
+        } else if (['doc', 'docx'].includes(ext)) {
+            fileIconClass = 'fa-file-word';
+        } else if (['xls', 'xlsx'].includes(ext)) {
+            fileIconClass = 'fa-file-excel';
+        } else if (['ppt', 'pptx'].includes(ext)) {
+            fileIconClass = 'fa-file-powerpoint';
+        } else if (['mp3', 'wav', 'ogg'].includes(ext)) {
+            fileIconClass = 'fa-file-audio';
+        } else if (['mp4', 'avi', 'mov', 'wmv'].includes(ext)) {
+            fileIconClass = 'fa-file-video';
+        }
+        
+        listItem.innerHTML = `
+            <i class="fa ${fileIconClass} file-icon"></i>
+            <a href="#" class="file-name" data-file-id="${entry.id}">${entry.name}</a>
+            <span class="commit-msg">Updated recently</span>
+        `;
+        
+        listItem.querySelector('a').addEventListener('click', function(e) {
+            e.preventDefault();
+            loadFile(entry.id);
+        });
+        
+        fileList.appendChild(listItem);
+    });
+    
+    // Update current path display
+    document.getElementById('currentPath').textContent = currentPath || '.';
+}
+// Navigate to directory path
+function navigateToPath(path) {
+    currentPath = path;
+    // Re-display files for the new path
+    displayFiles(buildFileTree(projectFiles));
+    // Hide code display when navigating
+    document.getElementById('codeContainer').style.display = 'none';
+}
+
+// Load file content
+async function loadFile(fileId) {
+    try {
+        const response = await fetch(`/api/files/${fileId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                const file = result.data;
+                displayFileContent(file);
+            } else {
+                alert('Failed to load file content');
+            }
+        } else {
+            alert('Failed to load file content');
+        }
+    } catch (error) {
+        console.error('Error loading file content:', error);
+        alert('Failed to load file content');
+    }
+}
+
+// Display file content
+function displayFileContent(file) {
+    // Update file name in header
+    document.getElementById('currentFileName').textContent = file.name;
+    
+    // Get the code container and make it visible
+    const codeContainer = document.getElementById('codeContainer');
+    codeContainer.style.display = 'block';
+    
+    // Build the code table with line numbers
+    const codeTable = document.getElementById('codeTable');
+    codeTable.innerHTML = '';
+    
+    // Split content by lines and add line numbers
+    const lines = file.content ? file.content.split('\n') : ['No content'];
+    
+    lines.forEach((line, index) => {
+        const row = document.createElement('tr');
+        
+        // Line number cell
+        const lineNumberCell = document.createElement('td');
+        lineNumberCell.className = 'line-number';
+        lineNumberCell.textContent = index + 1;
+        lineNumberCell.dataset.lineNumber = index + 1;
+        row.appendChild(lineNumberCell);
+        
+        // Line content cell
+        const lineContentCell = document.createElement('td');
+        lineContentCell.className = 'line-content';
+        lineContentCell.textContent = line;
+        row.appendChild(lineContentCell);
+        
+        codeTable.appendChild(row);
+    });
+    
+    // Set up the raw button link
+    document.getElementById('rawButton').href = `/api/files/${file.id}/raw`;
+    
+    // Set up download button
+    document.getElementById('downloadButton').href = `/api/files/${file.id}/raw`;
+    document.getElementById('downloadButton').download = file.name;
+    
+    // Scroll to top of page
+    window.scrollTo(0, 0);
+    
+    // Update modal data for full screen view
+    document.getElementById('modalFileName').textContent = file.name;
+    document.getElementById('modalCode').textContent = file.content || 'No content';
+    
+    // Apply syntax highlighting based on file extension
+    applyCodeHighlighting(file.name);
+}
+
+// Apply syntax highlighting
+function applyCodeHighlighting(fileName) {
+    // Get file extension
+    const ext = fileName.split('.').pop().toLowerCase();
+    
+    // Map of extensions to highlight.js language classes
+    const languageMap = {
+        'js': 'javascript',
+        'jsx': 'javascript',
+        'ts': 'typescript',
+        'tsx': 'typescript',
+        'html': 'html',
+        'xml': 'xml',
+        'css': 'css',
+        'scss': 'scss',
+        'sass': 'scss',
+        'less': 'less',
+        'java': 'java',
+        'py': 'python',
+        'rb': 'ruby',
+        'php': 'php',
+        'c': 'c',
+        'cpp': 'cpp',
+        'h': 'cpp',
+        'cs': 'csharp',
+        'go': 'go',
+        'rs': 'rust',
+        'swift': 'swift',
+        'kt': 'kotlin',
+        'md': 'markdown',
+        'json': 'json',
+        'yml': 'yaml',
+        'yaml': 'yaml',
+        'sql': 'sql',
+        'sh': 'bash',
+        'bat': 'batch',
+        'ps1': 'powershell',
+        'dockerfile': 'dockerfile',
+        'properties': 'properties',
+        'gradle': 'gradle'
+    };
+    
+    // Set class on modal code element for highlighting
+    const language = languageMap[ext] || '';
+    if (language) {
+        const modalCode = document.getElementById('modalCode');
+        modalCode.className = `language-${language}`;
+        
+        // Initialize highlight.js
+        if (window.hljs) {
+            window.hljs.highlightElement(modalCode);
+        }
+    }
+}
+        // Add these functions to the project.html JavaScript:
+
+        // Toggle star status
+        function toggleStar() {
+            const projectId = parseInt(urlParams.get('id'));
+            
+            // Get current starred repos from localStorage
+            let starredRepoIds = JSON.parse(localStorage.getItem('starredRepos') || '[]');
+            
+            const isStarred = starredRepoIds.includes(projectId);
+            
+            if (isStarred) {
+                // Remove from starred
+                starredRepoIds = starredRepoIds.filter(id => id !== projectId);
+            } else {
+                // Add to starred
+                starredRepoIds.push(projectId);
+            }
+            
+            // Update localStorage
+            localStorage.setItem('starredRepos', JSON.stringify(starredRepoIds));
+            
+            // Update UI
+            const starButton = document.querySelector('.gh-btn:nth-child(1)');
+            if (starButton) {
+                starButton.innerHTML = isStarred ? 
+                    '<i class="fa fa-star-o"></i> Star' : 
+                    '<i class="fa fa-star"></i> Unstar';
+            }
+        }
+
+        // Fork repository
+        function forkRepository() {
+            const projectId = parseInt(urlParams.get('id'));
+            alert('Repository forked successfully! (This is a simulation)');
+        }
+
+        // Update event listeners in setupEventListeners function:
+        document.querySelector('.gh-btn:nth-child(1)').addEventListener('click', toggleStar);
+        document.querySelector('.gh-btn:nth-child(2)').addEventListener('click', forkRepository);
+
+        // Add this to the initialize function:
+        // Check if repository is already starred and update UI
+        function updateStarButton() {
+            const projectId = parseInt(urlParams.get('id'));
+            const starredRepoIds = JSON.parse(localStorage.getItem('starredRepos') || '[]');
+            const isStarred = starredRepoIds.includes(projectId);
+            
+            const starButton = document.querySelector('.gh-btn:nth-child(1)');
+            if (starButton) {
+                starButton.innerHTML = isStarred ? 
+                    '<i class="fa fa-star"></i> Unstar' : 
+                    '<i class="fa fa-star-o"></i> Star';
+            }
+        }
+
+    // Set up event listeners
+    function setupEventListeners() {
+    // Branch dropdown toggle
+    branchButton.addEventListener('click', function() {
+        if (branchDropdown.style.display === 'block') {
+            branchDropdown.style.display = 'none';
+        } else {
+            branchDropdown.style.display = 'block';
+            branchSearchInput.focus();
+        }
+    });
+    
+    // Branch search
+    branchSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const branchItems = branchList.querySelectorAll('.branch-item');
+        
+        branchItems.forEach(item => {
+            const branchName = item.querySelector('.branch-name').textContent.toLowerCase();
+            if (branchName.includes(searchTerm)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!branchButton.contains(event.target) && !branchDropdown.contains(event.target)) {
+            branchDropdown.style.display = 'none';
+        }
+    });
+    
+    // Copy button
+    document.getElementById('copyButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Get content from lines
+        const lineContents = document.querySelectorAll('.line-content');
+        let content = '';
+        lineContents.forEach(line => {
+            content += line.textContent + '\n';
+        });
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(content).then(function() {
+            alert('Content copied to clipboard!');
+        }).catch(function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+    
+    // Full screen button
+    document.getElementById('fullScreenButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        fullScreenModal.style.display = 'block';
+        
+        // Apply syntax highlighting
+        if (window.hljs) {
+            window.hljs.highlightElement(document.getElementById('modalCode'));
+        }
+    });
+    
+    // Close modal
+    modalClose.addEventListener('click', function() {
+        fullScreenModal.style.display = 'none';
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === fullScreenModal) {
+            fullScreenModal.style.display = 'none';
+        }
+    });
+}
+
+// Initialize highlight.js
+document.addEventListener('DOMContentLoaded', function() {
+    // Load common languages
+    if (window.hljs) {
+        hljs.highlightAll();
+    }
+});
+
+// Start the application
+initialize();
+</script>
 </body>
 </html>
