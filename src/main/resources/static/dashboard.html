@@ -75,16 +75,19 @@
     <!-- Main Content -->
     <div class="container-xl py-4">
         <div class="row gx-4">
-            <!-- Left Column: User Profile and Navigation -->
-            <div class="col-md-3 mb-4">
-                <div class="card mb-3 border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="avatar-img-large mb-3">
-                        <h5 class="mb-1" id="profileName">User Name</h5>
-                        <p class="text-muted small" id="profileUsername">username</p>
-                        <button class="btn btn-sm btn-outline-dark w-100">Edit profile</button>
-                    </div>
+        <!-- Left Column: User Profile and Navigation -->
+        <div class="col-md-3 mb-4">
+            <div class="card mb-3 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="avatar-img-large mb-3">
+                    <h5 class="mb-1" id="profileName">User Name</h5>
+                    <p class="text-muted small" id="profileUsername">username</p>
+                    <!-- Add this line to display the bio -->
+                    <p class="text-muted small mb-3" id="profileBio">Bio will appear here</p>
+                    <button class="btn btn-sm btn-outline-dark w-100">Edit profile</button>
                 </div>
+            </div>
+        </div>
                 
                 <div class="list-group mb-4 border-0 shadow-sm">
                     <a href="#" class="list-group-item list-group-item-action">
@@ -439,43 +442,64 @@
         await loadUserInfo();
         await loadRepositories();
         setupEventListeners();
+        setupFilterListeners();
     }
     
-    // Load user info
-    async function loadUserInfo() {
-        try {
-            const response = await fetch('/api/auth/user', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+// Update the loadUserInfo function to properly set profile information
+async function loadUserInfo() {
+    try {
+        const response = await fetch('/api/auth/user', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                currentUser = result.data;
+                
+                // Update profile card
+                const profileName = document.getElementById('profileName');
+                const profileUsername = document.getElementById('profileUsername');
+                const profileBio = document.getElementById('profileBio');
+                
+                if (profileName) {
+                    profileName.textContent = currentUser.fullName || currentUser.username;
                 }
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success && result.data) {
-                    currentUser = result.data;
+                
+                if (profileUsername) {
+                    profileUsername.textContent = currentUser.username;
+                }
+                
+                // Update the bio display
+                if (profileBio) {
+                    profileBio.textContent = currentUser.bio || 'No bio provided';
+                    // Hide the element if there's no bio
+                    profileBio.style.display = currentUser.bio ? 'block' : 'none';
+                }
+                
+                // If there's a user avatar, update it
+                if (currentUser.avatarUrl) {
+                    document.querySelectorAll('.avatar-img').forEach(img => {
+                        img.src = currentUser.avatarUrl;
+                    });
                     
-                    // Update UI with user info
-                    document.getElementById('userInfo').textContent = `Welcome, ${currentUser.username}`;
-                    document.getElementById('profileName').textContent = currentUser.fullName || currentUser.username;
-                    document.getElementById('profileUsername').textContent = currentUser.username;
-                    document.getElementById('userDropdownName').textContent = currentUser.username;
-                    
-                    // If there's a user avatar, update it
-                    if (currentUser.avatarUrl) {
-                        document.querySelectorAll('.avatar-img').forEach(img => img.src = currentUser.avatarUrl);
-                        document.querySelector('.avatar-img-large').src = currentUser.avatarUrl;
+                    const profileAvatar = document.querySelector('.avatar-img-large');
+                    if (profileAvatar) {
+                        profileAvatar.src = currentUser.avatarUrl;
                     }
-                } else {
-                    console.warn('User data not available');
                 }
             } else {
-                console.error('Failed to load user info');
+                console.warn('User data not available');
             }
-        } catch (error) {
-            console.error('Error loading user info:', error);
+        } else {
+            console.error('Failed to load user info');
         }
+    } catch (error) {
+        console.error('Error loading user info:', error);
     }
+}
     
     // Load repositories (projects)
     async function loadRepositories() {
@@ -684,37 +708,51 @@ async function forkRepository(repoId) {
             showToast('Failed to update repository visibility', 'error');
         }
     }
-        // Show a toast notification
-        function showToast(message, type = 'info') {
-        // Simple implementation - you can enhance this with a proper toast library
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-header">
-                <strong class="me-auto">Notification</strong>
-                <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
-            </div>
-        `;
-        
-        // Add toast container if it doesn't exist
-        let toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toast-container';
-            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
-            document.body.appendChild(toastContainer);
-        }
-        
-        toastContainer.appendChild(toast);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
+// Function to show toast notification
+function showToast(message, type = 'info') {
+    const toastId = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `toast ${type === 'success' ? 'bg-success text-white' : type === 'error' ? 'bg-danger text-white' : 'bg-light'}`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">${type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Notification'}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
     }
+    
+    // Add toast to container
+    toastContainer.appendChild(toast);
+    
+    // Initialize and show toast
+    const toastInstance = new bootstrap.Toast(toast, {
+        autohide: true,
+        delay: 5000
+    });
+    
+    toastInstance.show();
+    
+    // Remove toast after it's hidden
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
      // Delete repository function
      async function deleteRepository(repoId) {
         if (!confirm('Are you sure you want to delete this repository? This action cannot be undone.')) {
@@ -756,40 +794,33 @@ async function forkRepository(repoId) {
         }
     }
 
-// Add this to your existing JavaScript in dashboard.html
+// Function to filter repositories based on selected type
 function filterRepositories(type) {
-    // Update the dropdown button text
+    // Update dropdown button text
     const dropdownButton = document.querySelector('.input-group-append .btn');
-    dropdownButton.innerHTML = `Type: ${type}`;
+    dropdownButton.textContent = `Type: ${type}`;
     
-    // Filter repositories based on type
+    // Filter repositories
+    let filteredRepos;
+    
     if (type === 'All') {
-        // Show all repositories
-        displayRepositories(repositories);
+        filteredRepos = repositories;
     } else if (type === 'Public') {
-        // Filter to show only public repositories
-        const publicRepos = repositories.filter(repo => {
-            const isPublic = repo.isPublic !== undefined ? repo.isPublic : repo.public;
-            return isPublic;
+        filteredRepos = repositories.filter(repo => {
+            return repo.isPublic !== undefined ? repo.isPublic : repo.public;
         });
-        
-        if (publicRepos.length === 0) {
-            showEmptyState('You don\'t have any public repositories.');
-        } else {
-            displayRepositories(publicRepos);
-        }
     } else if (type === 'Private') {
-        // Filter to show only private repositories
-        const privateRepos = repositories.filter(repo => {
+        filteredRepos = repositories.filter(repo => {
             const isPublic = repo.isPublic !== undefined ? repo.isPublic : repo.public;
             return !isPublic;
         });
-        
-        if (privateRepos.length === 0) {
-            showEmptyState('You don\'t have any private repositories.');
-        } else {
-            displayRepositories(privateRepos);
-        }
+    }
+    
+    // Display filtered repositories
+    if (filteredRepos.length === 0) {
+        showEmptyState(`You don't have any ${type.toLowerCase() !== 'all' ? type.toLowerCase() : ''} repositories yet.`);
+    } else {
+        displayRepositories(filteredRepos);
     }
 }
 </script>
@@ -825,6 +856,19 @@ function filterRepositories(type) {
             </div>
         `;
     }
+
+    // Add click event listeners to filter dropdown items
+function setupFilterListeners() {
+    const filterLinks = document.querySelectorAll('.input-group-append .dropdown-menu .dropdown-item');
+    
+    filterLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const type = this.textContent.trim();
+            filterRepositories(type);
+        });
+    });
+}
     
     // Determine language based on repository (mock implementation)
     function determineLanguage(repo) {
@@ -906,56 +950,58 @@ function searchRepositories(query) {
     }
 }
     
-    // Create repository
-    async function createRepository() {
-        const name = document.getElementById('repoName').value;
-        const description = document.getElementById('repoDescription').value;
-        const isPublic = document.getElementById('publicRepo').checked;
-        
-        if (!name) {
-            alert('Repository name is required');
-            return;
-        }
-        
-        try {
-            const repositoryData = {
-                name: name,
-                description: description,
-                isPublic: isPublic
-            };
-            
-            const response = await fetch('/api/projects', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(repositoryData)
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok && data.success) {
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('newRepoModal'));
-                modal.hide();
-                
-                // Reset form
-                document.getElementById('createRepoForm').reset();
-                
-                // Reload repositories
-                await loadRepositories();
-                
-                // Show success message
-                alert('Repository created successfully!');
-            } else {
-                alert(data.message || 'Failed to create repository');
-            }
-        } catch (error) {
-            console.error('Error creating repository:', error);
-            alert('Failed to create repository');
-        }
+// Update the createRepository function to handle visibility and README initialization
+async function createRepository() {
+    const name = document.getElementById('repoName').value;
+    const description = document.getElementById('repoDescription').value;
+    const isPublic = document.getElementById('publicRepo').checked;
+    const initializeWithReadme = document.getElementById('initializeRepo').checked;
+    
+    if (!name) {
+        alert('Repository name is required');
+        return;
     }
+    
+    try {
+        const repositoryData = {
+            name: name,
+            description: description,
+            isPublic: isPublic,
+            initializeWithReadme: initializeWithReadme // Add this property
+        };
+        
+        const response = await fetch('/api/projects', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(repositoryData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newRepoModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('createRepoForm').reset();
+            
+            // Reload repositories
+            await loadRepositories();
+            
+            // Show success message
+            showToast('Repository created successfully!', 'success');
+        } else {
+            showToast(data.message || 'Failed to create repository', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating repository:', error);
+        showToast('Failed to create repository: ' + error.message, 'error');
+    }
+}
     
     // Set up event listeners
     function setupEventListeners() {
@@ -992,6 +1038,13 @@ function searchRepositories(query) {
             filterRepositories(type);
         });
     });
+        // Add event listener for edit profile button
+        const editProfileBtn = document.querySelector('.card-body .btn-outline-dark');
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', function() {
+            showEditProfileModal();
+        });
+    }
     }
         // Helper function to update a single repository card
         function updateRepositoryCard(card, repo) {
@@ -1072,6 +1125,114 @@ function searchRepositories(query) {
             </div>
         `;
     }
+    // Add this function to show and handle the edit profile modal
+function showEditProfileModal() {
+    // Check if modal already exists
+    let editProfileModal = document.getElementById('editProfileModal');
+    
+    // If not, create it
+    if (!editProfileModal) {
+        // Create modal HTML
+        const modalHTML = `
+        <div class="modal fade" id="editProfileModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Profile</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editProfileForm">
+                            <div class="mb-3">
+                                <label for="editFullName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="editFullName" value="${currentUser.fullName || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editEmail" value="${currentUser.email || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editBio" class="form-label">Bio (optional)</label>
+                                <textarea class="form-control" id="editBio" rows="3">${currentUser.bio || ''}</textarea>
+                            </div>
+                            <!-- You can add more fields as needed -->
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveProfileButton">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        
+        // Append to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Get the modal
+        editProfileModal = document.getElementById('editProfileModal');
+        
+        // Add event listener for save button
+        document.getElementById('saveProfileButton').addEventListener('click', saveProfileChanges);
+    }
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(editProfileModal);
+    modal.show();
+}
+// Add this function to save profile changes
+async function saveProfileChanges() {
+    const fullName = document.getElementById('editFullName').value;
+    const email = document.getElementById('editEmail').value;
+    const bio = document.getElementById('editBio').value;
+    // Add this line to update the bio display
+    const profileBio = document.getElementById('profileBio');
+            if (profileBio) {
+                profileBio.textContent = bio || 'No bio provided';
+                profileBio.style.display = bio ? 'block' : 'none';
+            }
+    
+    try {
+        // Call API to update user profile
+        const response = await fetch('/api/users/profile', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fullName: fullName,
+                email: email,
+                bio: bio
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            // Update user data
+            currentUser.fullName = fullName;
+            currentUser.email = email;
+            currentUser.bio = bio;
+            
+            // Update profile display
+            document.getElementById('profileName').textContent = fullName || currentUser.username;
+            
+            // Close modal
+            const editProfileModal = document.getElementById('editProfileModal');
+            const modal = bootstrap.Modal.getInstance(editProfileModal);
+            modal.hide();
+            
+            // Show success message
+            showToast('Profile updated successfully', 'success');
+        } else {
+            showToast(data.message || 'Failed to update profile', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showToast('Failed to update profile', 'error');
+    }
+}
 
 
     // Start the application

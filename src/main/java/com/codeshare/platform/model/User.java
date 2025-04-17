@@ -36,6 +36,17 @@ public class User {
     private String email;
     
     private String fullName;
+
+    private String bio;
+
+    // Getter and setter
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
     
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

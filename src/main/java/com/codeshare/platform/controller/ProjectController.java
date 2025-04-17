@@ -1,5 +1,7 @@
 package com.codeshare.platform.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,10 +23,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.codeshare.platform.dto.ApiResponse;
 import com.codeshare.platform.dto.ProjectDto;
 import com.codeshare.platform.dto.UserDto;
+import com.codeshare.platform.model.Branch;
+import com.codeshare.platform.model.File;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.service.BranchService;
+import com.codeshare.platform.service.FileService;
 import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
+import com.codeshare.platform.service.VersionControlService;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -38,20 +45,103 @@ public class ProjectController {
         this.projectService = projectService;
         this.userService = userService;
     }
+    @Autowired
+    private FileService fileService;
+
+    @Autowired
+    private BranchService branchService;
+
+    @Autowired
+    private VersionControlService versionControlService;
     
     @PostMapping
-    public ResponseEntity<ApiResponse<ProjectDto>> createProject(@RequestBody Project project, Authentication authentication) {
+    public ResponseEntity<ApiResponse<ProjectDto>> createProject(@RequestBody Map<String, Object> projectData, Authentication authentication) {
         String username = authentication.getName();
         Optional<User> ownerOpt = userService.getUserByUsername(username);
         
-        if (ownerOpt.isPresent()) {
-            project.setOwner(ownerOpt.get());
-            Project createdProject = projectService.createProject(project);
-            return new ResponseEntity<>(ApiResponse.success("Project created successfully", convertToDto(createdProject)), HttpStatus.CREATED);
-        } else {
+        if (ownerOpt.isEmpty()) {
             return new ResponseEntity<>(ApiResponse.error("Owner not found"), HttpStatus.NOT_FOUND);
         }
+        
+        // Create project
+        Project project = new Project();
+        project.setName((String) projectData.get("name"));
+        project.setDescription((String) projectData.get("description"));
+        project.setPublic((Boolean) projectData.getOrDefault("isPublic", true));
+        project.setOwner(ownerOpt.get());
+        project.setCreatedAt(LocalDateTime.now());
+        
+        // Save project
+        Project createdProject = projectService.createProject(project);
+        
+        // Create default branch if it doesn't exist
+        Branch defaultBranch;
+        Optional<Branch> existingDefaultBranch = branchService.getDefaultBranch(createdProject);
+        
+        if (existingDefaultBranch.isPresent()) {
+            defaultBranch = existingDefaultBranch.get();
+        } else {
+            // Create a new main branch
+            Branch newBranch = new Branch();
+            newBranch.setName("main");
+            newBranch.setProject(createdProject);
+            newBranch.setCreatedAt(LocalDateTime.now());
+            newBranch.setDefault(true);
+            
+            defaultBranch = branchService.createBranch(newBranch);
+        }
+        
+        // Handle README initialization if requested
+        Boolean initializeWithReadme = (Boolean) projectData.getOrDefault("initializeWithReadme", false);
+        if (initializeWithReadme) {
+            // Create README.md file
+            File readmeFile = new File();
+            readmeFile.setName("README.md");
+            readmeFile.setPath("README.md");
+            readmeFile.setProject(createdProject);
+            readmeFile.setContent(generateDefaultReadme(createdProject));
+            readmeFile.setCreatedAt(LocalDateTime.now());
+            
+            fileService.createFile(readmeFile);
+            
+            // Create initial commit with README using the defaultBranch we just ensured exists
+            Map<String, String> fileChanges = new HashMap<>();
+            fileChanges.put("README.md", readmeFile.getContent());
+            
+            versionControlService.commitChanges(
+                defaultBranch, 
+                ownerOpt.get(), 
+                "Initial commit: Add README.md", 
+                fileChanges
+            );
+        }
+        
+        return new ResponseEntity<>(
+            ApiResponse.success("Project created successfully", convertToDto(createdProject)), 
+            HttpStatus.CREATED
+        );
     }
+// Helper method to generate default README content
+private String generateDefaultReadme(Project project) {
+    StringBuilder content = new StringBuilder();
+    content.append("# ").append(project.getName()).append("\n\n");
+    
+    if (project.getDescription() != null && !project.getDescription().isEmpty()) {
+        content.append(project.getDescription()).append("\n\n");
+    }
+    
+    content.append("## About\n\n");
+    content.append("This repository was created with Code Sharing Platform.\n\n");
+    content.append("## Getting Started\n\n");
+    content.append("To get started with this project, follow these steps:\n\n");
+    content.append("1. Clone the repository\n");
+    content.append("2. [Add your instructions here]\n");
+    content.append("3. [Add more steps as needed]\n\n");
+    content.append("## License\n\n");
+    content.append("This project is licensed under the MIT License - see the LICENSE file for details.\n");
+    
+    return content.toString();
+}
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProjectDto>> getProjectById(@PathVariable Long id, Authentication authentication) {

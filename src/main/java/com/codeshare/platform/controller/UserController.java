@@ -1,12 +1,14 @@
 package com.codeshare.platform.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,14 +76,83 @@ public class UserController {
             return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.NOT_FOUND);
         }
     }
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<UserDto>> updateProfile(@RequestBody Map<String, Object> profileData, Authentication authentication) {
+        // Get current authenticated user
+        String username = authentication.getName();
+        Optional<User> userOpt = userService.getUserByUsername(username);
+        
+        if (userOpt.isEmpty()) {
+            return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.NOT_FOUND);
+        }
+        
+        User user = userOpt.get();
+        boolean updated = false;
+        
+        // Update fullName if provided
+        if (profileData.containsKey("fullName")) {
+            String fullName = (String) profileData.get("fullName");
+            user.setFullName(fullName);
+            updated = true;
+        }
+        
+        // Update email if provided
+        if (profileData.containsKey("email")) {
+            String email = (String) profileData.get("email");
+            
+            // Validate email format
+            if (email != null && !email.isEmpty() && isValidEmail(email)) {
+                // Check if email is already used by another user
+                if (!userService.existsByEmail(email) || user.getEmail().equals(email)) {
+                    user.setEmail(email);
+                    updated = true;
+                } else {
+                    return new ResponseEntity<>(ApiResponse.error("Email already in use"), HttpStatus.BAD_REQUEST);
+                }
+            } else if (email != null && !email.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Invalid email format"), HttpStatus.BAD_REQUEST);
+            }
+        }
+        
+        // Update bio if provided
+        if (profileData.containsKey("bio")) {
+            String bio = (String) profileData.get("bio");
+            // Assuming you have a bio field in your User model
+            // If not, you'll need to add this field to your User class
+            user.setBio(bio);
+            updated = true;
+        }
+        
+        // Save changes if any updates were made
+        if (updated) {
+            User updatedUser = userService.updateUser(user);
+            return new ResponseEntity<>(
+                ApiResponse.success("Profile updated successfully", convertToDto(updatedUser)),
+                HttpStatus.OK
+            );
+        } else {
+            return new ResponseEntity<>(
+                ApiResponse.success("No changes to apply", convertToDto(user)),
+                HttpStatus.OK
+            );
+        }
+    }
+    // Helper method to validate email format
+    private boolean isValidEmail(String email) {
+        // Basic email validation using regex
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email.matches(emailRegex);
+    }
 
-    // Helper method to convert User to UserDto
+    // Helper method to convert User to UserDto (you may already have this)
     private UserDto convertToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setFullName(user.getFullName());
+        // Set bio if you've added it to your UserDto
+        // dto.setBio(user.getBio());
         return dto;
     }
 }
