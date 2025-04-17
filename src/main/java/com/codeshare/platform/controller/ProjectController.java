@@ -1,6 +1,7 @@
 package com.codeshare.platform.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ public class ProjectController {
         this.projectService = projectService;
         this.userService = userService;
     }
+    
     @PostMapping
     public ResponseEntity<ApiResponse<ProjectDto>> createProject(@RequestBody Project project, Authentication authentication) {
         String username = authentication.getName();
@@ -90,28 +92,85 @@ public class ProjectController {
         }
     }
 
+    /**
+     * Updated method to handle partial updates for project properties
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProjectDto>> updateProject(@PathVariable Long id, @RequestBody Project project) {
-        Optional<Project> existingProject = projectService.getProjectById(id);
-        if (existingProject.isPresent()) {
-            project.setId(id);
-            project.setOwner(existingProject.get().getOwner());  // Preserve the original owner
-            Project updatedProject = projectService.updateProject(project);
-            return new ResponseEntity<>(ApiResponse.success("Project updated successfully", convertToDto(updatedProject)), HttpStatus.OK);
-        } else {
+    public ResponseEntity<ApiResponse<ProjectDto>> updateProject(@PathVariable Long id, @RequestBody Map<String, Object> updates, Authentication authentication) {
+        // Check if project exists
+        Optional<Project> projectOpt = projectService.getProjectById(id);
+        if (projectOpt.isEmpty()) {
             return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+        }
+        
+        Project project = projectOpt.get();
+        
+        // Security check - only owner can update the project
+        String username = authentication.getName();
+        if (!project.getOwner().getUsername().equals(username)) {
+            return new ResponseEntity<>(ApiResponse.error("You don't have permission to update this project"), 
+                                      HttpStatus.FORBIDDEN);
+        }
+        
+        // Apply updates if provided
+        boolean updated = false;
+        
+        // Update visibility (public/private)
+        if (updates.containsKey("isPublic")) {
+            boolean isPublic = (Boolean) updates.get("isPublic");
+            project.setPublic(isPublic);
+            updated = true;
+        }
+        
+        // Update name if provided
+        if (updates.containsKey("name")) {
+            String name = (String) updates.get("name");
+            if (name != null && !name.trim().isEmpty()) {
+                project.setName(name);
+                updated = true;
+            }
+        }
+        
+        // Update description if provided
+        if (updates.containsKey("description")) {
+            String description = (String) updates.get("description");
+            project.setDescription(description);
+            updated = true;
+        }
+        
+        // Only save if any updates were applied
+        if (updated) {
+            Project updatedProject = projectService.updateProject(project);
+            return new ResponseEntity<>(
+                ApiResponse.success("Project updated successfully", convertToDto(updatedProject)), 
+                HttpStatus.OK
+            );
+        } else {
+            return new ResponseEntity<>(
+                ApiResponse.success("No changes to apply", convertToDto(project)), 
+                HttpStatus.OK
+            );
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long id) {
-        Optional<Project> existingProject = projectService.getProjectById(id);
-        if (existingProject.isPresent()) {
-            projectService.deleteProject(id);
-            return new ResponseEntity<>(ApiResponse.success("Project deleted successfully", null), HttpStatus.OK);
-        } else {
+    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long id, Authentication authentication) {
+        Optional<Project> projectOpt = projectService.getProjectById(id);
+        if (projectOpt.isEmpty()) {
             return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
         }
+        
+        Project project = projectOpt.get();
+        
+        // Security check - only owner can delete the project
+        String username = authentication.getName();
+        if (!project.getOwner().getUsername().equals(username)) {
+            return new ResponseEntity<>(ApiResponse.error("You don't have permission to delete this project"), 
+                                       HttpStatus.FORBIDDEN);
+        }
+        
+        projectService.deleteProject(id);
+        return new ResponseEntity<>(ApiResponse.success("Project deleted successfully", null), HttpStatus.OK);
     }
 
     @PostMapping("/{projectId}/collaborators/{userId}")
