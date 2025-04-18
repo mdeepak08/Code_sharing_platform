@@ -137,12 +137,7 @@ public class UserController {
             );
         }
     }
-    // Helper method to validate email format
-    private boolean isValidEmail(String email) {
-        // Basic email validation using regex
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-        return email.matches(emailRegex);
-    }
+
 
     // Helper method to convert User to UserDto (you may already have this)
     private UserDto convertToDto(User user) {
@@ -151,8 +146,14 @@ public class UserController {
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setFullName(user.getFullName());
-        // Set bio if you've added it to your UserDto
-        // dto.setBio(user.getBio());
+        dto.setBio(user.getBio());
         return dto;
     }
+        // Helper method to validate email format
+        private boolean isValidEmail(String email) {
+            // Basic email validation using regex
+            String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+            return email.matches(emailRegex);
+        }
+    
 }

@@ -72,22 +72,19 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <div class="container-xl py-4">
         <div class="row gx-4">
-        <!-- Left Column: User Profile and Navigation -->
-        <div class="col-md-3 mb-4">
-            <div class="card mb-3 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="avatar-img-large mb-3">
-                    <h5 class="mb-1" id="profileName">User Name</h5>
-                    <p class="text-muted small" id="profileUsername">username</p>
-                    <!-- Add this line to display the bio -->
-                    <p class="text-muted small mb-3" id="profileBio">Bio will appear here</p>
-                    <button class="btn btn-sm btn-outline-dark w-100">Edit profile</button>
+            <!-- Left Column: User Profile and Navigation -->
+            <div class="col-md-3 mb-4">
+                <div class="card mb-3 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="avatar-img-large mb-3">
+                        <h5 class="mb-1" id="profileName">User Name</h5>
+                        <p class="text-muted small" id="profileUsername">username</p>
+                        <p class="text-muted small mb-3" id="profileBio">Bio will appear here</p>
+                        <button class="btn btn-sm btn-outline-dark w-100" id="editProfileBtn">Edit profile</button>
+                    </div>
                 </div>
-            </div>
-        </div>
                 
                 <div class="list-group mb-4 border-0 shadow-sm">
                     <a href="#" class="list-group-item list-group-item-action">
@@ -114,15 +111,15 @@
                 </div>
             </div>
             
-            <!-- Right Column: Repositories List and Creation -->
-            <div class="col-md-9">
-                <!-- Repositories Header -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="mb-0">Your Repositories</h4>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newRepoModal">
-                        <i class="fa fa-plus me-1"></i> New repository
-                    </button>
-                </div>
+        <!-- Right Column: Repositories List and Creation -->
+        <div class="col-md-9">
+            <!-- Repositories Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Your Repositories</h4>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newRepoModal">
+                    <i class="fa fa-plus me-1"></i> New repository
+                </button>
+            </div>
                 
                 <!-- Repository Search -->
                 <div class="card mb-4 border-0 shadow-sm">
@@ -459,6 +456,12 @@ async function loadUserInfo() {
             if (result.success && result.data) {
                 currentUser = result.data;
                 
+                // Update dropdown user info
+                const userDropdownName = document.getElementById('userDropdownName');
+                if (userDropdownName) {
+                    userDropdownName.textContent = currentUser.username;
+                }
+                
                 // Update profile card
                 const profileName = document.getElementById('profileName');
                 const profileUsername = document.getElementById('profileUsername');
@@ -474,9 +477,13 @@ async function loadUserInfo() {
                 
                 // Update the bio display
                 if (profileBio) {
-                    profileBio.textContent = currentUser.bio || 'No bio provided';
-                    // Hide the element if there's no bio
-                    profileBio.style.display = currentUser.bio ? 'block' : 'none';
+                    if (currentUser.bio) {
+                        profileBio.textContent = currentUser.bio;
+                        profileBio.style.display = 'block';
+                    } else {
+                        profileBio.textContent = 'No bio provided';
+                        profileBio.style.display = 'none';
+                    }
                 }
                 
                 // If there's a user avatar, update it
@@ -709,6 +716,7 @@ async function forkRepository(repoId) {
         }
     }
 // Function to show toast notification
+// Toast notification function
 function showToast(message, type = 'info') {
     const toastId = 'toast-' + Date.now();
     const toast = document.createElement('div');
@@ -1041,10 +1049,8 @@ async function createRepository() {
         // Add event listener for edit profile button
         const editProfileBtn = document.querySelector('.card-body .btn-outline-dark');
     if (editProfileBtn) {
-        editProfileBtn.addEventListener('click', function() {
-            showEditProfileModal();
-        });
-    }
+        editProfileBtn.addEventListener('click', showEditProfileModal);
+        }
     }
         // Helper function to update a single repository card
         function updateRepositoryCard(card, repo) {
@@ -1126,7 +1132,7 @@ async function createRepository() {
         `;
     }
     // Add this function to show and handle the edit profile modal
-function showEditProfileModal() {
+    function showEditProfileModal() {
     // Check if modal already exists
     let editProfileModal = document.getElementById('editProfileModal');
     
@@ -1174,6 +1180,11 @@ function showEditProfileModal() {
         
         // Add event listener for save button
         document.getElementById('saveProfileButton').addEventListener('click', saveProfileChanges);
+    } else {
+        // Update form values if modal already exists
+        document.getElementById('editFullName').value = currentUser.fullName || '';
+        document.getElementById('editEmail').value = currentUser.email || '';
+        document.getElementById('editBio').value = currentUser.bio || '';
     }
     
     // Show the modal
@@ -1185,12 +1196,6 @@ async function saveProfileChanges() {
     const fullName = document.getElementById('editFullName').value;
     const email = document.getElementById('editEmail').value;
     const bio = document.getElementById('editBio').value;
-    // Add this line to update the bio display
-    const profileBio = document.getElementById('profileBio');
-            if (profileBio) {
-                profileBio.textContent = bio || 'No bio provided';
-                profileBio.style.display = bio ? 'block' : 'none';
-            }
     
     try {
         // Call API to update user profile
@@ -1210,13 +1215,33 @@ async function saveProfileChanges() {
         const data = await response.json();
         
         if (response.ok && data.success) {
-            // Update user data
-            currentUser.fullName = fullName;
-            currentUser.email = email;
-            currentUser.bio = bio;
+            // Update current user data
+            if (data.data) {
+                currentUser = data.data;
+            } else {
+                // If server doesn't return updated user, update locally
+                currentUser.fullName = fullName;
+                currentUser.email = email;
+                currentUser.bio = bio;
+            }
             
             // Update profile display
-            document.getElementById('profileName').textContent = fullName || currentUser.username;
+            const profileName = document.getElementById('profileName');
+            const profileBio = document.getElementById('profileBio');
+            
+            if (profileName) {
+                profileName.textContent = fullName || currentUser.username;
+            }
+            
+            if (profileBio) {
+                if (bio) {
+                    profileBio.textContent = bio;
+                    profileBio.style.display = 'block';
+                } else {
+                    profileBio.textContent = 'No bio provided';
+                    profileBio.style.display = 'none';
+                }
+            }
             
             // Close modal
             const editProfileModal = document.getElementById('editProfileModal');
