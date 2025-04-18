@@ -33,6 +33,7 @@ import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
 import com.codeshare.platform.service.VersionControlService;
 
+
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
@@ -314,8 +315,26 @@ private String generateDefaultReadme(Project project) {
                                         HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+        /**
+     * Get all public projects
+     * New endpoint for explore page
+     */
+    @GetMapping("/public")
+    public ResponseEntity<ApiResponse<List<ProjectDto>>> getPublicProjects() {
+        try {
+            List<Project> publicProjects = projectService.getPublicProjects();
+            List<ProjectDto> projectDtos = publicProjects.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+            
+            return new ResponseEntity<>(ApiResponse.success(projectDtos), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ApiResponse.error("Error loading public projects: " + e.getMessage()), 
+                                        HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-    // Helper method to convert Project to ProjectDto
+    // Helper method to convert Project to ProjectDto (already exists in your original code)
     private ProjectDto convertToDto(Project project) {
         ProjectDto dto = new ProjectDto();
         dto.setId(project.getId());

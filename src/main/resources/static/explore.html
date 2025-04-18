@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Projects - Code Sharing Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="/dashboard.html">
+                <i class="fa fa-code-branch me-2"></i>
+                Code Sharing Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/explore.html">Explore</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Pull Requests</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Issues</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown me-3">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fa fa-plus me-1"></i> <span class="d-none d-md-inline">Create</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" id="newRepoButton">New repository</a></li>
+                            <li><a class="dropdown-item" href="#">Import repository</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">New organization</a></li>
+                        </ul>
+                    </div>
+                    <div class="dropdown me-3">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fa fa-bell"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Notifications</h6></li>
+                            <li><a class="dropdown-item" href="#">No new notifications</a></li>
+                        </ul>
+                    </div>
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="avatar-img">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header" id="userDropdownName">User</h6></li>
+                            <li><a class="dropdown-item" href="#">Your profile</a></li>
+                            <li><a class="dropdown-item" href="#">Your repositories</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-xl py-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-5 fw-bold">Explore Public Projects</h1>
+                <p class="lead">Discover interesting projects from the CodeShare community</p>
+            </div>
+        </div>
+        
+        <!-- Search and Filters -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fa fa-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search repositories...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex">
+                    <select class="form-select me-2" id="languageFilter">
+                        <option value="">All Languages</option>
+                        <option value="JavaScript">JavaScript</option>
+                        <option value="Python">Python</option>
+                        <option value="Java">Java</option>
+                        <option value="HTML">HTML</option>
+                        <option value="CSS">CSS</option>
+                    </select>
+                    <select class="form-select" id="sortFilter">
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="stars">Most Stars</option>
+                        <option value="forks">Most Forks</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Repository List Section -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <h5 id="resultsCount">Showing all public repositories</h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" id="gridViewBtn">
+                            <i class="fa fa-th-large"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="listViewBtn">
+                            <i class="fa fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Grid View (Default) -->
+                <div id="gridView" class="row g-3">
+                    <!-- Projects will be loaded here -->
+                    <div class="text-center py-5 w-100">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- List View (Hidden by default) -->
+                <div id="listView" class="d-none">
+                    <!-- Projects will be loaded here in list format -->
+                </div>
+                
+                <!-- Pagination -->
+                <nav aria-label="Project pagination" class="my-4">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Trending Repositories -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Trending Repositories</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="trendingRepos">
+                            <li class="list-group-item d-flex justify-content-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Featured Users -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Active Contributors</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="featuredUsers">
+                            <li class="list-group-item d-flex justify-content-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Repository Modal (same as in dashboard) -->
+    <div class="modal fade" id="newRepoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create a new repository</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createRepoForm">
+                        <div class="mb-3">
+                            <label for="repoName" class="form-label">Repository name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="repoName" required>
+                            <div class="form-text">Great repository names are short and memorable.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="repoDescription" class="form-label">Description (optional)</label>
+                            <textarea class="form-control" id="repoDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label d-block">Visibility</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="visibility" id="publicRepo" checked>
+                                <label class="form-check-label" for="publicRepo">
+                                    <i class="fa fa-globe me-1"></i> Public
+                                    <div class="form-text">Anyone on the internet can see this repository.</div>
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="visibility" id="privateRepo">
+                                <label class="form-check-label" for="privateRepo">
+                                    <i class="fa fa-lock me-1"></i> Private
+                                    <div class="form-text">You choose who can see and commit to this repository.</div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="initializeRepo" checked>
+                                <label class="form-check-label" for="initializeRepo">
+                                    Initialize this repository with a README
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="createRepoButton">Create repository</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+<style>
+    /* Custom Colors */
+    :root {
+        --gh-dark: #24292e;
+        --gh-green: #2ea44f;
+        --gh-blue: #0366d6;
+        --gh-gray: #586069;
+        --gh-bg: #f6f8fa;
+        --gh-border: #e1e4e8;
+        --gh-hover: #f1f1f1;
+    }
+    
+    /* Base Styles */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        color: #24292e;
+    }
+    
+    .navbar {
+        background-color: var(--gh-dark);
+        padding: 0.75rem 1rem;
+    }
+    
+    .navbar-brand {
+        font-weight: 600;
+    }
+    
+    /* Avatar and Images */
+    .avatar-img {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+    }
+    
+    .avatar-img-small {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+    
+    /* Repository Grid Card */
+    .repo-card {
+        height: 100%;
+        border: 1px solid var(--gh-border);
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    
+    .repo-card:hover {
+        box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .repo-card-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--gh-border);
+    }
+    
+    .repo-name {
+        color: var(--gh-blue);
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 4px;
+        display: block;
+        text-decoration: none;
+    }
+    
+    .repo-name:hover {
+        text-decoration: underline;
+    }
+    
+    .repo-owner {
+        font-size: 14px;
+        color: var(--gh-gray);
+        display: block;
+        margin-bottom: 12px;
+    }
+    
+    .repo-description {
+        color: var(--gh-gray);
+        font-size: 14px;
+        margin-bottom: 12px;
+        min-height: 42px; /* For consistent card height */
+    }
+    
+    .repo-card-footer {
+        padding: 12px 16px;
+        background-color: var(--gh-bg);
+        border-top: 1px solid var(--gh-border);
+    }
+    
+    .repo-stats {
+        display: flex;
+        font-size: 12px;
+        color: var(--gh-gray);
+    }
+    
+    .repo-stat {
+        display: flex;
+        align-items: center;
+        margin-right: 12px;
+    }
+    
+    .repo-stat i {
+        margin-right: 4px;
+    }
+    
+    .repo-language-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    
+    .lang-javascript { background-color: #f1e05a; }
+    .lang-python { background-color: #3572A5; }
+    .lang-java { background-color: #b07219; }
+    .lang-html { background-color: #e34c26; }
+    .lang-css { background-color: #563d7c; }
+    
+    /* Repository List Item */
+    .repo-list-item {
+        padding: 16px;
+        border: 1px solid var(--gh-border);
+        border-radius: 6px;
+        margin-bottom: 12px;
+        background-color: white;
+        transition: all 0.2s ease;
+    }
+    
+    .repo-list-item:hover {
+        box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    }
+    
+    /* Trending Repos */
+    .trending-repo {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        padding: 12px 16px;
+        transition: background-color 0.2s;
+    }
+    
+    .trending-repo:hover {
+        background-color: var(--gh-hover);
+    }
+    
+    .trending-repo-name {
+        color: var(--gh-blue);
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    
+    .trending-repo-owner {
+        font-size: 12px;
+        color: var(--gh-gray);
+    }
+    
+    .trending-repo-stats {
+        font-size: 12px;
+        color: var(--gh-gray);
+        margin-top: 4px;
+    }
+    
+    /* Featured Users */
+    .featured-user {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        text-decoration: none;
+        color: inherit;
+        transition: background-color 0.2s;
+    }
+    
+    .featured-user:hover {
+        background-color: var(--gh-hover);
+    }
+    
+    .featured-user-info {
+        margin-left: 12px;
+    }
+    
+    .featured-user-name {
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--gh-text-color);
+        margin-bottom: 2px;
+    }
+    
+    .featured-user-stats {
+        font-size: 12px;
+        color: var(--gh-gray);
+    }
+    
+    /* Badges */
+    .badge-public, .badge-private {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 2rem;
+    }
+    
+    .badge-public {
+        background-color: #dcffe4;
+        color: #24663b;
+        border: 1px solid #ace3b9;
+    }
+    
+    /* Pagination styling */
+    .pagination .page-link {
+        color: var(--gh-blue);
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: var(--gh-blue);
+        border-color: var(--gh-blue);
+    }
+    
+    /* View toggle buttons */
+    .btn-group .btn-outline-secondary.active {
+        background-color: var(--gh-gray);
+        color: white;
+        border-color: var(--gh-gray);
+    }
+</style>
+
+<script>
+    // Check authentication
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+        window.location.href = '/login.html';
+    }
+
+    // Global variables
+    let publicProjects = [];
+    let currentPage = 1;
+    let itemsPerPage = 9;
+    let totalPages = 1;
+    let currentView = 'grid'; // Default view
+    let currentSort = 'newest';
+    let currentLanguage = '';
+    let searchTerm = '';
+    
+    // DOM Elements
+    const gridView = document.getElementById('gridView');
+    const listView = document.getElementById('listView');
+    const gridViewBtn = document.getElementById('gridViewBtn');
+    const listViewBtn = document.getElementById('listViewBtn');
+    const searchInput = document.getElementById('searchInput');
+    const resultsCount = document.getElementById('resultsCount');
+    const pagination = document.getElementById('pagination');
+    const trendingRepos = document.getElementById('trendingRepos');
+    const featuredUsers = document.getElementById('featuredUsers');
+    const languageFilter = document.getElementById('languageFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    
+    // Functions
+    function logout() {
+        localStorage.removeItem('jwt_token');
+        window.location.href = '/login.html';
+    }
+    
+    // Initialize
+    async function initialize() {
+        await loadUserInfo();
+        await loadPublicProjects();
+        setupEventListeners();
+        loadTrendingRepositories();
+        loadFeaturedUsers();
+    }
+    
+    // Load user info
+    async function loadUserInfo() {
+        try {
+            const response = await fetch('/api/auth/user', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    // Update user dropdown
+                    document.getElementById('userDropdownName').textContent = result.data.username;
+                } else {
+                    console.warn('User data not available');
+                }
+            } else {
+                console.error('Failed to load user info');
+            }
+        } catch (error) {
+            console.error('Error loading user info:', error);
+        }
+    }
+    
+    // Load all public projects
+    async function loadPublicProjects() {
+        try {
+            const response = await fetch('/api/projects/public', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    publicProjects = result.data;
+                    
+                    // Apply initial sorting (newest first)
+                    sortProjects();
+                    
+                    // Update results count
+                    updateResultsCount();
+                    
+                    // Display projects
+                    displayProjects();
+                    
+                    // Set up pagination
+                    setupPagination();
+                } else {
+                    showEmptyState('No public repositories found');
+                }
+            } else {
+                showError('Failed to load public repositories');
+            }
+        } catch (error) {
+            console.error('Error loading public repositories:', error);
+            showError(`Failed to load public repositories: ${error.message}`);
+        }
+    }
+    
+    // Filter and sort projects
+    function filterProjects() {
+        let filtered = [...publicProjects];
+        
+        // Apply search filter
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(project => 
+                project.name.toLowerCase().includes(term) || 
+                (project.description && project.description.toLowerCase().includes(term))
+            );
+        }
+        
+        // Apply language filter
+        if (currentLanguage) {
+            filtered = filtered.filter(project => {
+                // In a real app, you'd get this from the project's actual language stats
+                const projectLanguage = determineLanguage(project);
+                return projectLanguage === currentLanguage;
+            });
+        }
+        
+        // Update results count
+        resultsCount.textContent = filtered.length === 0 
+            ? 'No results found' 
+            : `Showing ${filtered.length} ${filtered.length === 1 ? 'repository' : 'repositories'}`;
+        
+        return filtered;
+    }
+    
+    // Sort projects based on current sort option
+    function sortProjects() {
+        const filtered = filterProjects();
+        
+        switch (currentSort) {
+            case 'newest':
+                filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                break;
+            case 'oldest':
+                filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                break;
+            case 'stars':
+                // This is a mock implementation since we don't have actual star counts
+                // In a real app, you would sort by the actual star count
+                filtered.sort((a, b) => getRandomStarCount(b.id) - getRandomStarCount(a.id));
+                break;
+            case 'forks':
+                // Similar mock implementation for fork counts
+                filtered.sort((a, b) => getRandomForkCount(b.id) - getRandomForkCount(a.id));
+                break;
+        }
+        
+        return filtered;
+    }
+    
+    // Display projects based on current page, view, and filters
+    function displayProjects() {
+        const sortedProjects = sortProjects();
+        totalPages = Math.ceil(sortedProjects.length / itemsPerPage);
+        
+        // If current page is beyond total pages, reset to page 1
+        if (currentPage > totalPages) {
+            currentPage = 1;
+        }
+        
+        // Calculate start and end indices for pagination
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, sortedProjects.length);
+        const projectsToShow = sortedProjects.slice(startIndex, endIndex);
+        
+        // Clear existing content
+        gridView.innerHTML = '';
+        listView.innerHTML = '';
+        
+        if (projectsToShow.length === 0) {
+            const emptyMessage = `
+                <div class="col-12 text-center py-5">
+                    <i class="fa fa-search fa-3x text-muted mb-3"></i>
+                    <h4>No repositories found</h4>
+                    <p class="text-muted">Try adjusting your search or filter criteria</p>
+                </div>
+            `;
+            gridView.innerHTML = emptyMessage;
+            listView.innerHTML = emptyMessage;
+            return;
+        }
+        
+        // Generate project cards/items
+        projectsToShow.forEach(project => {
+            // Determine project language
+            const language = determineLanguage(project);
+            const languageClass = getLanguageClass(language);
+            
+            // Mock stats (in a real app, these would come from the backend)
+            const stars = getRandomStarCount(project.id);
+            const forks = getRandomForkCount(project.id);
+            
+            // Format dates
+            const created = new Date(project.createdAt).toLocaleDateString();
+            
+            // Create grid view card
+            const gridCard = document.createElement('div');
+            gridCard.className = 'col-md-6 col-lg-4';
+            gridCard.innerHTML = `
+                <div class="repo-card">
+                    <div class="repo-card-header">
+                        <a href="/project.html?id=${project.id}" class="repo-name">${project.name}</a>
+                        <span class="repo-owner">
+                            <img src="https://www.gravatar.com/avatar/${hashString(project.owner.username)}?d=mp&f=y" 
+                                 alt="${project.owner.username}" class="avatar-img-small me-1" width="16" height="16">
+                            ${project.owner.username}
+                        </span>
+                        <p class="repo-description">${project.description || 'No description provided'}</p>
+                    </div>
+                    <div class="repo-card-footer">
+                        <div class="repo-stats">
+                            <div class="repo-stat">
+                                <span class="repo-language-dot ${languageClass}"></span>
+                                ${language}
+                            </div>
+                            <div class="repo-stat">
+                                <i class="fa fa-star"></i> ${stars}
+                            </div>
+                            <div class="repo-stat">
+                                <i class="fa fa-code-fork"></i> ${forks}
+                            </div>
+                            <div class="repo-stat ms-auto">
+                                <i class="fa fa-calendar"></i> ${created}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            gridView.appendChild(gridCard);
+            
+            // Create list view item
+            const listItem = document.createElement('div');
+            listItem.className = 'repo-list-item';
+            listItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <a href="/project.html?id=${project.id}" class="repo-name">${project.name}</a>
+                        <span class="repo-owner">
+                            <img src="https://www.gravatar.com/avatar/${hashString(project.owner.username)}?d=mp&f=y" 
+                                 alt="${project.owner.username}" class="avatar-img-small me-1" width="16" height="16">
+                            ${project.owner.username}
+                        </span>
+                    </div>
+                    <span class="badge badge-public">Public</span>
+                </div>
+                <p class="repo-description">${project.description || 'No description provided'}</p>
+                <div class="repo-stats">
+                    <div class="repo-stat">
+                        <span class="repo-language-dot ${languageClass}"></span>
+                        ${language}
+                    </div>
+                    <div class="repo-stat">
+                        <i class="fa fa-star"></i> ${stars}
+                    </div>
+                    <div class="repo-stat">
+                        <i class="fa fa-code-fork"></i> ${forks}
+                    </div>
+                    <div class="repo-stat">
+                        <i class="fa fa-calendar"></i> ${created}
+                    </div>
+                </div>
+            `;
+            listView.appendChild(listItem);
+        });
+        
+        // Update pagination
+        setupPagination();
+    }
+    
+    // Set up pagination controls
+    function setupPagination() {
+        pagination.innerHTML = '';
+        
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+        
+        pagination.style.display = 'flex';
+        
+        // Previous button
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" tabindex="-1">Previous</a>`;
+        prevLi.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage > 1) {
+                currentPage--;
+                displayProjects();
+                window.scrollTo(0, 0);
+            }
+        });
+        pagination.appendChild(prevLi);
+        
+        // Page numbers
+        const maxVisible = 5; // Max number of page buttons to show
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        
+        // Adjust start if we're near the end
+        if (endPage === totalPages) {
+            startPage = Math.max(1, totalPages - maxVisible + 1);
+        }
+        
+        // First page link if not visible
+        if (startPage > 1) {
+            const firstLi = document.createElement('li');
+            firstLi.className = 'page-item';
+            firstLi.innerHTML = `<a class="page-link" href="#">1</a>`;
+            firstLi.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentPage = 1;
+                displayProjects();
+                window.scrollTo(0, 0);
+            });
+            pagination.appendChild(firstLi);
+            
+            // Ellipsis if needed
+            if (startPage > 2) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
+                ellipsisLi.innerHTML = `<a class="page-link" href="#">...</a>`;
+                pagination.appendChild(ellipsisLi);
+            }
+        }
+        
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            const pageLi = document.createElement('li');
+            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            pageLi.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentPage = i;
+                displayProjects();
+                window.scrollTo(0, 0);
+            });
+            pagination.appendChild(pageLi);
+        }
+        
+        // Ellipsis if needed
+        if (endPage < totalPages - 1) {
+            const ellipsisLi = document.createElement('li');
+            ellipsisLi.className = 'page-item disabled';
+            ellipsisLi.innerHTML = `<a class="page-link" href="#">...</a>`;
+            pagination.appendChild(ellipsisLi);
+        }
+        
+        // Last page if not visible
+        if (endPage < totalPages) {
+            const lastLi = document.createElement('li');
+            lastLi.className = 'page-item';
+            lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+            lastLi.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentPage = totalPages;
+                displayProjects();
+                window.scrollTo(0, 0);
+            });
+            pagination.appendChild(lastLi);
+        }
+        
+        // Next button
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#">Next</a>`;
+        nextLi.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayProjects();
+                window.scrollTo(0, 0);
+            }
+        });
+        pagination.appendChild(nextLi);
+    }
+    
+    // Switch between grid and list views
+    function toggleView(view) {
+        currentView = view;
+        
+        if (view === 'grid') {
+            gridView.classList.remove('d-none');
+            listView.classList.add('d-none');
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+        } else {
+            gridView.classList.add('d-none');
+            listView.classList.remove('d-none');
+            gridViewBtn.classList.remove('active');
+            listViewBtn.classList.add('active');
+        }
+    }
+    
+    // Determine language for a project (mock implementation)
+    function determineLanguage(project) {
+        // In a real implementation, you'd get this info from project metadata
+        // This is just a mock version for demonstration
+        const languages = ['JavaScript', 'Python', 'Java', 'HTML', 'CSS'];
+        
+        // Use a deterministic approach based on project ID to make sure it's consistent
+        // This is just for the demo - in a real app, you'd use actual language stats
+        return languages[project.id % languages.length];
+    }
+    
+    // Get language CSS class
+    function getLanguageClass(language) {
+        const lang = language.toLowerCase();
+        const languageClasses = {
+            'javascript': 'lang-javascript',
+            'python': 'lang-python',
+            'java': 'lang-java',
+            'html': 'lang-html',
+            'css': 'lang-css'
+        };
+        return languageClasses[lang] || '';
+    }
+    
+    // Mock star counts (in a real app, this would come from the backend)
+    function getRandomStarCount(id) {
+        // Use a deterministic approach based on ID to make sure it's consistent
+        return (id * 17) % 100 + Math.floor(id / 3);
+    }
+    
+    // Mock fork counts
+    function getRandomForkCount(id) {
+        // Use a deterministic approach based on ID to make sure it's consistent
+        return (id * 13) % 50 + Math.floor(id / 5);
+    }
+    
+    // Simple string hash function (for consistent avatar images)
+    function hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0; // Convert to 32bit integer
+        }
+        return Math.abs(hash).toString(16);
+    }
+    
+    // Load trending repositories
+    function loadTrendingRepositories() {
+        // In a real app, you would fetch this from a dedicated API endpoint
+        // Here we'll just use the top repos from our existing data with most stars
+        setTimeout(() => {
+            const trending = [...publicProjects]
+                .sort((a, b) => getRandomStarCount(b.id) - getRandomStarCount(a.id))
+                .slice(0, 5);
+            
+            if (trending.length === 0) {
+                trendingRepos.innerHTML = `
+                    <li class="list-group-item text-center py-4">
+                        <span class="text-muted">No trending repositories</span>
+                    </li>
+                `;
+                return;
+            }
+            
+            trendingRepos.innerHTML = '';
+            
+            trending.forEach(repo => {
+                const language = determineLanguage(repo);
+                const languageClass = getLanguageClass(language);
+                const stars = getRandomStarCount(repo.id);
+                
+                const trendingItem = document.createElement('li');
+                trendingItem.className = 'list-group-item p-0';
+                trendingItem.innerHTML = `
+                    <a href="/project.html?id=${repo.id}" class="trending-repo">
+                        <div class="trending-repo-name">${repo.name}</div>
+                        <div class="trending-repo-owner">
+                            <img src="https://www.gravatar.com/avatar/${hashString(repo.owner.username)}?d=mp&f=y" 
+                                 alt="${repo.owner.username}" width="16" height="16" class="rounded-circle me-1">
+                            ${repo.owner.username}
+                        </div>
+                        <div class="trending-repo-stats">
+                            <span class="me-2">
+                                <span class="repo-language-dot ${languageClass}"></span>
+                                ${language}
+                            </span>
+                            <span><i class="fa fa-star"></i> ${stars}</span>
+                        </div>
+                    </a>
+                `;
+                trendingRepos.appendChild(trendingItem);
+            });
+        }, 500); // Simulate loading delay
+    }
+    
+    // Load featured users
+    function loadFeaturedUsers() {
+        // In a real app, this would come from a dedicated endpoint
+        // Here we'll extract unique owners from our existing data
+        setTimeout(() => {
+            // Get unique owners and convert to array of user objects
+            const uniqueOwnerIds = new Set();
+            const users = [];
+            
+            publicProjects.forEach(project => {
+                if (!uniqueOwnerIds.has(project.owner.id)) {
+                    uniqueOwnerIds.add(project.owner.id);
+                    users.push({
+                        id: project.owner.id,
+                        username: project.owner.username,
+                        fullName: project.owner.fullName || project.owner.username,
+                        // Calculate projects count (in a real app, this would come from the backend)
+                        projectsCount: publicProjects.filter(p => p.owner.id === project.owner.id).length
+                    });
+                }
+            });
+            
+            // Sort by projects count and take top 5
+            const featured = users
+                .sort((a, b) => b.projectsCount - a.projectsCount)
+                .slice(0, 5);
+            
+            if (featured.length === 0) {
+                featuredUsers.innerHTML = `
+                    <li class="list-group-item text-center py-4">
+                        <span class="text-muted">No featured users</span>
+                    </li>
+                `;
+                return;
+            }
+            
+            featuredUsers.innerHTML = '';
+            
+            featured.forEach(user => {
+                const featuredUser = document.createElement('li');
+                featuredUser.className = 'list-group-item p-0';
+                featuredUser.innerHTML = `
+                    <a href="#" class="featured-user">
+                        <img src="https://www.gravatar.com/avatar/${hashString(user.username)}?d=mp&f=y" 
+                             alt="${user.username}" class="avatar-img-small">
+                        <div class="featured-user-info">
+                            <div class="featured-user-name">${user.fullName}</div>
+                            <div class="featured-user-stats">
+                                <span>${user.projectsCount} ${user.projectsCount === 1 ? 'project' : 'projects'}</span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+                featuredUsers.appendChild(featuredUser);
+            });
+        }, 700); // Simulate loading delay
+    }
+    
+    // Update results count
+    function updateResultsCount() {
+        const count = filterProjects().length;
+        resultsCount.textContent = `Showing ${count} ${count === 1 ? 'repository' : 'repositories'}`;
+    }
+    
+    // Show empty state
+    function showEmptyState(message) {
+        gridView.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="fa fa-book fa-3x text-muted mb-3"></i>
+                <h4>No repositories found</h4>
+                <p class="text-muted">${message}</p>
+            </div>
+        `;
+        
+        listView.innerHTML = gridView.innerHTML;
+    }
+    
+    // Show error state
+    function showError(message) {
+        gridView.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    ${message}
+                </div>
+            </div>
+        `;
+        
+        listView.innerHTML = gridView.innerHTML;
+    }
+    
+    // Create new repository (similar to dashboard.html)
+    async function createRepository() {
+        const name = document.getElementById('repoName').value;
+        const description = document.getElementById('repoDescription').value;
+        const isPublic = document.getElementById('publicRepo').checked;
+        const initializeWithReadme = document.getElementById('initializeRepo').checked;
+        
+        if (!name) {
+            alert('Repository name is required');
+            return;
+        }
+        
+        try {
+            const repositoryData = {
+                name: name,
+                description: description,
+                isPublic: isPublic,
+                initializeWithReadme: initializeWithReadme
+            };
+            
+            const response = await fetch('/api/projects', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(repositoryData)
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('newRepoModal'));
+                modal.hide();
+                
+                // Reset form
+                document.getElementById('createRepoForm').reset();
+                
+                // Show success message and redirect to dashboard
+                alert('Repository created successfully!');
+                window.location.href = '/dashboard.html';
+            } else {
+                alert(data.message || 'Failed to create repository');
+            }
+        } catch (error) {
+            console.error('Error creating repository:', error);
+            alert('Failed to create repository: ' + error.message);
+        }
+    }
+    
+    // Set up event listeners
+    function setupEventListeners() {
+        // View toggle buttons
+        gridViewBtn.addEventListener('click', () => toggleView('grid'));
+        listViewBtn.addEventListener('click', () => toggleView('list'));
+        
+        // Search input
+        searchInput.addEventListener('input', function() {
+            searchTerm = this.value.trim();
+            currentPage = 1; // Reset to first page when search changes
+            displayProjects();
+        });
+        
+        // Language filter
+        languageFilter.addEventListener('change', function() {
+            currentLanguage = this.value;
+            currentPage = 1; // Reset to first page when filter changes
+            displayProjects();
+        });
+        
+        // Sort filter
+        sortFilter.addEventListener('change', function() {
+            currentSort = this.value;
+            displayProjects();
+        });
+        
+        // Create repository button (same as in dashboard)
+        const createRepoButton = document.getElementById('createRepoButton');
+        if (createRepoButton) {
+            createRepoButton.addEventListener('click', createRepository);
+        }
+        
+        // New repository button
+        const newRepoButton = document.getElementById('newRepoButton');
+        if (newRepoButton) {
+            newRepoButton.addEventListener('click', function() {
+                const newRepoModal = new bootstrap.Modal(document.getElementById('newRepoModal'));
+                newRepoModal.show();
+            });
+        }
+    }
+    
+    // Initialize the app
+    initialize();
+</script>
