@@ -88,7 +88,14 @@
                     <span class="input-group-text bg-white border-end-0">
                         <i class="fa fa-search text-muted"></i>
                     </span>
-                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search repositories...">
+                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search repositories or users...">
+                    <div class="input-group-append">
+                        <select class="form-select" id="searchTypeFilter">
+                            <option value="all">All</option>
+                            <option value="repository">Repositories</option>
+                            <option value="user">Users</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -592,13 +599,34 @@
     function filterProjects() {
         let filtered = [...publicProjects];
         
-        // Apply search filter
+        // Apply search filter based on search type
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
-            filtered = filtered.filter(project => 
-                project.name.toLowerCase().includes(term) || 
-                (project.description && project.description.toLowerCase().includes(term))
-            );
+            const searchType = document.getElementById('searchTypeFilter').value;
+            
+            if (searchType === 'all') {
+                // For "All" search type, find projects that match either repository OR username criteria
+                filtered = filtered.filter(project => 
+                    // Repository criteria
+                    project.name.toLowerCase().includes(term) || 
+                    (project.description && project.description.toLowerCase().includes(term)) ||
+                    // Username criteria
+                    project.owner.username.toLowerCase().includes(term) ||
+                    (project.owner.fullName && project.owner.fullName.toLowerCase().includes(term))
+                );
+            } else if (searchType === 'repository') {
+                // Filter by repository name or description only
+                filtered = filtered.filter(project => 
+                    project.name.toLowerCase().includes(term) || 
+                    (project.description && project.description.toLowerCase().includes(term))
+                );
+            } else if (searchType === 'user') {
+                // Filter by username only
+                filtered = filtered.filter(project => 
+                    project.owner.username.toLowerCase().includes(term) ||
+                    (project.owner.fullName && project.owner.fullName.toLowerCase().includes(term))
+                );
+            }
         }
         
         // Apply language filter
@@ -610,10 +638,17 @@
             });
         }
         
-        // Update results count
+        // Update results count and label based on search type
+        const searchType = document.getElementById('searchTypeFilter').value;
+        let resultLabel = 'repositories';
+        
+        if (searchType === 'user' && searchTerm) {
+            resultLabel = 'repositories by user';
+        }
+        
         resultsCount.textContent = filtered.length === 0 
             ? 'No results found' 
-            : `Showing ${filtered.length} ${filtered.length === 1 ? 'repository' : 'repositories'}`;
+            : `Showing ${filtered.length} ${filtered.length === 1 ? resultLabel.replace('ies', 'y') : resultLabel}`;
         
         return filtered;
     }
@@ -1134,6 +1169,20 @@
             searchTerm = this.value.trim();
             currentPage = 1; // Reset to first page when search changes
             displayProjects();
+        });
+        
+        // Search type filter
+        document.getElementById('searchTypeFilter').addEventListener('change', function() {
+            currentPage = 1; // Reset to first page when search type changes
+            displayProjects();
+            
+            // Update search placeholder text based on selected search type
+            const searchType = this.value;
+            const placeholder = searchType === 'repository' ? 'Search repositories...' : 
+                               searchType === 'user' ? 'Search users...' : 
+                               'Search repositories or users...';
+            
+            searchInput.placeholder = placeholder;
         });
         
         // Language filter
