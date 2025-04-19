@@ -27,7 +27,7 @@
                         <a class="nav-link active" href="/explore.html">Explore</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Pull Requests</a>
+                        <a class="nav-link" href="/pull-requests.html">Pull Requests</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Issues</a>
@@ -172,6 +172,21 @@
                     </div>
                     <div class="card-body p-0">
                         <ul class="list-group list-group-flush" id="trendingRepos">
+                            <li class="list-group-item d-flex justify-content-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- Active Pull Requests -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Active Pull Requests</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="activePullRequests">
                             <li class="list-group-item d-flex justify-content-center py-4">
                                 <div class="spinner-border spinner-border-sm text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>
@@ -531,6 +546,7 @@
         setupEventListeners();
         loadTrendingRepositories();
         loadFeaturedUsers();
+        loadActivePullRequests();
     }
     
     // Load user info
@@ -1074,7 +1090,64 @@
             });
         }, 700); // Simulate loading delay
     }
+    async function loadActivePullRequests() {
+    const activePRContainer = document.getElementById('activePullRequests');
     
+    try {
+        const response = await fetch('/api/pull-requests/trending', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                const pullRequests = result.data;
+                
+                if (pullRequests.length === 0) {
+                    activePRContainer.innerHTML = `
+                        <li class="list-group-item text-center py-4">
+                            <span class="text-muted">No active pull requests</span>
+                        </li>
+                    `;
+                    return;
+                }
+                
+                activePRContainer.innerHTML = '';
+                
+                pullRequests.forEach(pr => {
+                    const prItem = document.createElement('li');
+                    prItem.className = 'list-group-item p-0';
+                    prItem.innerHTML = `
+                        <a href="/pull-request.html?id=${pr.id}" class="trending-repo">
+                            <div class="trending-repo-name">${pr.title}</div>
+                            <div class="trending-repo-owner">
+                                ${pr.project.name} • by ${pr.author.username}
+                            </div>
+                        </a>
+                    `;
+                    activePRContainer.appendChild(prItem);
+                });
+            } else {
+                activePRContainer.innerHTML = `
+                    <li class="list-group-item text-center py-4">
+                        <span class="text-muted">Failed to load pull requests</span>
+                    </li>
+                `;
+            }
+        } else {
+            throw new Error('Failed to load trending pull requests');
+        }
+    } catch (error) {
+        console.error('Error loading active pull requests:', error);
+        activePRContainer.innerHTML = `
+            <li class="list-group-item text-center py-4">
+                <span class="text-muted">Error loading pull requests</span>
+            </li>
+        `;
+    }
+}
     // Update results count
     function updateResultsCount() {
         const count = filterProjects().length;

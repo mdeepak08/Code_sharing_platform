@@ -55,6 +55,9 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<File> files = new ArrayList<>();
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PullRequest> pullRequests = new ArrayList<>();
+
     // Helper method to add a user with role
     public void addUser(User user, ProjectRole role) {
         UserProject userProject = new UserProject(user, this, role);

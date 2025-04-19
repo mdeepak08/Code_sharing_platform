@@ -980,4 +980,3 @@ private static void createBranch(String projectId, String branchName) throws IOE
     }
 }
 
-

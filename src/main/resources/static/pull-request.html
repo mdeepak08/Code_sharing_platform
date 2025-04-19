@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pull Request - Code Sharing Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <style>
+        :root {
+            --gh-dark: #24292e;
+            --gh-green: #2ea44f;
+            --gh-blue: #0366d6;
+            --gh-gray: #586069;
+            --gh-bg: #f6f8fa;
+            --gh-border: #e1e4e8;
+            --gh-hover: #f1f1f1;
+            --gh-merged: #6f42c1;
+            --gh-closed: #bd2c00;
+            --gh-open: #2cbe4e;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #24292e;
+            background-color: #f6f8fa;
+        }
+        
+        .navbar {
+            background-color: var(--gh-dark);
+            padding: 0.75rem 1rem;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+        }
+        
+        .avatar-img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .avatar-img-medium {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        
+        .avatar-img-large {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        
+        .pr-header {
+            background-color: #fff;
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .pr-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .pr-meta {
+            color: var(--gh-gray);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .pr-state {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 12px;
+            border-radius: 2em;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .pr-state-open {
+            background-color: rgba(44, 190, 78, 0.1);
+            color: var(--gh-open);
+        }
+        
+        .pr-state-merged {
+            background-color: rgba(111, 66, 193, 0.1);
+            color: var(--gh-merged);
+        }
+        
+        .pr-state-closed {
+            background-color: rgba(189, 44, 0, 0.1);
+            color: var(--gh-closed);
+        }
+        
+        .pr-state i {
+            margin-right: 4px;
+        }
+        
+        .pr-tabs {
+            background-color: #fff;
+            border: 1px solid var(--gh-border);
+            border-radius: 6px 6px 0 0;
+            border-bottom: none;
+        }
+        
+        .pr-tab {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gh-gray);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .pr-tab.active {
+            color: var(--gh-dark);
+            border-bottom-color: var(--gh-blue);
+        }
+        
+        .pr-tab:hover {
+            color: var(--gh-dark);
+        }
+        
+        .pr-content {
+            background-color: #fff;
+            border: 1px solid var(--gh-border);
+            border-radius: 0 0 6px 6px;
+            padding: 16px;
+        }
+        
+        .pr-sidebar {
+            position: sticky;
+            top: 16px;
+        }
+        
+        .pr-sidebar-section {
+            background-color: #fff;
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .pr-sidebar-header {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--gh-border);
+        }
+        
+        .pr-sidebar-content {
+            padding: 16px;
+        }
+        
+        .pr-merge-button {
+            width: 100%;
+            padding: 8px 12px;
+            font-weight: 500;
+        }
+        
+        .pr-timeline {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 32px;
+            padding-bottom: 24px;
+        }
+        
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--gh-border);
+        }
+        
+        .timeline-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid var(--gh-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gh-gray);
+            z-index: 1;
+        }
+        
+        .timeline-content {
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+            padding: 16px;
+            background-color: #fff;
+        }
+        
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        .comment-time {
+            color: var(--gh-gray);
+            font-size: 12px;
+        }
+        
+        .comment-body {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .diff-header {
+            background-color: var(--gh-bg);
+            border: 1px solid var(--gh-border);
+            border-radius: 6px 6px 0 0;
+            padding: 8px 16px;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            color: var(--gh-gray);
+        }
+        
+        .diff-stats {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+        
+        .diff-additions {
+            color: #28a745;
+            margin-right: 8px;
+        }
+        
+        .diff-deletions {
+            color: #d73a49;
+        }
+        
+        .diff-file {
+            margin-bottom: 16px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--gh-border);
+        }
+        
+        .diff-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        
+        .diff-line {
+            height: 20px;
+        }
+        
+        .diff-line-num {
+            width: 1%;
+            min-width: 50px;
+            padding: 0 10px;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            line-height: 20px;
+            color: var(--gh-gray);
+            text-align: right;
+            white-space: nowrap;
+            vertical-align: top;
+            cursor: pointer;
+            user-select: none;
+            border-right: 1px solid var(--gh-border);
+        }
+        
+        .diff-line-code {
+            padding: 0 10px;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            line-height: 20px;
+            white-space: pre;
+            overflow: visible;
+        }
+        
+        .diff-add {
+            background-color: #e6ffec;
+        }
+        
+        .diff-add .diff-line-num {
+            background-color: #ccffd8;
+            border-color: #b4e2c0;
+        }
+        
+        .diff-del {
+            background-color: #ffebe9;
+        }
+        
+        .diff-del .diff-line-num {
+            background-color: #ffd7d5;
+            border-color: #e9aeaa;
+        }
+        
+        .diff-hunk-header {
+            background-color: #f1f8ff;
+            color: var(--gh-gray);
+        }
+        
+        .diff-hunk-header .diff-line-num {
+            background-color: #dbedff;
+            border-color: #c8e1ff;
+        }
+        
+        .review-comment-form {
+            display: none;
+            margin-top: 8px;
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+            background-color: #fff;
+        }
+        
+        .review-comment-header {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--gh-border);
+        }
+        
+        .review-comment-body {
+            padding: 16px;
+        }
+        
+        .inline-comment {
+            border-top: 1px solid var(--gh-border);
+            background-color: #f6f8fa;
+            padding: 8px 16px;
+        }
+        
+        .commit-item {
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+            margin-bottom: 16px;
+            background-color: #fff;
+        }
+        
+        .commit-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gh-border);
+        }
+        
+        .commit-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .commit-meta {
+            color: var(--gh-gray);
+            font-size: 12px;
+        }
+        
+        .review-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 2em;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        
+        .review-approved {
+            background-color: rgba(44, 190, 78, 0.1);
+            color: var(--gh-open);
+        }
+        
+        .review-changes {
+            background-color: rgba(189, 44, 0, 0.1);
+            color: var(--gh-closed);
+        }
+        
+        .review-comment {
+            background-color: rgba(111, 66, 193, 0.1);
+            color: var(--gh-merged);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="/dashboard.html">
+                <i class="fa fa-code-branch me-2"></i>
+                Code Sharing Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/explore.html">Explore</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pull-requests.html">Pull Requests</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Issues</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="avatar-img" id="navbarUserAvatar">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header" id="userDropdownName">User</h6></li>
+                            <li><a class="dropdown-item" href="#">Your profile</a></li>
+                            <li><a class="dropdown-item" href="#">Your repositories</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Breadcrumb navigation -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/dashboard.html">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="#" id="projectLink">Project</a></li>
+                <li class="breadcrumb-item"><a href="#" id="pullRequestsLink">Pull Requests</a></li>
+                <li class="breadcrumb-item active" aria-current="page" id="pullRequestNumber">#</li>
+            </ol>
+        </nav>
+        
+        <!-- Pull Request Header -->
+        <div class="pr-header">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h1 class="pr-title" id="prTitle">Loading pull request...</h1>
+                <div>
+                    <button class="btn btn-outline-secondary btn-sm" id="editTitleBtn">
+                        <i class="fa fa-pencil me-1"></i> Edit
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pr-meta" id="prMeta"></div>
+            
+            <div class="d-flex align-items-center">
+                <div class="pr-state" id="prState"></div>
+                
+                <span id="prAuthor" class="d-flex align-items-center">
+                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="Author" class="avatar-img-medium me-2" id="authorAvatar">
+                    <strong id="authorName">Loading...</strong> 
+                    <span class="text-muted ms-1">created this pull request</span>
+                </span>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Pull Request Tabs -->
+                <div class="d-flex pr-tabs">
+                    <div class="pr-tab active" data-tab="conversation">
+                        <i class="fa fa-comment-alt me-1"></i> Conversation
+                    </div>
+                    <div class="pr-tab" data-tab="commits">
+                        <i class="fa fa-history me-1"></i> Commits <span id="commitsCount" class="badge bg-secondary">0</span>
+                    </div>
+                    <div class="pr-tab" data-tab="files">
+                        <i class="fa fa-file-code me-1"></i> Files Changed <span id="filesCount" class="badge bg-secondary">0</span>
+                    </div>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="pr-content mb-4">
+                    <!-- Conversation Tab -->
+                    <div id="conversationTab" class="tab-content">
+                        <div class="mb-4">
+                            <div class="d-flex align-items-start">
+                                <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="Author" class="avatar-img-large mt-1 me-2" id="descriptionAvatar">
+                                <div class="timeline-content w-100">
+                                    <div class="comment-header">
+                                        <span class="comment-author" id="descriptionAuthor">Loading...</span>
+                                        <span class="comment-time" id="descriptionTime"></span>
+                                    </div>
+                                    <div class="comment-body mb-3" id="prDescription">
+                                        Loading pull request description...
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-secondary" id="editDescriptionBtn">
+                                        <i class="fa fa-pencil me-1"></i> Edit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline -->
+                        <ul class="pr-timeline" id="prTimeline">
+                            <li class="timeline-item">
+                                <div class="timeline-icon">
+                                    <i class="fa fa-spinner fa-spin"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <p class="mb-0">Loading timeline...</p>
+                                </div>
+                            </li>
+                        </ul>
+                        
+                        <!-- Add comment form -->
+                        <div class="mt-4" id="commentFormContainer">
+                            <div class="d-flex align-items-start">
+                                <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="You" class="avatar-img-large mt-1 me-2" id="currentUserAvatar">
+                                <div class="timeline-content w-100">
+                                    <textarea class="form-control mb-3" rows="3" placeholder="Leave a comment" id="commentInput"></textarea>
+                                    <button class="btn btn-success" id="submitCommentBtn">Comment</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Commits Tab -->
+                    <div id="commitsTab" class="tab-content d-none">
+                        <div id="commitsList">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Files Changed Tab -->
+                    <div id="filesTab" class="tab-content d-none">
+                        <div id="filesChangedList">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="pr-sidebar">
+                    <!-- Merge section -->
+                    <div class="pr-sidebar-section" id="mergeSection">
+                        <div class="pr-sidebar-header">
+                            <i class="fa fa-code-merge me-1"></i> Merge
+                        </div>
+                        <div class="pr-sidebar-content">
+                            <div id="mergeStatus">
+                                <div class="mb-3" id="mergeStatusText">
+                                    Checking if this branch can be merged...
+                                </div>
+                                <button class="btn btn-success pr-merge-button" id="mergeButton" disabled>
+                                    Merge pull request
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reviewers section -->
+                    <div class="pr-sidebar-section">
+                        <div class="pr-sidebar-header">
+                            <i class="fa fa-user-check me-1"></i> Reviewers
+                        </div>
+                        <div class="pr-sidebar-content">
+                            <div id="reviewersList">
+                                <div class="text-center">
+                                    <small class="text-muted">No reviewers yet</small>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-secondary w-100" id="addReviewersBtn">
+                                    <i class="fa fa-plus me-1"></i> Add reviewers
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Review section (for reviewers) -->
+                    <div class="pr-sidebar-section" id="reviewSection">
+                        <div class="pr-sidebar-header">
+                            <i class="fa fa-code-pull-request me-1"></i> Review
+                        </div>
+                        <div class="pr-sidebar-content">
+                            <p class="small mb-3">Submit your review to approve or request changes to this pull request.</p>
+                            <button class="btn btn-success btn-sm w-100 mb-2" id="approveBtn">
+                                <i class="fa fa-check-circle me-1"></i> Approve
+                            </button>
+                            <button class="btn btn-danger btn-sm w-100 mb-2" id="requestChangesBtn">
+                                <i class="fa fa-times-circle me-1"></i> Request changes
+                            </button>
+                            <button class="btn btn-secondary btn-sm w-100" id="commentBtn">
+                                <i class="fa fa-comment me-1"></i> Comment
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Branch info section -->
+                    <div class="pr-sidebar-section">
+                        <div class="pr-sidebar-header">
+                            <i class="fa fa-code-branch me-1"></i> Branches
+                        </div>
+                        <div class="pr-sidebar-content">
+                            <div class="mb-2">
+                                <strong>Source:</strong> <span id="sourceBranch">Loading...</span>
+                            </div>
+                            <div>
+                                <strong>Target:</strong> <span id="targetBranch">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Title Modal -->
+    <div class="modal fade" id="editTitleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit pull request title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" id="titleInput">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveTitleBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Description Modal -->
+    <div class="modal fade" id="editDescriptionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit description</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="descriptionInput" rows="6"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveDescriptionBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Merge Confirmation Modal -->
+    <div class="modal fade" id="mergeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Merge pull request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to merge this pull request?</p>
+                    <div class="mb-3">
+                        <label for="mergeMessageInput" class="form-label">Merge message</label>
+                        <textarea class="form-control" id="mergeMessageInput" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="confirmMergeBtn">Confirm merge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reviewModalTitle">Submit review</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="reviewCommentInput" rows="5" placeholder="Leave a comment (optional)"></textarea>
+                    <input type="hidden" id="reviewStatusInput" value="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitReviewBtn">Submit review</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        // Global variables
+        let pullRequest;
+        let currentUser;
+        let project;
+        let prId;
+        
+        // DOM Elements
+        const prTitle = document.getElementById('prTitle');
+        const prMeta = document.getElementById('prMeta');
+        const prState = document.getElementById('prState');
+        const prDescription = document.getElementById('prDescription');
+        const prTimeline = document.getElementById('prTimeline');
+        const sourceBranch = document.getElementById('sourceBranch');
+        const targetBranch = document.getElementById('targetBranch');
+        const commentInput = document.getElementById('commentInput');
+        const submitCommentBtn = document.getElementById('submitCommentBtn');
+        const mergeButton = document.getElementById('mergeButton');
+        const mergeStatusText = document.getElementById('mergeStatusText');
+        const tabs = document.querySelectorAll('.pr-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const commitsCount = document.getElementById('commitsCount');
+        const filesCount = document.getElementById('filesCount');
+        const commitsList = document.getElementById('commitsList');
+        const filesChangedList = document.getElementById('filesChangedList');
+        
+        // Bootstrap modals
+        let editTitleModal;
+        let editDescriptionModal;
+        let mergeModal;
+        let reviewModal;
+        
+        // Functions
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            window.location.href = '/login.html';
+        }
+        
+        // Initialize
+        async function initialize() {
+            // Get PR ID from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            prId = urlParams.get('id');
+            
+            if (!prId) {
+                alert('Missing pull request ID');
+                window.location.href = '/dashboard.html';
+                return;
+            }
+            
+            // Initialize Bootstrap modals
+            editTitleModal = new bootstrap.Modal(document.getElementById('editTitleModal'));
+            editDescriptionModal = new bootstrap.Modal(document.getElementById('editDescriptionModal'));
+            mergeModal = new bootstrap.Modal(document.getElementById('mergeModal'));
+            reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+            
+            // Load current user info
+            await loadCurrentUser();
+            
+            // Load pull request details
+            await loadPullRequest();
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+        
+        // Load current user
+        async function loadCurrentUser() {
+            try {
+                const response = await fetch('/api/auth/user', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        currentUser = result.data;
+                        
+                        // Update UI with user info
+                        document.getElementById('userDropdownName').textContent = currentUser.username;
+                        document.getElementById('currentUserAvatar').src = `https://www.gravatar.com/avatar/${hashString(currentUser.username)}?d=mp&f=y`;
+                        
+                        if (currentUser.avatarUrl) {
+                            document.getElementById('navbarUserAvatar').src = currentUser.avatarUrl;
+                            document.getElementById('currentUserAvatar').src = currentUser.avatarUrl;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        // Load pull request details
+        async function loadPullRequest() {
+            try {
+                const response = await fetch(`/api/pull-requests/${prId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        pullRequest = result.data;
+                        
+                        // Load project details
+                        await loadProject(pullRequest.project.id);
+                        
+                        // Update UI with pull request details
+                        updatePullRequestUI();
+                        
+                        // Load commits
+                        loadCommits();
+                        
+                        // Load file changes
+                        loadFileChanges();
+                        
+                        // Load timeline/comments
+                        loadTimeline();
+                        
+                        // Update merge button state
+                        updateMergeStatus();
+                    } else {
+                        alert('Failed to load pull request details');
+                    }
+                } else {
+                    throw new Error('Failed to load pull request');
+                }
+            } catch (error) {
+                console.error('Error loading pull request:', error);
+                alert('Error loading pull request: ' + error.message);
+            }
+        }
+        
+        // Load project details
+        async function loadProject(projectId) {
+            try {
+                const response = await fetch(`/api/projects/${projectId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        project = result.data;
+                        
+                        // Update breadcrumb links
+                        document.getElementById('projectLink').textContent = project.name;
+                        document.getElementById('projectLink').href = `/project.html?id=${project.id}`;
+                        
+                        document.getElementById('pullRequestsLink').href = `/pull-requests.html?projectId=${project.id}`;
+                        
+                        document.getElementById('pullRequestNumber').textContent = `#${pullRequest.id}`;
+                        
+                        // Update page title
+                        document.title = `${pullRequest.title} (#${pullRequest.id}) - ${project.name}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading project:', error);
+            }
+        }
+        
+        // Update UI with pull request details
+        function updatePullRequestUI() {
+            prTitle.textContent = pullRequest.title;
+            
+            // Format meta information
+            const created = new Date(pullRequest.createdAt);
+            prMeta.innerHTML = `#${pullRequest.id} opened ${timeAgo(created)} by <strong>${pullRequest.author.username}</strong>`;
+            
+            // Set author info
+            document.getElementById('authorName').textContent = pullRequest.author.username;
+            document.getElementById('authorAvatar').src = `https://www.gravatar.com/avatar/${hashString(pullRequest.author.username)}?d=mp&f=y`;
+            
+            document.getElementById('descriptionAuthor').textContent = pullRequest.author.username;
+            document.getElementById('descriptionAvatar').src = `https://www.gravatar.com/avatar/${hashString(pullRequest.author.username)}?d=mp&f=y`;
+            document.getElementById('descriptionTime').textContent = timeAgo(created);
+            
+            // Set description
+            prDescription.textContent = pullRequest.description || 'No description provided';
+            
+            // Set branch info
+            sourceBranch.textContent = pullRequest.sourceBranchName;
+            targetBranch.textContent = pullRequest.targetBranchName;
+            
+            // Set PR state
+            const statusIconClass = 
+                pullRequest.status === 'OPEN' ? 'fa-exclamation-circle' : 
+                pullRequest.status === 'MERGED' ? 'fa-code-merge' : 'fa-check-circle';
+            
+            const statusClass = 
+                pullRequest.status === 'OPEN' ? 'pr-state-open' : 
+                pullRequest.status === 'MERGED' ? 'pr-state-merged' : 'pr-state-closed';
+            
+            prState.className = `pr-state ${statusClass}`;
+            prState.innerHTML = `<i class="fa ${statusIconClass}"></i> ${pullRequest.status}`;
+            
+            // Set title input for edit modal
+            document.getElementById('titleInput').value = pullRequest.title;
+            
+            // Set description input for edit modal
+            document.getElementById('descriptionInput').value = pullRequest.description || '';
+            
+            // Set merge message
+            document.getElementById('mergeMessageInput').value = `Merge pull request #${pullRequest.id} from ${pullRequest.sourceBranchName}`;
+            
+            // Hide edit buttons if user is not the author
+            const isAuthor = currentUser && pullRequest.author.id === currentUser.id;
+            document.getElementById('editTitleBtn').style.display = isAuthor ? 'block' : 'none';
+            document.getElementById('editDescriptionBtn').style.display = isAuthor ? 'block' : 'none';
+            
+            // Hide merge section if PR is not open
+            document.getElementById('mergeSection').style.display = pullRequest.status === 'OPEN' ? 'block' : 'none';
+            
+            // Hide review section if user is the author
+            document.getElementById('reviewSection').style.display = isAuthor ? 'none' : 'block';
+        }
+        
+        // Load commits
+        async function loadCommits() {
+            try {
+                const response = await fetch(`/api/pull-requests/${prId}/commits`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        const commits = result.data;
+                        
+                        // Update count
+                        commitsCount.textContent = commits.length;
+                        
+                        // Display commits
+                        if (commits.length === 0) {
+                            commitsList.innerHTML = `
+                                <div class="text-center py-4">
+                                    <p class="text-muted mb-0">No commits found</p>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        commitsList.innerHTML = '';
+                        
+                        commits.forEach(commit => {
+                            const commitItem = document.createElement('div');
+                            commitItem.className = 'commit-item';
+                            
+                            // Format date
+                            const date = new Date(commit.createdAt);
+                            const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                            
+                            commitItem.innerHTML = `
+                                <div class="commit-header">
+                                    <img src="https://www.gravatar.com/avatar/${hashString(commit.author.username)}?d=mp&f=y" 
+                                        alt="${commit.author.username}" class="avatar-img-medium me-2">
+                                    <div>
+                                        <div class="commit-title">${commit.message}</div>
+                                        <div class="commit-meta">
+                                            <strong>${commit.author.username}</strong> committed on ${formattedDate}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            commitsList.appendChild(commitItem);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading commits:', error);
+                commitsList.innerHTML = `
+                    <div class="text-center py-4">
+                        <p class="text-danger mb-0">Error loading commits</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load file changes
+        async function loadFileChanges() {
+            try {
+                const response = await fetch(`/api/pull-requests/${prId}/files`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        const fileChanges = result.data;
+                        
+                        // Update count
+                        filesCount.textContent = Object.keys(fileChanges).length;
+                        
+                        // Display file changes
+                        if (Object.keys(fileChanges).length === 0) {
+                            filesChangedList.innerHTML = `
+                                <div class="text-center py-4">
+                                    <p class="text-muted mb-0">No files changed</p>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        filesChangedList.innerHTML = '';
+                        
+                        // Helper function to determine language for syntax highlighting
+                        function getLanguage(filename) {
+                            const ext = filename.split('.').pop().toLowerCase();
+                            const languageMap = {
+                                'js': 'javascript',
+                                'java': 'java',
+                                'py': 'python',
+                                'html': 'html',
+                                'css': 'css',
+                                'json': 'json',
+                                'xml': 'xml',
+                                'md': 'markdown',
+                                'txt': 'plaintext'
+                            };
+                            return languageMap[ext] || 'plaintext';
+                        }
+                        
+                        // Loop through file changes
+                        Object.entries(fileChanges).forEach(([filePath, diff]) => {
+                            const fileDiv = document.createElement('div');
+                            fileDiv.className = 'diff-file mb-4';
+                            
+                            // Get filename from path
+                            const filename = filePath.split('/').pop();
+                            
+                            // Determine language for syntax highlighting
+                            const language = getLanguage(filename);
+                            
+                            // Count additions and deletions
+                            const additionLines = (diff.match(/^\+(?!\+\+)/gm) || []).length;
+                            const deletionLines = (diff.match(/^-(?!--)/gm) || []).length;
+                            
+                            // Create diff header
+                            const diffHeader = document.createElement('div');
+                            diffHeader.className = 'diff-header';
+                            diffHeader.innerHTML = `
+                                <strong>${filePath}</strong>
+                                <div class="diff-stats">
+                                    <span class="diff-additions">+${additionLines}</span>
+                                    <span class="diff-deletions">-${deletionLines}</span>
+                                </div>
+                            `;
+                            
+                            // Create diff content
+                            const diffContent = document.createElement('div');
+                            diffContent.className = 'diff-content';
+                            
+                            // Create table for diff
+                            const table = document.createElement('table');
+                            table.className = 'diff-table';
+                            
+                            // Parse diff
+                            const lines = diff.split('\n');
+                            lines.forEach((line, index) => {
+                                const row = document.createElement('tr');
+                                
+                                // Determine line type
+                                if (line.startsWith('+')) {
+                                    row.className = 'diff-line diff-add';
+                                } else if (line.startsWith('-')) {
+                                    row.className = 'diff-line diff-del';
+                                } else if (line.startsWith('@@')) {
+                                    row.className = 'diff-line diff-hunk-header';
+                                } else {
+                                    row.className = 'diff-line';
+                                }
+                                
+                                // Create line number cell
+                                const lineNumCell = document.createElement('td');
+                                lineNumCell.className = 'diff-line-num';
+                                lineNumCell.textContent = index + 1;
+                                
+                                // Create line content cell
+                                const lineCodeCell = document.createElement('td');
+                                lineCodeCell.className = 'diff-line-code';
+                                lineCodeCell.textContent = line;
+                                
+                                // Add data attributes for line comments
+                                lineNumCell.setAttribute('data-file', filePath);
+                                lineNumCell.setAttribute('data-line', index + 1);
+                                
+                                // Add click handler for line comments
+                                lineNumCell.addEventListener('click', function() {
+                                    toggleLineComment(this);
+                                });
+                                
+                                row.appendChild(lineNumCell);
+                                row.appendChild(lineCodeCell);
+                                table.appendChild(row);
+                            });
+                            
+                            diffContent.appendChild(table);
+                            fileDiv.appendChild(diffHeader);
+                            fileDiv.appendChild(diffContent);
+                            filesChangedList.appendChild(fileDiv);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading file changes:', error);
+                filesChangedList.innerHTML = `
+                    <div class="text-center py-4">
+                        <p class="text-danger mb-0">Error loading file changes</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load timeline (comments, reviews, status changes)
+        async function loadTimeline() {
+            try {
+                const response = await fetch(`/api/pull-requests/${prId}/timeline`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        const timelineEvents = result.data;
+                        
+                        // Display timeline
+                        if (timelineEvents.length === 0) {
+                            prTimeline.innerHTML = `
+                                <li class="timeline-item">
+                                    <div class="timeline-icon">
+                                        <i class="fa fa-info-circle"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <p class="mb-0">No activity yet</p>
+                                    </div>
+                                </li>
+                            `;
+                            return;
+                        }
+                        
+                        prTimeline.innerHTML = '';
+                        
+                        timelineEvents.forEach(event => {
+                            const item = document.createElement('li');
+                            item.className = 'timeline-item';
+                            
+                            // Determine icon based on event type
+                            let iconClass;
+                            let content;
+                            
+                            switch (event.type) {
+                                case 'COMMENT':
+                                    iconClass = 'fa-comment';
+                                    content = `
+                                        <div class="d-flex align-items-start">
+                                            <img src="https://www.gravatar.com/avatar/${hashString(event.user.username)}?d=mp&f=y" 
+                                                alt="${event.user.username}" class="avatar-img-large mt-1 me-2">
+                                            <div class="w-100">
+                                                <div class="comment-header">
+                                                    <span class="comment-author">${event.user.username}</span>
+                                                    <span class="comment-time">${timeAgo(new Date(event.createdAt))}</span>
+                                                </div>
+                                                <div class="comment-body">
+                                                    ${event.content}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                    break;
+                                case 'REVIEW':
+                                    const reviewStatusClass = 
+                                        event.status === 'APPROVED' ? 'review-approved' : 
+                                        event.status === 'CHANGES_REQUESTED' ? 'review-changes' : 'review-comment';
+                                    
+                                    const reviewStatusText = 
+                                        event.status === 'APPROVED' ? 'approved these changes' : 
+                                        event.status === 'CHANGES_REQUESTED' ? 'requested changes' : 'commented';
+                                    
+                                    iconClass = 
+                                        event.status === 'APPROVED' ? 'fa-check-circle' : 
+                                        event.status === 'CHANGES_REQUESTED' ? 'fa-times-circle' : 'fa-comment';
+                                    
+                                    content = `
+                                        <div class="d-flex align-items-start">
+                                            <img src="https://www.gravatar.com/avatar/${hashString(event.user.username)}?d=mp&f=y" 
+                                                alt="${event.user.username}" class="avatar-img-large mt-1 me-2">
+                                            <div class="w-100">
+                                                <div class="comment-header">
+                                                    <span class="comment-author">${event.user.username}</span>
+                                                    <span class="comment-time">${timeAgo(new Date(event.createdAt))}</span>
+                                                    <span class="review-badge ${reviewStatusClass}">${reviewStatusText}</span>
+                                                </div>
+                                                <div class="comment-body">
+                                                    ${event.comment || ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                    break;
+                                case 'STATUS_CHANGE':
+                                    iconClass = 
+                                        event.newStatus === 'OPEN' ? 'fa-exclamation-circle' : 
+                                        event.newStatus === 'MERGED' ? 'fa-code-merge' : 'fa-check-circle';
+                                    
+                                    const statusText = 
+                                        event.newStatus === 'OPEN' ? 'reopened' : 
+                                        event.newStatus === 'MERGED' ? 'merged' : 'closed';
+                                    
+                                    content = `
+                                        <div class="d-flex align-items-center">
+                                            <img src="https://www.gravatar.com/avatar/${hashString(event.user.username)}?d=mp&f=y" 
+                                                alt="${event.user.username}" class="avatar-img-medium me-2">
+                                            <div>
+                                                <strong>${event.user.username}</strong> 
+                                                ${statusText} this pull request ${timeAgo(new Date(event.createdAt))}
+                                            </div>
+                                        </div>
+                                    `;
+                                    break;
+                                default:
+                                    iconClass = 'fa-circle';
+                                    content = `<p class="mb-0">Unknown event type</p>`;
+                            }
+                            
+                            item.innerHTML = `
+                                <div class="timeline-icon">
+                                    <i class="fa ${iconClass}"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    ${content}
+                                </div>
+                            `;
+                            
+                            prTimeline.appendChild(item);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading timeline:', error);
+                prTimeline.innerHTML = `
+                    <li class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="mb-0 text-danger">Error loading timeline</p>
+                        </div>
+                    </li>
+                `;
+            }
+        }
+        
+        // Update merge status
+        function updateMergeStatus() {
+            if (pullRequest.status !== 'OPEN') {
+                document.getElementById('mergeSection').style.display = 'none';
+                return;
+            }
+            
+            const isMergeable = pullRequest.mergeable;
+            
+            if (isMergeable) {
+                mergeStatusText.innerHTML = `
+                    <div class="text-success mb-2">
+                        <i class="fa fa-check-circle me-1"></i> This branch has no conflicts with the base branch
+                    </div>
+                `;
+                mergeButton.disabled = false;
+            } else {
+                mergeStatusText.innerHTML = `
+                    <div class="text-danger mb-2">
+                        <i class="fa fa-exclamation-triangle me-1"></i> This branch has conflicts that must be resolved
+                    </div>
+                `;
+                mergeButton.disabled = true;
+            }
+        }
+        
+        // Toggle line comment form
+        function toggleLineComment(lineNumCell) {
+            const row = lineNumCell.parentNode;
+            const nextRow = row.nextElementSibling;
+            
+            // Check if comment form already exists
+            if (nextRow && nextRow.classList.contains('inline-comment')) {
+                nextRow.remove();
+                return;
+            }
+            
+            // Create comment form
+            const commentRow = document.createElement('tr');
+            commentRow.className = 'inline-comment';
+            
+            const filePath = lineNumCell.getAttribute('data-file');
+            const lineNum = lineNumCell.getAttribute('data-line');
+            
+            commentRow.innerHTML = `
+                <td colspan="2">
+                    <div class="review-comment-form">
+                        <div class="review-comment-header">
+                            <img src="https://www.gravatar.com/avatar/${hashString(currentUser.username)}?d=mp&f=y" 
+                                alt="${currentUser.username}" class="avatar-img me-1" width="16" height="16">
+                            <span class="small">${currentUser.username}</span>
+                        </div>
+                        <div class="review-comment-body">
+                            <textarea class="form-control mb-2" rows="3" placeholder="Add a comment"></textarea>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-sm btn-secondary me-2" onclick="cancelLineComment(this)">Cancel</button>
+                                <button class="btn btn-sm btn-primary" 
+                                    onclick="addLineComment(this, '${filePath}', ${lineNum})">
+                                    Add comment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            `;
+            
+            // Insert after current row
+            row.parentNode.insertBefore(commentRow, row.nextSibling);
+            
+            // Show form
+            commentRow.querySelector('.review-comment-form').style.display = 'block';
+            
+            // Focus textarea
+            commentRow.querySelector('textarea').focus();
+        }
+        
+        // Cancel line comment
+        function cancelLineComment(button) {
+            const commentRow = button.closest('tr');
+            commentRow.remove();
+        }
+        
+        // Add line comment
+        async function addLineComment(button, filePath, lineNum) {
+            const commentRow = button.closest('tr');
+            const textarea = commentRow.querySelector('textarea');
+            const content = textarea.value.trim();
+            
+            if (!content) {
+                alert('Please enter a comment');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/pull-requests/${prId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content,
+                        filePath,
+                        lineNumber: lineNum
+                    })
+                });
+                
+                if (response.ok) {
+                    // Remove the form
+                    commentRow.remove();
+                    
+                    // Reload timeline
+                    loadTimeline();
+                } else {
+                    throw new Error('Failed to add comment');
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                alert('Error adding comment: ' + error.message);
+            }
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show/hide tab content
+                    tabContents.forEach(content => {
+                        if (content.id === tabName + 'Tab') {
+                            content.classList.remove('d-none');
+                        } else {
+                            content.classList.add('d-none');
+                        }
+                    });
+                });
+            });
+            
+            // Edit title button
+            document.getElementById('editTitleBtn').addEventListener('click', function() {
+                editTitleModal.show();
+            });
+            
+            // Save title button
+            document.getElementById('saveTitleBtn').addEventListener('click', async function() {
+                const newTitle = document.getElementById('titleInput').value.trim();
+                
+                if (!newTitle) {
+                    alert('Title cannot be empty');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/pull-requests/${prId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title: newTitle
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Update UI
+                        prTitle.textContent = newTitle;
+                        pullRequest.title = newTitle;
+                        
+                        // Close modal
+                        editTitleModal.hide();
+                    } else {
+                        throw new Error('Failed to update title');
+                    }
+                } catch (error) {
+                    console.error('Error updating title:', error);
+                    alert('Error updating title: ' + error.message);
+                }
+            });
+            
+            // Edit description button
+            document.getElementById('editDescriptionBtn').addEventListener('click', function() {
+                editDescriptionModal.show();
+            });
+            
+            // Save description button
+            document.getElementById('saveDescriptionBtn').addEventListener('click', async function() {
+                const newDescription = document.getElementById('descriptionInput').value.trim();
+                
+                try {
+                    const response = await fetch(`/api/pull-requests/${prId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            description: newDescription
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Update UI
+                        prDescription.textContent = newDescription || 'No description provided';
+                        pullRequest.description = newDescription;
+                        
+                        // Close modal
+                        editDescriptionModal.hide();
+                    } else {
+                        throw new Error('Failed to update description');
+                    }
+                } catch (error) {
+                    console.error('Error updating description:', error);
+                    alert('Error updating description: ' + error.message);
+                }
+            });
+            
+            // Submit comment button
+            submitCommentBtn.addEventListener('click', async function() {
+                const content = commentInput.value.trim();
+                
+                if (!content) {
+                    alert('Please enter a comment');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/pull-requests/${prId}/comments`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            content
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Clear input
+                        commentInput.value = '';
+                        
+                        // Reload timeline
+                        loadTimeline();
+                    } else {
+                        throw new Error('Failed to add comment');
+                    }
+                } catch (error) {
+                    console.error('Error adding comment:', error);
+                    alert('Error adding comment: ' + error.message);
+                }
+            });
+            
+            // Merge button
+            mergeButton.addEventListener('click', function() {
+                mergeModal.show();
+            });
+            
+            // Confirm merge button
+            document.getElementById('confirmMergeBtn').addEventListener('click', async function() {
+                const mergeMessage = document.getElementById('mergeMessageInput').value.trim();
+                
+                try {
+                    const response = await fetch(`/api/pull-requests/${prId}/merge`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: mergeMessage
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Close modal
+                        mergeModal.hide();
+                        
+                        // Update UI
+                        pullRequest.status = 'MERGED';
+                        updatePullRequestUI();
+                        
+                        // Reload timeline
+                        loadTimeline();
+                        
+                        alert('Pull request merged successfully');
+                    } else {
+                        throw new Error('Failed to merge pull request');
+                    }
+                } catch (error) {
+                    console.error('Error merging pull request:', error);
+                    alert('Error merging pull request: ' + error.message);
+                }
+            });
+            
+            // Review buttons
+            document.getElementById('approveBtn').addEventListener('click', function() {
+                document.getElementById('reviewStatusInput').value = 'APPROVED';
+                document.getElementById('reviewModalTitle').textContent = 'Approve changes';
+                reviewModal.show();
+            });
+            
+            document.getElementById('requestChangesBtn').addEventListener('click', function() {
+                document.getElementById('reviewStatusInput').value = 'CHANGES_REQUESTED';
+                document.getElementById('reviewModalTitle').textContent = 'Request changes';
+                reviewModal.show();
+            });
+            
+            document.getElementById('commentBtn').addEventListener('click', function() {
+                document.getElementById('reviewStatusInput').value = 'COMMENTED';
+                document.getElementById('reviewModalTitle').textContent = 'Comment on changes';
+                reviewModal.show();
+            });
+            
+            // Submit review button
+            document.getElementById('submitReviewBtn').addEventListener('click', async function() {
+                const status = document.getElementById('reviewStatusInput').value;
+                const comment = document.getElementById('reviewCommentInput').value.trim();
+                
+                try {
+                    const response = await fetch(`/api/pull-requests/${prId}/reviews`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            status,
+                            comment
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        // Clear input
+                        document.getElementById('reviewCommentInput').value = '';
+                        
+                        // Close modal
+                        reviewModal.hide();
+                        
+                        // Reload timeline
+                        loadTimeline();
+                        
+                        // If changes requested, update UI
+                        if (status === 'CHANGES_REQUESTED') {
+                            pullRequest.mergeable = false;
+                            updateMergeStatus();
+                        }
+                    } else {
+                        throw new Error('Failed to submit review');
+                    }
+                } catch (error) {
+                    console.error('Error submitting review:', error);
+                    alert('Error submitting review: ' + error.message);
+                }
+            });
+        }
+        
+        // Helper function: Format time ago
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) {
+                return interval + " year" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) {
+                return interval + " month" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) {
+                return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) {
+                return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) {
+                return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            return Math.floor(seconds) + " second" + (seconds === 1 ? "" : "s") + " ago";
+        }
+        
+        // Helper function: Generate hash from string
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0; // Convert to 32bit integer
+            }
+            return Math.abs(hash).toString(16);
+        }
+        
+        // Start the application
+        initialize();
+    </script>
+</body>
+</html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pull Requests - Code Sharing Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --gh-dark: #24292e;
+            --gh-green: #2ea44f;
+            --gh-blue: #0366d6;
+            --gh-gray: #586069;
+            --gh-bg: #f6f8fa;
+            --gh-border: #e1e4e8;
+            --gh-hover: #f1f1f1;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #24292e;
+            background-color: #f6f8fa;
+        }
+        
+        .navbar {
+            background-color: var(--gh-dark);
+            padding: 0.75rem 1rem;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+        }
+        
+        .avatar-img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .avatar-img-medium {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        
+        .pr-item {
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+            background-color: #fff;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .pr-item:hover {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .pr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px;
+            border-bottom: 1px solid var(--gh-border);
+        }
+        
+        .pr-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .pr-title a {
+            color: var(--gh-blue);
+            text-decoration: none;
+        }
+        
+        .pr-title a:hover {
+            text-decoration: underline;
+        }
+        
+        .pr-meta {
+            color: var(--gh-gray);
+            font-size: 12px;
+        }
+        
+        .pr-status {
+            display: flex;
+            align-items: center;
+            margin-left: 12px;
+        }
+        
+        .status-badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        
+        .status-open {
+            background-color: #dcffe4;
+            color: #24663b;
+        }
+        
+        .status-merged {
+            background-color: #ddf4ff;
+            color: #0366d6;
+        }
+        
+        .status-closed {
+            background-color: #ffeef0;
+            color: #d73a49;
+        }
+        
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            margin-right: 8px;
+            background: transparent;
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 14px;
+            color: var(--gh-gray);
+            cursor: pointer;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--gh-bg);
+            color: var(--gh-dark);
+            font-weight: 500;
+        }
+        
+        .filter-btn i {
+            margin-right: 4px;
+        }
+        
+        .filter-count {
+            margin-left: 4px;
+            font-weight: 500;
+        }
+        
+        .empty-state {
+            padding: 64px 32px;
+            text-align: center;
+            background-color: #fff;
+            border: 1px solid var(--gh-border);
+            border-radius: 6px;
+        }
+        
+        .empty-state-icon {
+            color: #d0d7de;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="/dashboard.html">
+                <i class="fa fa-code-branch me-2"></i>
+                Code Sharing Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/explore.html">Explore</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/pull-requests.html">Pull Requests</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Issues</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="avatar-img" id="navbarUserAvatar">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header" id="userDropdownName">User</h6></li>
+                            <li><a class="dropdown-item" href="#">Your profile</a></li>
+                            <li><a class="dropdown-item" href="#">Your repositories</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Project Info -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 id="projectName" class="mb-0">Project Pull Requests</h2>
+                <p id="projectDescription" class="text-muted mb-0">Loading project information...</p>
+            </div>
+            <a href="#" id="backToProjectLink" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-left me-1"></i> Back to project
+            </a>
+        </div>
+        
+        <!-- Pull Request Filters -->
+        <div class="d-flex flex-wrap align-items-center mb-3">
+            <div class="d-flex me-auto mb-2 mb-md-0">
+                <button class="filter-btn active" data-status="OPEN">
+                    <i class="fa fa-exclamation-circle"></i>
+                    Open
+                    <span class="filter-count" id="openCount">0</span>
+                </button>
+                <button class="filter-btn" data-status="CLOSED">
+                    <i class="fa fa-check-circle"></i>
+                    Closed
+                    <span class="filter-count" id="closedCount">0</span>
+                </button>
+                <button class="filter-btn" data-status="MERGED">
+                    <i class="fa fa-code-merge"></i>
+                    Merged
+                    <span class="filter-count" id="mergedCount">0</span>
+                </button>
+            </div>
+            
+            <div class="d-flex flex-wrap">
+                <div class="input-group me-2 mb-2 mb-md-0" style="width: auto;">
+                    <input type="text" class="form-control" placeholder="Search pull requests..." id="searchInput">
+                    <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+                
+                <button class="btn btn-success mb-2 mb-md-0" id="newPullRequestBtn">
+                    <i class="fa fa-plus me-1"></i> New Pull Request
+                </button>
+            </div>
+        </div>
+        
+        <!-- Pull Requests List -->
+        <div id="pullRequestsList" class="mt-4">
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Pull requests pagination" class="mt-4">
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- Pagination will be generated by JavaScript -->
+            </ul>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        // Global variables
+        let projectId;
+        let project;
+        let currentStatus = 'OPEN';
+        let searchQuery = '';
+        let pullRequests = [];
+        let counts = { OPEN: 0, CLOSED: 0, MERGED: 0 };
+        
+        // DOM Elements
+        const projectName = document.getElementById('projectName');
+        const projectDescription = document.getElementById('projectDescription');
+        const backToProjectLink = document.getElementById('backToProjectLink');
+        const pullRequestsList = document.getElementById('pullRequestsList');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const newPullRequestBtn = document.getElementById('newPullRequestBtn');
+        
+        // Functions
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            window.location.href = '/login.html';
+        }
+        
+        // Initialize
+        async function initialize() {
+            // Get project ID from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            projectId = urlParams.get('projectId');
+            
+            if (!projectId) {
+                console.error('Missing project ID');
+                pullRequestsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fa fa-exclamation-triangle fa-3x"></i>
+                        </div>
+                        <h3>Missing project ID</h3>
+                        <p class="text-muted">Please select a project to view its pull requests.</p>
+                        <a href="/dashboard.html" class="btn btn-primary mt-3">Go to Dashboard</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Set up link back to project
+            backToProjectLink.href = `/project.html?id=${projectId}`;
+            
+            // Load user info
+            await loadUserInfo();
+            
+            // Load project info
+            await loadProjectInfo();
+            
+            // Load pull requests
+            await loadPullRequests();
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/user', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        const user = result.data;
+                        
+                        // Update user dropdown
+                        document.getElementById('userDropdownName').textContent = user.username;
+                        
+                        // Update avatar if available
+                        if (user.avatarUrl) {
+                            document.getElementById('navbarUserAvatar').src = user.avatarUrl;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        // Load project info
+        async function loadProjectInfo() {
+            try {
+                const response = await fetch(`/api/projects/${projectId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        project = result.data;
+                        
+                        // Update project info
+                        projectName.textContent = `${project.name} / Pull Requests`;
+                        projectDescription.textContent = project.description || 'No description available';
+                        
+                        // Update new PR button link
+                        newPullRequestBtn.setAttribute('data-project-id', project.id);
+                    } else {
+                        projectName.textContent = 'Project not found';
+                        projectDescription.textContent = '';
+                    }
+                } else {
+                    throw new Error('Failed to load project information');
+                }
+            } catch (error) {
+                console.error('Error loading project info:', error);
+                projectName.textContent = 'Error loading project';
+                projectDescription.textContent = 'Failed to load project information';
+            }
+        }
+        
+        // Load pull requests
+        async function loadPullRequests() {
+            try {
+                // Show loading spinner
+                pullRequestsList.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Fetch counts for all statuses
+                const countsResponse = await fetch(`/api/pull-requests/project/${projectId}/counts`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (countsResponse.ok) {
+                    const countsResult = await countsResponse.json();
+                    if (countsResult.success && countsResult.data) {
+                        counts = countsResult.data;
+                        
+                        // Update count badges
+                        document.getElementById('openCount').textContent = counts.OPEN || 0;
+                        document.getElementById('closedCount').textContent = counts.CLOSED || 0;
+                        document.getElementById('mergedCount').textContent = counts.MERGED || 0;
+                    }
+                }
+                
+                // Fetch pull requests with current status filter
+                let url = `/api/pull-requests/project/${projectId}?status=${currentStatus}`;
+                if (searchQuery) {
+                    url += `&search=${encodeURIComponent(searchQuery)}`;
+                }
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        pullRequests = result.data;
+                        displayPullRequests();
+                    } else {
+                        showEmptyState();
+                    }
+                } else {
+                    throw new Error('Failed to load pull requests');
+                }
+            } catch (error) {
+                console.error('Error loading pull requests:', error);
+                pullRequestsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fa fa-exclamation-triangle fa-3x"></i>
+                        </div>
+                        <h3>Error loading pull requests</h3>
+                        <p class="text-muted">Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Display pull requests
+        function displayPullRequests() {
+            if (pullRequests.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            pullRequestsList.innerHTML = '';
+            
+            pullRequests.forEach(pr => {
+                // Determine status class
+                const statusClass = 
+                    pr.status === 'OPEN' ? 'status-open' : 
+                    pr.status === 'MERGED' ? 'status-merged' : 'status-closed';
+                
+                // Determine status icon
+                const statusIcon = 
+                    pr.status === 'OPEN' ? 'fa-exclamation-circle' : 
+                    pr.status === 'MERGED' ? 'fa-code-merge' : 'fa-check-circle';
+                
+                // Create pull request item
+                const prItem = document.createElement('div');
+                prItem.className = 'pr-item';
+                prItem.innerHTML = `
+                    <div class="pr-header">
+                        <div>
+                            <div class="pr-title">
+                                <a href="/pull-request.html?id=${pr.id}">${pr.title}</a>
+                            </div>
+                            <div class="pr-meta">
+                                #${pr.id} opened ${timeAgo(new Date(pr.createdAt))} by 
+                                <img src="https://www.gravatar.com/avatar/${hashString(pr.author.username)}?d=mp&f=y" 
+                                    alt="${pr.author.username}" class="avatar-img" width="16" height="16">
+                                <strong>${pr.author.username}</strong>
+                            </div>
+                        </div>
+                        <div class="pr-status">
+                            <span class="status-badge ${statusClass}">
+                                <i class="fa ${statusIcon} me-1"></i> ${pr.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <div class="mb-2">${pr.description || 'No description provided'}</div>
+                        <div class="d-flex align-items-center text-muted small">
+                            <div class="me-3">
+                                <i class="fa fa-code-branch me-1"></i> 
+                                ${pr.sourceBranchName} → ${pr.targetBranchName}
+                            </div>
+                            ${pr.mergeable ? 
+                                '<div class="text-success"><i class="fa fa-check-circle me-1"></i> Mergeable</div>' : 
+                                '<div class="text-danger"><i class="fa fa-exclamation-triangle me-1"></i> Conflicts</div>'
+                            }
+                        </div>
+                    </div>
+                `;
+                
+                pullRequestsList.appendChild(prItem);
+            });
+        }
+        
+        // Show empty state
+        function showEmptyState() {
+            const message = searchQuery ? 
+                'No pull requests found matching your search.' : 
+                `No ${currentStatus.toLowerCase()} pull requests found.`;
+            
+            pullRequestsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fa fa-code-pull-request fa-3x"></i>
+                    </div>
+                    <h3>${message}</h3>
+                    <p class="text-muted">
+                        ${currentStatus === 'OPEN' ? 
+                            'Create a new pull request to propose and collaborate on changes.' : 
+                            'Pull requests that are merged or closed will appear here.'}
+                    </p>
+                    ${currentStatus === 'OPEN' ? 
+                        `<button class="btn btn-success mt-3" onclick="createPullRequest()">
+                            <i class="fa fa-plus me-1"></i> New Pull Request
+                        </button>` : 
+                        ''}
+                </div>
+            `;
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Filter buttons
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update current status
+                    currentStatus = this.getAttribute('data-status');
+                    
+                    // Reload pull requests
+                    loadPullRequests();
+                });
+            });
+            
+            // Search
+            searchButton.addEventListener('click', function() {
+                searchQuery = searchInput.value.trim();
+                loadPullRequests();
+            });
+            
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    searchQuery = this.value.trim();
+                    loadPullRequests();
+                }
+            });
+            
+            // New Pull Request button
+            newPullRequestBtn.addEventListener('click', createPullRequest);
+        }
+        
+        // Create new pull request
+        function createPullRequest() {
+            window.location.href = `/new-pull-request.html?projectId=${projectId}`;
+        }
+        
+        // Helper function: Generate hash from string
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0; // Convert to 32bit integer
+            }
+            return Math.abs(hash).toString(16);
+        }
+        
+        // Helper function: Format time ago
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) {
+                return interval + " year" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) {
+                return interval + " month" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) {
+                return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) {
+                return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) {
+                return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+            }
+            
+            return Math.floor(seconds) + " second" + (seconds === 1 ? "" : "s") + " ago";
+        }
+        
+        // Start the application
+        initialize();
+    </script>
+</body>
+</html>

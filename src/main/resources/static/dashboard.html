@@ -27,7 +27,7 @@
                         <a class="nav-link" href="/explore.html">Explore</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Pull Requests</a>
+                        <a class="nav-link" href="/pull-requests.html">Pull Requests</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Issues</a>
@@ -95,6 +95,10 @@
                     </a>
                     <a href="#" class="list-group-item list-group-item-action">
                         <i class="fa fa-users me-2"></i> Organizations
+                    </a>
+                    <a href="/pull-requests.html" class="list-group-item list-group-item-action">
+                        <i class="fa fa-code-pull-request me-2"></i> Pull Requests
+                        <span class="badge bg-primary rounded-pill" id="pullRequestCount">0</span>
                     </a>
                 </div>
                 
@@ -440,8 +444,39 @@
         await loadRepositories();
         setupEventListeners();
         setupFilterListeners();
+        loadPullRequestCount();
     }
-    
+
+    // Add this new function
+    async function loadPullRequestCount() {
+    try {
+        const response = await fetch('/api/pull-requests/user/count', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                const pullRequestCount = document.getElementById('pullRequestCount');
+                if (pullRequestCount) {
+                    const count = result.data;
+                    pullRequestCount.textContent = count;
+                    
+                    // Hide badge if zero
+                    if (count === 0) {
+                        pullRequestCount.style.display = 'none';
+                    } else {
+                        pullRequestCount.style.display = 'inline-block';
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading pull request count:', error);
+    }
+}
 // Update the loadUserInfo function to properly set profile information
 async function loadUserInfo() {
     try {

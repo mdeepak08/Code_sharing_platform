@@ -130,6 +130,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Repository navigation tabs -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" id="filesTab">Files</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="commitsTab">Commits</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="pullRequestsTab">Pull Requests</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="issuesTab">Issues</a>
+            </li>
+        </ul>
         
         <!-- File Explorer -->
         <div class="file-explorer mb-4">
@@ -152,6 +168,42 @@
                 </li>
             </ul>
         </div>
+
+        <!-- Pull Requests Container (Hidden by default) -->
+    <div class="pull-requests-container" id="pullRequestsContainer" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Pull Requests</h4>
+            <button class="btn btn-success" id="newPRButton">
+                <i class="fa fa-plus me-1"></i> New Pull Request
+            </button>
+        </div>
+    
+    <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-pr-status="OPEN">Open</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-pr-status="CLOSED">Closed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-pr-status="MERGED">Merged</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body p-0">
+                <div id="pullRequestsList" class="list-group list-group-flush">
+                    <!-- Pull Requests will be loaded here -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
         
         <!-- Code Display (Only visible when a file is selected) -->
         <div class="code-container" id="codeContainer" style="display: none;">
@@ -1033,6 +1085,8 @@ function displayFiles(root) {
     // Update current path display
     document.getElementById('currentPath').textContent = currentPath || '.';
 }
+
+
 // Navigate to directory path
 function navigateToPath(path) {
     currentPath = path;
@@ -1445,13 +1499,195 @@ document.head.insertAdjacentHTML('beforeend', `
     }
 
 
-// Initialize highlight.js
+// Add to your existing JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // Load common languages
-    if (window.hljs) {
-        hljs.highlightAll();
+    // Pull Request tab handling
+    const filesTab = document.getElementById('filesTab');
+    const pullRequestsTab = document.getElementById('pullRequestsTab');
+    const commitsTab = document.getElementById('commitsTab');
+    const issuesTab = document.getElementById('issuesTab');
+    
+    const fileExplorer = document.querySelector('.file-explorer');
+    const codeContainer = document.getElementById('codeContainer');
+    const pullRequestsContainer = document.getElementById('pullRequestsContainer');
+    
+    if (filesTab && pullRequestsTab) {
+        filesTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active tab
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            filesTab.classList.add('active');
+            
+            // Show files, hide pull requests
+            fileExplorer.style.display = 'block';
+            if (codeContainer) codeContainer.style.display = 'none';
+            pullRequestsContainer.style.display = 'none';
+        });
+        
+        pullRequestsTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active tab
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            pullRequestsTab.classList.add('active');
+            
+            // Hide files, show pull requests
+            fileExplorer.style.display = 'none';
+            if (codeContainer) codeContainer.style.display = 'none';
+            pullRequestsContainer.style.display = 'block';
+            
+            // Load pull requests
+            loadPullRequests('OPEN');
+        });
+    }
+    
+    // Function to load pull requests
+    function loadPullRequests(status = 'OPEN') {
+        const projectId = new URLSearchParams(window.location.search).get('id');
+        if (!projectId) return;
+        
+        const pullRequestsList = document.getElementById('pullRequestsList');
+        pullRequestsList.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        
+        fetch(`/api/pull-requests/project/${projectId}?status=${status}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                displayPullRequests(data.data);
+            } else {
+                pullRequestsList.innerHTML = `
+                    <div class="list-group-item text-center py-4">
+                        <p class="mb-0 text-muted">No pull requests found</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading pull requests:', error);
+            pullRequestsList.innerHTML = `
+                <div class="list-group-item text-center py-4">
+                    <p class="mb-0 text-danger">Failed to load pull requests</p>
+                </div>
+            `;
+        });
+    }
+    
+    // Function to display pull requests
+    function displayPullRequests(pullRequests) {
+        const pullRequestsList = document.getElementById('pullRequestsList');
+        
+        if (pullRequests.length === 0) {
+            pullRequestsList.innerHTML = `
+                <div class="list-group-item text-center py-4">
+                    <p class="mb-0 text-muted">No pull requests found</p>
+                </div>
+            `;
+            return;
+        }
+        
+        pullRequestsList.innerHTML = '';
+        
+        pullRequests.forEach(pr => {
+            const statusClass = 
+                pr.status === 'OPEN' ? 'bg-success' : 
+                pr.status === 'MERGED' ? 'bg-info' : 'bg-secondary';
+            
+            const listItem = document.createElement('a');
+            listItem.href = `/pull-request.html?id=${pr.id}`;
+            listItem.className = 'list-group-item list-group-item-action';
+            
+            listItem.innerHTML = `
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <h5 class="mb-1">${pr.title}</h5>
+                    <span class="badge ${statusClass}">${pr.status}</span>
+                </div>
+                <p class="mb-1">${pr.description || 'No description provided'}</p>
+                <small class="text-muted">
+                    #${pr.id} opened by ${pr.author.username} 
+                    ${timeAgo(new Date(pr.createdAt))}
+                </small>
+            `;
+            
+            pullRequestsList.appendChild(listItem);
+        });
+    }
+    
+    // Status filter for pull requests
+    document.querySelectorAll('.card-header-tabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active tab
+            document.querySelectorAll('.card-header-tabs .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Load pull requests with selected status
+            const status = this.getAttribute('data-pr-status');
+            loadPullRequests(status);
+        });
+    });
+    
+    // New Pull Request button
+    const newPRButton = document.getElementById('newPRButton');
+    if (newPRButton) {
+        newPRButton.addEventListener('click', function() {
+            // Navigate to new PR page or show modal
+            const projectId = new URLSearchParams(window.location.search).get('id');
+            window.location.href = `/pull-request.html?projectId=${projectId}`;
+        });
+    }
+    
+    // Helper function to format time ago
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        
+        let interval = Math.floor(seconds / 31536000);
+        if (interval >= 1) {
+            return interval + " year" + (interval === 1 ? "" : "s") + " ago";
+        }
+        
+        interval = Math.floor(seconds / 2592000);
+        if (interval >= 1) {
+            return interval + " month" + (interval === 1 ? "" : "s") + " ago";
+        }
+        
+        interval = Math.floor(seconds / 86400);
+        if (interval >= 1) {
+            return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+        }
+        
+        interval = Math.floor(seconds / 3600);
+        if (interval >= 1) {
+            return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+        }
+        
+        interval = Math.floor(seconds / 60);
+        if (interval >= 1) {
+            return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+        }
+        
+        return Math.floor(seconds) + " second" + (seconds === 1 ? "" : "s") + " ago";
     }
 });
+
+
 
 // Start the application
 initialize();

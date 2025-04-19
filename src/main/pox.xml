@@ -1,0 +1,6 @@
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <version>LATEST_LOMBOK_VERSION</version>
+    <scope>provided</scope>
+</dependency>
