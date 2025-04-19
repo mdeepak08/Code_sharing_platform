@@ -126,17 +126,24 @@ public class VersionControlController {
         }
     }
 
-    @GetMapping("/commit-history")
-    public ResponseEntity<ApiResponse<List<Commit>>> getCommitHistory(@RequestParam Long branchId) {
+/**
+ * Get commit history for a branch
+ */
+@GetMapping("/commit-history")
+public ResponseEntity<ApiResponse<List<Commit>>> getCommitHistory(@RequestParam Long branchId) {
+    try {
         Optional<Branch> branchOpt = branchService.getBranchById(branchId);
-
-        if (branchOpt.isPresent()) {
-            List<Commit> commits = versionControlService.getCommitHistory(branchOpt.get());
-            return new ResponseEntity<>(ApiResponse.success(commits), HttpStatus.OK);
-        } else {
+        if (branchOpt.isEmpty()) {
             return new ResponseEntity<>(ApiResponse.error("Branch not found"), HttpStatus.NOT_FOUND);
         }
+        
+        List<Commit> commits = versionControlService.getCommitHistory(branchOpt.get());
+        return new ResponseEntity<>(ApiResponse.success(commits), HttpStatus.OK);
+    } catch (Exception e) {
+        return new ResponseEntity<>(ApiResponse.error("Error retrieving commit history: " + e.getMessage()), 
+                                     HttpStatus.INTERNAL_SERVER_ERROR);
     }
+}
 
     @GetMapping("/file-history")
     public ResponseEntity<ApiResponse<List<String>>> getFileHistory(@RequestParam Long fileId, @RequestParam Long branchId) {
@@ -175,4 +182,5 @@ public class VersionControlController {
             return new ResponseEntity<>(ApiResponse.error(error.trim()), HttpStatus.NOT_FOUND);
         }
     }
+
 }

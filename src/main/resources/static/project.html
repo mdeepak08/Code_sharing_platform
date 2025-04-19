@@ -168,6 +168,44 @@
                 </li>
             </ul>
         </div>
+        <!-- Commits Container (Hidden by default) -->
+<div class="commits-container" id="commitsContainer" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Commit History</h4>
+        <div class="d-flex align-items-center">
+            <div class="dropdown me-2">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="branchFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa fa-code-branch me-1"></i>
+                    <span id="currentBranchFilter">Current Branch</span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="branchFilterDropdown" id="branchFilterList">
+                    <!-- Branch items will be added dynamically -->
+                </ul>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="commitFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa fa-filter me-1"></i> Filter
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="commitFilterDropdown">
+                    <li><a class="dropdown-item" href="#" data-filter="all">All Commits</a></li>
+                    <li><a class="dropdown-item" href="#" data-filter="my-commits">My Commits</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-filter="recent">Last 7 Days</a></li>
+                    <li><a class="dropdown-item" href="#" data-filter="month">Last 30 Days</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div id="commitsList" class="commits-list">
+        <!-- Commits will be loaded here -->
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- Pull Requests Container (Hidden by default) -->
     <div class="pull-requests-container" id="pullRequestsContainer" style="display: none;">
@@ -726,6 +764,86 @@
         .repo-stats {
             flex-wrap: wrap;
         }
+    /* Commit item styles */
+.commit-item {
+    transition: all 0.2s ease;
+}
+
+.commit-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.commit-header {
+    border-radius: 6px;
+    background-color: var(--gh-bg);
+    border: 1px solid var(--gh-border);
+}
+
+.commit-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gh-text-color);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80%;
+}
+
+.commit-meta {
+    font-size: 13px;
+    color: var(--gh-gray);
+}
+
+.view-details-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Commits container styles */
+#commitsList {
+    padding: 16px;
+    background-color: #fff;
+    border-radius: 0 0 6px 6px;
+}
+
+/* Commit details section (for future expansion) */
+.commit-details {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: #fff;
+    border: 1px solid var(--gh-border);
+    border-radius: 6px;
+}
+
+.commit-file-changes {
+    margin-top: 16px;
+}
+
+.file-change-item {
+    padding: 8px 12px;
+    border: 1px solid var(--gh-border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px;
+}
+
+.file-change-added {
+    background-color: #e6ffec;
+    border-color: #b4e2c0;
+}
+
+.file-change-modified {
+    background-color: #f1f8ff;
+    border-color: #c8e1ff;
+}
+
+.file-change-deleted {
+    background-color: #ffebe9;
+    border-color: #e9aeaa;
+}
     }
 </style>
 <script>
@@ -890,6 +1008,12 @@ async function loadProjectBranches() {
                 const defaultBranch = projectBranches.find(branch => branch.default);
                 if (defaultBranch) {
                     currentBranch = defaultBranch.name;
+                    console.log("Default branch found:", currentBranch);
+                    document.getElementById('currentBranch').textContent = currentBranch;
+                } else if (projectBranches.length > 0) {
+                    // If no default branch, use the first one
+                    currentBranch = projectBranches[0].name;
+                    console.log("No default branch, using first branch:", currentBranch);
                     document.getElementById('currentBranch').textContent = currentBranch;
                 }
                 
@@ -1285,8 +1409,7 @@ function applyCodeHighlighting(fileName) {
             }
         }
 
-    // Set up event listeners
-    function setupEventListeners() {
+        function setupEventListeners() {
     // Branch dropdown toggle
     branchButton.addEventListener('click', function() {
         if (branchDropdown.style.display === 'block') {
@@ -1319,17 +1442,17 @@ function applyCodeHighlighting(fileName) {
         }
     });
 
-            // Visibility toggle event listeners
-            document.getElementById('makePublicOption').addEventListener('click', function(e) {
-            e.preventDefault();
-            toggleProjectVisibility(true);
-        });
-        
-        document.getElementById('makePrivateOption').addEventListener('click', function(e) {
-            e.preventDefault();
-            toggleProjectVisibility(false);
-        });
+    // Visibility toggle event listeners
+    document.getElementById('makePublicOption').addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleProjectVisibility(true);
+    });
     
+    document.getElementById('makePrivateOption').addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleProjectVisibility(false);
+    });
+
     // Copy button
     document.getElementById('copyButton').addEventListener('click', function(e) {
         e.preventDefault();
@@ -1371,6 +1494,35 @@ function applyCodeHighlighting(fileName) {
             fullScreenModal.style.display = 'none';
         }
     });
+    
+    // Set up commit tab listener
+    setupCommitTabListener();
+}
+
+function setupCommitTabListener() {
+    const commitsTab = document.getElementById('commitsTab');
+    if (commitsTab) {
+        commitsTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active tab
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            commitsTab.classList.add('active');
+            
+            // Hide other content sections
+            document.querySelector('.file-explorer').style.display = 'none';
+            document.getElementById('codeContainer').style.display = 'none';
+            document.getElementById('pullRequestsContainer').style.display = 'none';
+            
+            // Show commits tab content
+            document.getElementById('commitsList').parentElement.style.display = 'block';
+            
+            // Load commits
+            loadCommitHistory();
+        });
+    }
 }
 document.head.insertAdjacentHTML('beforeend', `
         <style>
@@ -1687,10 +1839,207 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/**
+ * Load commit history for the current project and branch
+ */
+ async function loadCommitHistory() {
+    try {
+        // Show loading indicator
+        document.getElementById('commitsList').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
 
+        // Debug: Log available branches
+        console.log("Available branches:", projectBranches);
+        
+        // Use "master" instead of "main"
+        if (currentBranch === "main") {
+            currentBranch = "master";
+        }
+        
+        console.log("Current branch name:", currentBranch);
+        
+        // Check if there are any branches
+        if (!projectBranches || projectBranches.length === 0) {
+            document.getElementById('commitsList').innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    No branches found for this project. You need to create a branch first.
+                </div>
+            `;
+            return;
+        }
 
-// Start the application
-initialize();
+        // Find the branch object that matches the current branch name
+        const selectedBranch = projectBranches.find(branch => branch.name === currentBranch);
+        
+        if (!selectedBranch) {
+            // If current branch not found, use the default branch or the first available branch
+            const defaultBranch = projectBranches.find(branch => branch.default) || projectBranches[0];
+            
+            if (!defaultBranch) {
+                throw new Error("No branches available");
+            }
+            
+            console.log("Selected default branch instead:", defaultBranch);
+            
+            // Update UI to show which branch we're using
+            document.getElementById('currentBranch').textContent = defaultBranch.name;
+            currentBranch = defaultBranch.name;
+            
+            // Use the default branch ID
+            const response = await fetch(`/api/version-control/commit-history?branchId=${defaultBranch.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            // Continue processing response...
+            if (!response.ok) {
+                throw new Error(`Failed to load commits: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                displayCommits(result.data);
+            } else {
+                document.getElementById('commitsList').innerHTML = `
+                    <div class="alert alert-warning">
+                        No commits found for branch "${defaultBranch.name}".
+                    </div>
+                `;
+            }
+        } else {
+            // We found the selected branch, proceed normally
+            console.log("Using selected branch:", selectedBranch);
+            
+            const response = await fetch(`/api/version-control/commit-history?branchId=${selectedBranch.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to load commits: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                displayCommits(result.data);
+            } else {
+                document.getElementById('commitsList').innerHTML = `
+                    <div class="alert alert-warning">
+                        No commits found for branch "${selectedBranch.name}".
+                    </div>
+                `;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading commits:', error);
+        document.getElementById('commitsList').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fa fa-exclamation-triangle me-2"></i>
+                Failed to load commits: ${error.message}
+            </div>
+        `;
+    }
+}
+/**
+ * Display commits in the commits tab
+ */
+ function displayCommits(commits) {
+    const commitsList = document.getElementById('commitsList');
+    
+    // If no commits, show a message
+    if (!commits || commits.length === 0) {
+        commitsList.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fa fa-info-circle me-2"></i>
+                No commits found for this branch.
+            </div>
+        `;
+        return;
+    }
+
+    // Update the commits count badge
+    document.getElementById('commitsCount').textContent = commits.length;
+    
+    // Clear the list
+    commitsList.innerHTML = '';
+    
+    // Add each commit to the list
+    commits.forEach(commit => {
+        // Format date nicely
+        const commitDate = new Date(commit.createdAt);
+        const formattedDate = commitDate.toLocaleDateString() + ' ' + 
+            commitDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        // Create the commit item
+        const commitItem = document.createElement('div');
+        commitItem.className = 'commit-item mb-3';
+        commitItem.innerHTML = `
+            <div class="commit-header d-flex align-items-center p-3 bg-light border rounded">
+                <img src="https://www.gravatar.com/avatar/${hashString(commit.author.username)}?d=mp&f=y" 
+                    alt="${commit.author.username}" class="avatar-img-medium me-3">
+                <div class="flex-grow-1">
+                    <h5 class="commit-title mb-1">${escapeHtml(commit.message)}</h5>
+                    <div class="commit-meta">
+                        <span class="me-3">
+                            <strong>${escapeHtml(commit.author.username)}</strong> committed on ${formattedDate}
+                        </span>
+                        <span class="text-muted">
+                            <i class="fa fa-code-commit me-1"></i>
+                            Commit ${commit.id.toString().substring(0, 7)}
+                        </span>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary view-details-btn" 
+                    data-commit-id="${commit.id}" onclick="viewCommitDetails(${commit.id})">
+                    <i class="fa fa-eye me-1"></i> View
+                </button>
+            </div>
+        `;
+        
+        commitsList.appendChild(commitItem);
+    });
+}
+/**
+ * View details of a specific commit (file changes, etc.)
+ */
+ async function viewCommitDetails(commitId) {
+    try {
+        // Here you would typically fetch details about the specific commit
+        // For now, we'll just alert that this feature is coming soon
+        alert('Commit details feature coming soon! Commit ID: ' + commitId);
+        
+        // In a real implementation, you'd fetch commit details and show a modal or navigate to a details page
+        // For example:
+        // window.location.href = `/commit-details.html?id=${commitId}`;
+    } catch (error) {
+        console.error('Error viewing commit details:', error);
+        alert('Failed to load commit details: ' + error.message);
+    }
+}
+// Helper function to escape HTML to prevent XSS attacks
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Initialize after the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initialize(); // This should be your main initialization function
+});
 </script>
 </body>
 </html>
