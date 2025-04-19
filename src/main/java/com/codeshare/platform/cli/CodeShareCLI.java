@@ -542,24 +542,32 @@ private static void pushChanges(String[] args) throws IOException, NoSuchAlgorit
             System.out.println("Skipping non-existent file: " + filePath);
             continue;
         }
-        
+
         try {
             String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+
+            // --- ADD NULL BYTE FILTERING/REPLACEMENT HERE ---
+            // This line replaces all null bytes (\u0000) with an empty string (removes them)
+            content = content.replace("\u0000", "");
+            // You could also replace them with a space if preferred:
+            // content = content.replace("\u0000", " ");
+            // --- END FILTERING ---
+
             chunk.put(filePath, content);
             fileCount++;
-            
+
             // Push when chunk is full or this is the last file
             if (fileCount >= MAX_FILES_PER_CHUNK || fileCount >= changedFiles.size()) {
-                System.out.println("Pushing chunk " + (chunkCount + 1) + " of " + 
-                    (int)Math.ceil((double)changedFiles.size() / MAX_FILES_PER_CHUNK) + 
-                    " (" + chunk.size() + " files)");
-                
-                pushChunk(projectId, branchName, chunk, 
-                    chunkCount > 0 ? commitMessage + " (part " + (chunkCount + 1) + ")" : commitMessage);
-                
+                System.out.println("Pushing chunk " + (chunkCount + 1) + " of " +
+                        (int)Math.ceil((double)changedFiles.size() / MAX_FILES_PER_CHUNK) +
+                        " (" + chunk.size() + " files)");
+
+                pushChunk(projectId, branchName, chunk,
+                        chunkCount > 0 ? commitMessage + " (part " + (chunkCount + 1) + ")" : commitMessage);
+
                 // Update state after successful push
                 FileSync.saveCurrentState(currentDir, chunk);
-                
+
                 chunk.clear();
                 fileCount = 0;
                 chunkCount++;
@@ -604,16 +612,17 @@ private static void pushChunk(String projectId, String branchName, Map<String, S
         try {
             InputStream errorStream = conn.getErrorStream();
             if (errorStream != null) {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream, StandardCharsets.UTF_8))) {
-                    StringBuilder errorMessage = new StringBuilder();
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
+                    // Read error details
+                    StringBuilder errorResponse = new StringBuilder();
                     String line;
                     while ((line = br.readLine()) != null) {
-                        errorMessage.append(line);
+                        errorResponse.append(line);
                     }
-                    System.out.println("Error: " + errorMessage.toString());
+                    System.out.println("Error details: " + errorResponse.toString());
                 }
             } else {
-                System.out.println("Error: No additional information available");
+                System.out.println("No error details available from server");
             }
         } catch (Exception e) {
             System.out.println("Error reading error response: " + e.getMessage());
@@ -638,13 +647,53 @@ private static String convertMapToJson(Map<String, String> map) {
     return json.toString();
 }
 
-// Simple method to escape JSON string values
+// Simple method to escape JSON string values (Improved)
 private static String escapeJson(String input) {
-    return input.replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t");
+    if (input == null) {
+        return null; // Or return "" or throw exception depending on desired behavior for null
+    }
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < input.length(); i++) {
+        char c = input.charAt(i);
+        switch (c) {
+            case '"':
+                sb.append("\\\"");
+                break;
+            case '\\':
+                sb.append("\\\\");
+                break;
+            case '\b': // Backspace
+                sb.append("\\b");
+                break;
+            case '\f': // Form feed
+                sb.append("\\f");
+                break;
+            case '\n': // Newline
+                sb.append("\\n");
+                break;
+            case '\r': // Carriage return
+                sb.append("\\r");
+                break;
+            case '\t': // Tab
+                sb.append("\\t");
+                break;
+            default:
+                // Escape control characters (U+0000 to U+001F)
+                if (c >= '\u0000' && c <= '\u001F') {
+                    String hex = Integer.toHexString(c);
+                    sb.append("\\u");
+                    for (int k = 0; k < 4 - hex.length(); k++) {
+                        sb.append('0');
+                    }
+                    sb.append(hex);
+                } else {
+                    // Normal character
+                    sb.append(c);
+                }
+                break;
+        }
+    }
+    return sb.toString();
 }
 
 private static void commitChanges(String[] args) throws IOException, NoSuchAlgorithmException {
@@ -870,7 +919,8 @@ private static void listBranches(String projectId) throws IOException {
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
     conn.setRequestProperty("Authorization", "Bearer " + authToken);
-    
+    System.out.println("DEBUG: Using token: " + (authToken != null ? 
+    authToken.substring(0, Math.min(10, authToken.length())) + "..." : "null"));
     // Check response
     int responseCode = conn.getResponseCode();
     if (responseCode >= 200 && responseCode < 300) {
@@ -918,14 +968,27 @@ private static void listBranches(String projectId) throws IOException {
                 System.out.println("No branches found");
             }
         }
-    } else {
-        System.out.println("Failed to fetch branches: " + responseCode);
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+    } else { // Handle non-200 responses
+            System.out.println("Failed to fetch branches: " + responseCode);
+             // --- ADD NULL CHECK HERE ---
+            try {
+            InputStream errorStream = conn.getErrorStream(); // Get the stream first
+             if (errorStream != null) { // Check if the stream is NOT null
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
             String line;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+            System.out.println(line); // Print server error details
             }
-        }
+            }
+            } else {
+             // Handle case where getErrorStream is null
+            System.out.println("No detailed error message body received from server.");
+            }
+            } catch (IOException e) {
+             // Catch potential IO errors during stream reading itself
+            System.out.println("Error reading error stream: " + e.getMessage());
+            }
+            return;
     }
 }
 

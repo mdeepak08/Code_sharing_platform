@@ -39,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
+            logger.debug("JWT from request: " + (jwt != null ? jwt.substring(0, 10) + "..." : "null"));
 
             if (StringUtils.hasText(jwt)) {
                 // Attempt to get username - THIS is where the MalformedJwtException occurred in logs

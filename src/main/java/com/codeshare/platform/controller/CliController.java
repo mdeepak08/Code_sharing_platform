@@ -3,6 +3,7 @@ package com.codeshare.platform.controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codeshare.platform.dto.ApiResponse;
+import com.codeshare.platform.dto.BranchDTO;
 import com.codeshare.platform.model.Branch;
 import com.codeshare.platform.model.Commit;
 import com.codeshare.platform.model.Project;
@@ -120,14 +122,18 @@ public class CliController {
     }
     
     @GetMapping("/branches")
-    public ResponseEntity<ApiResponse<List<Branch>>> getBranches(
-            @RequestParam Long projectId) {
-        try {
-            List<Branch> branches = cliService.getBranches(projectId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "Branches retrieved successfully", branches));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                new ApiResponse<>(false, "Failed to get branches: " + e.getMessage(), null));
+    public ResponseEntity<ApiResponse<List<BranchDTO>>> getBranches(@RequestParam Long projectId) {
+        Optional<Project> projectOpt = projectService.getProjectById(projectId);
+        if (projectOpt.isPresent()) {
+            List<Branch> branches = branchService.getBranchesByProject(projectOpt.get());
+            List<BranchDTO> branchDTOs = branches.stream()
+            .map(BranchDTO::new)
+            .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success(branchDTOs));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Project not found"));
         }
     }
     
