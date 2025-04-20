@@ -341,61 +341,30 @@ function showFileDiff(filePath, content) {
     }
 }
 
-// Create diff content table
+// Create diff content table with improved hunk handling
 function createDiffContent(table, diffContent) {
     const lines = diffContent.split('\n');
     let oldLineNum = 1;
     let newLineNum = 1;
+    let inHunk = false;
     
     lines.forEach((line, index) => {
         const row = document.createElement('tr');
         row.className = 'diff-line';
         
         // Determine line type
-        if (line.startsWith('+')) {
-            row.classList.add('added');
-            
-            // Left line number (old version) - blank for additions
-            const leftNum = document.createElement('td');
-            leftNum.className = 'diff-line-num old';
-            leftNum.textContent = '';
-            
-            // Right line number (new version)
-            const rightNum = document.createElement('td');
-            rightNum.className = 'diff-line-num new';
-            rightNum.textContent = newLineNum++;
-            
-            // Line content
-            const content = document.createElement('td');
-            content.className = 'diff-line-content';
-            content.textContent = line;
-            
-            row.appendChild(leftNum);
-            row.appendChild(rightNum);
-            row.appendChild(content);
-        } else if (line.startsWith('-')) {
-            row.classList.add('removed');
-            
-            // Left line number (old version)
-            const leftNum = document.createElement('td');
-            leftNum.className = 'diff-line-num old';
-            leftNum.textContent = oldLineNum++;
-            
-            // Right line number (new version) - blank for deletions
-            const rightNum = document.createElement('td');
-            rightNum.className = 'diff-line-num new';
-            rightNum.textContent = '';
-            
-            // Line content
-            const content = document.createElement('td');
-            content.className = 'diff-line-content';
-            content.textContent = line;
-            
-            row.appendChild(leftNum);
-            row.appendChild(rightNum);
-            row.appendChild(content);
-        } else if (line.startsWith('@')) {
+        if (line.startsWith('@@')) {
+            // This is a hunk header
+            inHunk = true;
             row.classList.add('diff-hunk-header');
+            
+            // Parse hunk header to get line numbers
+            // Example: @@ -1,7 +1,7 @@
+            const match = line.match(/@@ -(\d+),\d+ \+(\d+),\d+ @@/);
+            if (match) {
+                oldLineNum = parseInt(match[1]);
+                newLineNum = parseInt(match[2]);
+            }
             
             // Hunk header spans both line number columns
             const leftNum = document.createElement('td');
@@ -414,16 +383,55 @@ function createDiffContent(table, diffContent) {
             row.appendChild(leftNum);
             row.appendChild(rightNum);
             row.appendChild(content);
+        } else if (!inHunk) {
+            // Skip lines until we find a hunk header
+            return;
+        } else if (line.startsWith('+ ')) {
+            // This is an added line
+            row.classList.add('added');
             
-            // Parse hunk header to get line numbers
-            // Example: @@ -1,7 +1,7 @@
-            const match = line.match(/@@ -(\d+),\d+ \+(\d+),\d+ @@/);
-            if (match) {
-                oldLineNum = parseInt(match[1]);
-                newLineNum = parseInt(match[2]);
-            }
-        } else {
-            // Context line (unchanged)
+            // Left line number (old version) - blank for additions
+            const leftNum = document.createElement('td');
+            leftNum.className = 'diff-line-num old';
+            leftNum.textContent = '';
+            
+            // Right line number (new version)
+            const rightNum = document.createElement('td');
+            rightNum.className = 'diff-line-num new';
+            rightNum.textContent = newLineNum++;
+            
+            // Line content (remove the leading "+ ")
+            const content = document.createElement('td');
+            content.className = 'diff-line-content';
+            content.textContent = line.substring(2);
+            
+            row.appendChild(leftNum);
+            row.appendChild(rightNum);
+            row.appendChild(content);
+        } else if (line.startsWith('- ')) {
+            // This is a removed line
+            row.classList.add('removed');
+            
+            // Left line number (old version)
+            const leftNum = document.createElement('td');
+            leftNum.className = 'diff-line-num old';
+            leftNum.textContent = oldLineNum++;
+            
+            // Right line number (new version) - blank for deletions
+            const rightNum = document.createElement('td');
+            rightNum.className = 'diff-line-num new';
+            rightNum.textContent = '';
+            
+            // Line content (remove the leading "- ")
+            const content = document.createElement('td');
+            content.className = 'diff-line-content';
+            content.textContent = line.substring(2);
+            
+            row.appendChild(leftNum);
+            row.appendChild(rightNum);
+            row.appendChild(content);
+        } else if (line.startsWith('  ')) {
+            // This is a context (unchanged) line
             
             // Left line number (old version)
             const leftNum = document.createElement('td');
@@ -431,6 +439,27 @@ function createDiffContent(table, diffContent) {
             leftNum.textContent = oldLineNum++;
             
             // Right line number (new version)
+            const rightNum = document.createElement('td');
+            rightNum.className = 'diff-line-num new';
+            rightNum.textContent = newLineNum++;
+            
+            // Line content (remove the leading "  ")
+            const content = document.createElement('td');
+            content.className = 'diff-line-content';
+            content.textContent = line.substring(2);
+            
+            row.appendChild(leftNum);
+            row.appendChild(rightNum);
+            row.appendChild(content);
+        } else {
+            // Empty line or other line formats (shouldn't happen with proper diff format)
+            
+            // Left line number
+            const leftNum = document.createElement('td');
+            leftNum.className = 'diff-line-num old';
+            leftNum.textContent = oldLineNum++;
+            
+            // Right line number
             const rightNum = document.createElement('td');
             rightNum.className = 'diff-line-num new';
             rightNum.textContent = newLineNum++;

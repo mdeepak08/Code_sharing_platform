@@ -298,25 +298,50 @@ public class VersionControlController {
         try {
             Map<String, Object> combinedDetails = new HashMap<>();
             List<CommitDTO> commits = new ArrayList<>();
-            Map<String, String> allFileChanges = new HashMap<>();
+            Map<String, String> fileChanges = new HashMap<>();
             
-            // Process each commit in the batch
             for (Long commitId : commitIds) {
                 Optional<Commit> commitOpt = commitRepository.findById(commitId);
                 if (commitOpt.isPresent()) {
                     Commit commit = commitOpt.get();
                     commits.add(new CommitDTO(commit));
                     
-                    // Parse and combine file changes
+                    // Get parent commit if it exists
+                    Commit parentCommit = commit.getParentCommit();
+                    
+                    // Parse file changes from current commit
+                    Map<String, String> currentFiles = new HashMap<>();
                     if (commit.getFileChanges() != null && !commit.getFileChanges().isEmpty()) {
                         try {
-                            @SuppressWarnings("unchecked")
-                            Map<String, String> fileChanges = objectMapper.readValue(commit.getFileChanges(), Map.class);
-                            // Merge file changes, preferring the latest changes for each file
-                            allFileChanges.putAll(fileChanges);
+                            currentFiles = objectMapper.readValue(commit.getFileChanges(), Map.class);
                         } catch (Exception e) {
-                            // Log error but continue processing
-                            System.err.println("Error parsing file changes for commit " + commitId + ": " + e.getMessage());
+                            System.err.println("Error parsing file changes: " + e.getMessage());
+                        }
+                    }
+                    
+                    // Generate diffs for each changed file
+                    for (Map.Entry<String, String> entry : currentFiles.entrySet()) {
+                        String filePath = entry.getKey();
+                        String currentContent = entry.getValue();
+                        String parentContent = "";
+                        
+                        // Get parent content if parent commit exists
+                        if (parentCommit != null && parentCommit.getFileChanges() != null) {
+                            try {
+                                Map<String, String> parentFiles = objectMapper.readValue(
+                                    parentCommit.getFileChanges(), Map.class);
+                                parentContent = parentFiles.getOrDefault(filePath, "");
+                            } catch (Exception e) {
+                                System.err.println("Error parsing parent file changes: " + e.getMessage());
+                            }
+                        }
+                        
+                        // Generate diff for this file (using Unix diff-like format)
+                        String diffContent = generateDiff(parentContent, currentContent, filePath);
+                        
+                        // Only include files that have actual changes
+                        if (diffContent != null && !diffContent.trim().isEmpty()) {
+                            fileChanges.put(filePath, diffContent);
                         }
                     }
                 }
@@ -326,7 +351,7 @@ public class VersionControlController {
             commits.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
             
             combinedDetails.put("commits", commits);
-            combinedDetails.put("fileChanges", allFileChanges);
+            combinedDetails.put("fileChanges", fileChanges);
             combinedDetails.put("totalCommits", commits.size());
             
             return new ResponseEntity<>(ApiResponse.success(combinedDetails), HttpStatus.OK);
@@ -335,4 +360,60 @@ public class VersionControlController {
                                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+ * Generate a diff between old and new content in a unified diff format
+ */
+private String generateDiff(String oldContent, String newContent, String filePath) {
+    // Split content into lines
+    String[] oldLines = oldContent.split("\n");
+    String[] newLines = newContent.split("\n");
+    
+    // Create diff header
+    StringBuilder diff = new StringBuilder();
+    diff.append("@@ -1,").append(oldLines.length).append(" +1,").append(newLines.length).append(" @@\n");
+    
+    // Simple diff algorithm
+    if (oldContent.equals(newContent)) {
+        // No changes
+        return "";
+    } else if (oldContent.isEmpty()) {
+        // File is new - all lines are additions
+        for (String line : newLines) {
+            diff.append("+ ").append(line).append("\n");
+        }
+    } else if (newContent.isEmpty()) {
+        // File was deleted - all lines are deletions
+        for (String line : oldLines) {
+            diff.append("- ").append(line).append("\n");
+        }
+    } else {
+        // File was modified - calculate line-by-line diff
+        // This is a simple implementation - in a real app, you'd use a proper diff algorithm
+        // like Myers diff or something from a library like java-diff-utils
+        
+        // For this example, we'll do a very naive line-by-line comparison
+        int maxLines = Math.max(oldLines.length, newLines.length);
+        for (int i = 0; i < maxLines; i++) {
+            if (i < oldLines.length && i < newLines.length) {
+                if (oldLines[i].equals(newLines[i])) {
+                    // Lines are the same
+                    diff.append("  ").append(newLines[i]).append("\n");
+                } else {
+                    // Lines are different
+                    diff.append("- ").append(oldLines[i]).append("\n");
+                    diff.append("+ ").append(newLines[i]).append("\n");
+                }
+            } else if (i < oldLines.length) {
+                // Line was removed
+                diff.append("- ").append(oldLines[i]).append("\n");
+            } else {
+                // Line was added
+                diff.append("+ ").append(newLines[i]).append("\n");
+            }
+        }
+    }
+    
+    return diff.toString();
+}
 }

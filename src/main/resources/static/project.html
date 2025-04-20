@@ -809,6 +809,19 @@
         max-height: 70vh;
         overflow-y: auto;
     }
+
+    #currentPath a {
+    color: var(--gh-link-color);
+    text-decoration: none;
+    }
+
+    #currentPath a:hover {
+        text-decoration: underline;
+    }
+
+    #currentPath span {
+        color: var(--gh-text-color);
+    }
     
     /* For mobile responsiveness */
     @media (max-width: 768px) {
@@ -1300,16 +1313,71 @@ function displayFiles(root) {
         fileList.appendChild(listItem);
     });
     
-    // Update current path display
+    // Update current path display with clickable breadcrumbs
     document.getElementById('currentPath').textContent = currentPath || '.';
+    updateBreadcrumbPath(currentPath);
 }
 
+function updateBreadcrumbPath(path) {
+    const currentPathElement = document.getElementById('currentPath');
+    
+    // Clear the current path display
+    currentPathElement.innerHTML = '';
+    
+    if (!path || path === '') {
+        // If at root, just display a dot
+        currentPathElement.textContent = '.';
+        return;
+    }
+    
+    // Split the path into segments
+    const segments = path.split('/');
+    let currentPath = '';
+    
+    // Create clickable elements for each segment
+    for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        if (!segment) continue; // Skip empty segments
+        
+        // Update current path
+        currentPath += (currentPath ? '/' : '') + segment;
+        
+        // Create the segment element - last segment is not clickable
+        if (i === segments.length - 1) {
+            // Last segment - not clickable
+            const span = document.createElement('span');
+            span.textContent = segment;
+            currentPathElement.appendChild(span);
+        } else {
+            // Intermediate segment - clickable
+            const link = document.createElement('a');
+            link.href = '#';
+            link.textContent = segment;
+            link.dataset.path = currentPath;
+            
+            // Add click event handler
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateToPath(this.dataset.path);
+            });
+            
+            currentPathElement.appendChild(link);
+            
+            // Add separator
+            const separator = document.createElement('span');
+            separator.textContent = ' / ';
+            currentPathElement.appendChild(separator);
+        }
+    }
+}
 
 // Navigate to directory path
 function navigateToPath(path) {
     currentPath = path;
     // Re-display files for the new path
     displayFiles(buildFileTree(projectFiles));
+    // Update the breadcrumb path
+    updateBreadcrumbPath(path);
     // Hide code display when navigating
     document.getElementById('codeContainer').style.display = 'none';
 }

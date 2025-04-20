@@ -28,7 +28,7 @@ src/main/java/com/codeshare/platform/ui/util/SceneManager.java:Z7EHpTGYPFHi1ZIGL
 src/main/resources/fxml/MainView.fxml:TS21hiKHbV7AtN5QcjZhJ911y5g0pZioWgdPVeyZIoI=
 src/main/java/com/codeshare/platform/model/PullRequest.java:1pgkPBaZnitE6PlIkacezrzKh0HLfjPWah58Myt8Tx0=
 src/main/resources/static/login.html:cHGVq0xru9hwq/zw8R+z4JatNwfYGcwoHroI4dtXFo0=
-src/main/resources/static/js/commit-batch.js:0UpGABHCUjVFt3+AWnhxM3hW7lKXftIhlNjZRbHCQ0E=
+src/main/resources/static/js/commit-batch.js:QWmfRQmwB7g8orzBeq9zRRSyEcz4GShJQlFyIkEqxoI=
 src/main/java/com/codeshare/platform/controller/CommitController.java:GoNV4n+pqRTIEsACuhpW25H6U6OqOyQAJ8pzdW/hBmI=
 create_dirs_and_files.sh:8+NS4BltDZDYgGaVcSCcVtDNru0Alu3GiU1wHbfr3hw=
 src/main/java/com/codeshare/platform/controller/AuthController.java:r/3PjGXsqRpPgYgS1aU7rewbpiLjzYp9S/NDYT79xuQ=
@@ -76,7 +76,7 @@ codeshare.bat:OfA3y5GRchEwSWkWhcJaDQ8Cz8M1FRlCCaivBorevaU=
 src/main/resources/static/pull-requests.html:ZtAz4KpkeNxvlTLtgbbUmNYXJtm6zClu2DYENm5ljGs=
 src/main/java/com/codeshare/platform/security/CustomUserDetailsService.java:feyvYWKTRu15QGYhmpRNwcVZ84/FO1z2oDqwymy076g=
 gradlew:c0s4edNQHc5HHPBSLTvLr+doc9n8USk0W2f7Q70V6TM=
-src/main/java/com/codeshare/platform/controller/VersionControlController.java:wKkTtanHTKNyLzbl17uHFz62AEXHVNhjyM8/tZt2Fck=
+src/main/java/com/codeshare/platform/controller/VersionControlController.java:8ZwsXvI/rwQi+P3lHXcWBuFD9N/vYvbMMbLbRZLFyJ4=
 src/main/java/com/codeshare/platform/repository/FileRepository.java:MBcyIqLc4RN6tQGd1gxLmvvj2LA0RGQY1sM55ZmH3l0=
 src/main/java/com/codeshare/platform/model/Branch.java:V3rppNL0vMsj8qabkOyGUdzlfMkT4iNghs/jUFFy6xc=
 src/main/java/com/codeshare/platform/service/impl/CommitServiceImpl.java:+d4F21Ja7jK4sd6WdC0aSwrUoxOc+OoUjc0ISxdh2yE=
