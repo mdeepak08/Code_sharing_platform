@@ -58,57 +58,73 @@ async function loadProjectDetails() {
 
 // Load batch commit details
 async function loadBatchCommitDetails() {
+    const filesList = document.getElementById('filesList'); // Get these references earlier
+        const diffContainer = document.getElementById('diffContainer');
+    
+         if (!filesList || !diffContainer) {
+            console.error("Core DOM elements for commit details not found.");
+            showError('UI Error: Necessary elements not found.'); // Use showError
+            return;
+        }
+    
     try {
-        // Show loading spinner
-        document.getElementById('commitContent').innerHTML = `
-            <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3">Loading commit details...</p>
-            </div>
-        `;
-        
-        // Construct the API query string
-        const queryString = commitIds.map(id => `commitIds=${id}`).join('&');
-        const response = await fetch(`/api/version-control/commit-batch?${queryString}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            const batchDetails = result.data;
-            const commits = batchDetails.commits || [];
-            const fileChanges = batchDetails.fileChanges || {};
-            
-            // Update commit header
-            updateCommitHeader(commits);
-            
-            // Display file changes
-            displayFileChanges(fileChanges);
-            
-            // Update commit stats
-            updateCommitStats(commits, fileChanges);
-        } else {
-            throw new Error(result.message || 'Failed to load commit details');
-        }
-    } catch (error) {
-        console.error('Error loading batch commit details:', error);
-        document.getElementById('commitContent').innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fa fa-exclamation-triangle me-2"></i>
-                Error: ${error.message}
-            </div>
-        `;
+    // Show loading spinner directly in the diffContainer
+    diffContainer.innerHTML = `
+   <div class="text-center py-5">
+     <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+     </div>
+   <p class="mt-3">Loading commit details...</p>
+    </div>
+    `;
+        // Optional: Clear files list spinner/content too
+        filesList.innerHTML = `
+                 <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+     <span class="visually-hidden">Loading...</span>
+     </div>
+     </div>
+            `;
+    
+    
+     // Construct the API query string (rest of this is the same)
+    const queryString = commitIds.map(id => `commitIds=${id}`).join('&');
+   const response = await fetch(`/api/version-control/commit-batch?${queryString}`, {
+    headers: {
+    'Authorization': `Bearer ${token}`
+     }
+   });
+    
+     if (!response.ok) {
+    throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
     }
-}
+    
+     const result = await response.json();
+    
+if (result.success && result.data) {
+    const batchDetails = result.data;
+    const commits = batchDetails.commits || [];
+     const fileChanges = batchDetails.fileChanges || {};
+    
+    // Update commit header (uses elements outside diffContainer)
+     updateCommitHeader(commits);
+    
+    // Display file changes (will now correctly find diffContainer and filesList)
+     displayFileChanges(fileChanges); // <-- This function is called AFTER fetch success
+     // Update commit stats
+     updateCommitStats(commits, fileChanges);
+    
+            // Remove spinner from diffContainer if displayFileChanges succeeded
+            // (displayFileChanges clears it anyway, but good practice)
+     } else {
+    throw new Error(result.message || 'Failed to load commit details');
+    }
+    } catch (error) {
+     console.error('Error loading batch commit details:', error);
+    // Use showError to display the error message in commitContent
+     showError(`Failed to load commit details: ${error.message}`);
+    }
+    }
 
 // Update commit header information
 function updateCommitHeader(commits) {
@@ -169,7 +185,23 @@ function updateCommitHeader(commits) {
 function displayFileChanges(fileChanges) {
     const filesList = document.getElementById('filesList');
     const diffContainer = document.getElementById('diffContainer');
-    
+        // --- Add null checks here based on the error ---
+    // The error is on filesList, so check it specifically
+    if (!filesList) {
+        console.error("DOM element with ID 'filesList' not found. Aborting file changes display.");
+        // Optional: Show a user-friendly message on the page indicating a UI issue
+        // Example: document.getElementById('commitContent').innerHTML = "<div class='alert alert-danger'>UI Error: Could not find the file list area.</div>";
+        return; // Stop execution if the element is missing
+    }
+     // You might as well check diffContainer too for robustness
+     if (!diffContainer) {
+        console.error("DOM element with ID 'diffContainer' not found. Aborting file changes display.");
+        // Optional: Show a user-friendly message
+        // Example: document.getElementById('commitContent').innerHTML = "<div class='alert alert-danger'>UI Error: Could not find the difference viewer area.</div>";
+        return; // Stop execution
+    }
+    // --- End null checks ---
+
     // Clear existing content
     filesList.innerHTML = '';
     diffContainer.innerHTML = '';

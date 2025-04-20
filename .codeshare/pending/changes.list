@@ -6,14 +6,17 @@ gradle/wrapper/gradle-wrapper.properties
 gradlew
 gradlew.bat
 help.txt
+psql commands.txt
 settings.gradle
 src/main/java/com/codeshare/platform/cli/CodeShareCLI.java
 src/main/java/com/codeshare/platform/CodeSharingPlatformApplication.java
 src/main/java/com/codeshare/platform/config/DatabaseConfig.java
+src/main/java/com/codeshare/platform/config/JacksonConfig.java
 src/main/java/com/codeshare/platform/config/SecurityConfig.java
 src/main/java/com/codeshare/platform/controller/AuthController.java
 src/main/java/com/codeshare/platform/controller/BranchController.java
 src/main/java/com/codeshare/platform/controller/CliController.java
+src/main/java/com/codeshare/platform/controller/CommitController.java
 src/main/java/com/codeshare/platform/controller/CustomErrorController.java
 src/main/java/com/codeshare/platform/controller/FileController.java
 src/main/java/com/codeshare/platform/controller/ProjectController.java
@@ -22,6 +25,7 @@ src/main/java/com/codeshare/platform/controller/UserController.java
 src/main/java/com/codeshare/platform/controller/VersionControlController.java
 src/main/java/com/codeshare/platform/dto/ApiResponse.java
 src/main/java/com/codeshare/platform/dto/BranchDTO.java
+src/main/java/com/codeshare/platform/dto/CommitDTO.java
 src/main/java/com/codeshare/platform/dto/FileDto.java
 src/main/java/com/codeshare/platform/dto/JwtAuthResponse.java
 src/main/java/com/codeshare/platform/dto/LoginRequest.java
@@ -90,6 +94,7 @@ src/main/resources/application.properties
 src/main/resources/fxml/LoginView.fxml
 src/main/resources/fxml/MainView.fxml
 src/main/resources/fxml/ProjectView.fxml
+src/main/resources/static/commit-details.html
 src/main/resources/static/css/style.css
 src/main/resources/static/css/tree-view.css
 src/main/resources/static/dashboard.html
@@ -97,6 +102,7 @@ src/main/resources/static/error.html
 src/main/resources/static/explore.html
 src/main/resources/static/favicon.ico
 src/main/resources/static/index.html
+src/main/resources/static/js/commit-batch.js
 src/main/resources/static/js/main.js
 src/main/resources/static/login.html
 src/main/resources/static/project.html
