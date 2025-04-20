@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codeshare.platform.dto.ApiResponse;
+import com.codeshare.platform.dto.BranchDTO;
 import com.codeshare.platform.model.Branch;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.service.BranchService;
@@ -55,11 +56,20 @@ public class BranchController {
     }
 
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<ApiResponse<List<Branch>>> getBranchesByProject(@PathVariable Long projectId) {
+    public ResponseEntity<ApiResponse<List<BranchDTO>>> getBranchesByProject(@PathVariable Long projectId) {
         Optional<Project> projectOpt = projectService.getProjectById(projectId);
         if (projectOpt.isPresent()) {
             List<Branch> branches = branchService.getBranchesByProject(projectOpt.get());
-            return new ResponseEntity<>(ApiResponse.success(branches), HttpStatus.OK);
+
+            // --- Map List<Branch> entities to List<BranchDTO> DTOs ---
+            List<BranchDTO> branchDTOs = new java.util.ArrayList<>(); // Use ArrayList for mutable list
+            for (Branch branch : branches) {
+                branchDTOs.add(new BranchDTO(branch)); // Use the DTO constructor
+            }
+            // --- End Mapping ---
+
+            // Return the List<BranchDTO> instead of List<Branch>
+            return new ResponseEntity<>(ApiResponse.success(branchDTOs), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
         }

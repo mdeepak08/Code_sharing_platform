@@ -1,5 +1,4 @@
 package com.codeshare.platform.cli;
-
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.File;

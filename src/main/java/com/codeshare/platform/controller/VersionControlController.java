@@ -1,5 +1,6 @@
 package com.codeshare.platform.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,6 +85,17 @@ public class VersionControlController {
         }
     }
 
+    @GetMapping("/debug/branches")
+    public ResponseEntity<ApiResponse<List<Branch>>> debugBranches(@RequestParam Long projectId) {
+        Optional<Project> projectOpt = projectService.getProjectById(projectId);
+        if (projectOpt.isPresent()) {
+            List<Branch> branches = branchService.getBranchesByProject(projectOpt.get());
+            return new ResponseEntity<>(ApiResponse.success(branches), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PostMapping("/merge")
     public ResponseEntity<ApiResponse<Void>> mergeBranches(@RequestParam Long sourceBranchId,
                                                          @RequestParam Long targetBranchId,
@@ -126,6 +138,34 @@ public class VersionControlController {
         }
     }
 
+            /**
+         * Get all commits for a project (regardless of branch)
+         */
+        @GetMapping("/project-commits")
+        public ResponseEntity<ApiResponse<List<Commit>>> getProjectCommits(@RequestParam Long projectId) {
+            try {
+                Optional<Project> projectOpt = projectService.getProjectById(projectId);
+                if (projectOpt.isEmpty()) {
+                    return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+                }
+                
+                List<Commit> commits = new ArrayList<>();
+                List<Branch> branches = branchService.getBranchesByProject(projectOpt.get());
+                
+                // Collect commits from all branches
+                for (Branch branch : branches) {
+                    commits.addAll(commitRepository.findByBranch(branch));
+                }
+                
+                // Sort commits by creation date (newest first)
+                commits.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+                
+                return new ResponseEntity<>(ApiResponse.success(commits), HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity<>(ApiResponse.error("Error retrieving project commits: " + e.getMessage()), 
+                                            HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
 /**
  * Get commit history for a branch
  */
