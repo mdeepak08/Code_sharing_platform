@@ -1,6 +1,7 @@
 package com.codeshare.platform.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import com.codeshare.platform.service.FileService;
 import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
 import com.codeshare.platform.service.VersionControlService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @RestController
@@ -234,6 +236,53 @@ public class VersionControlController {
             if (!newCommitOpt.isPresent()) error += "New commit ";
             
             return new ResponseEntity<>(ApiResponse.error(error.trim()), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Get detailed information about a specific commit
+     */
+    @GetMapping("/commit-details")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getCommitDetails(@RequestParam Long commitId) {
+        try {
+            Optional<Commit> commitOpt = commitRepository.findById(commitId);
+            if (commitOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Commit not found"), HttpStatus.NOT_FOUND);
+            }
+            
+            Commit commit = commitOpt.get();
+            
+            // Create response with all relevant details
+            Map<String, Object> details = new HashMap<>();
+            details.put("commit", new CommitDTO(commit));
+            
+            // Parse file changes from the JSON string
+            if (commit.getFileChanges() != null && !commit.getFileChanges().isEmpty()) {
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    @SuppressWarnings("unchecked")
+                    Map<String, String> fileChanges = objectMapper.readValue(commit.getFileChanges(), Map.class);
+                    details.put("fileChanges", fileChanges);
+                } catch (Exception e) {
+                    details.put("fileChanges", new HashMap<>());
+                    details.put("parseError", "Could not parse file changes: " + e.getMessage());
+                }
+            } else {
+                details.put("fileChanges", new HashMap<>());
+            }
+            
+            // If this commit has a parent, include information about what changed
+            if (commit.getParentCommit() != null) {
+                details.put("hasParent", true);
+                details.put("parentId", commit.getParentCommit().getId());
+            } else {
+                details.put("hasParent", false);
+            }
+            
+            return new ResponseEntity<>(ApiResponse.success(details), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ApiResponse.error("Error retrieving commit details: " + e.getMessage()), 
+                                      HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

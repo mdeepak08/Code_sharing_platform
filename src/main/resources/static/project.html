@@ -9,6 +9,14 @@
     <!-- Add Highlight.js for syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- Add these lines in the head section of your project.html file -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
@@ -274,6 +282,57 @@
             <div class="github-modal-body">
                 <pre><code id="modalCode"></code></pre>
             </div>
+        </div>
+    </div>
+    <!-- Add this HTML for the commit details modal right before the closing body tag -->
+    <div class="modal fade" id="commitDetailsModal" tabindex="-1" aria-labelledby="commitDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="commitDetailsModalLabel">Commit Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <div id="commitDetailsLoading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            
+            <div id="commitDetailsContent" style="display: none;">
+                <div class="d-flex align-items-center mb-3">
+                <img id="commitAuthorAvatar" src="" alt="Author" class="avatar-img-medium me-2">
+                <div>
+                    <h5 id="commitMessage" class="mb-1"></h5>
+                    <div class="text-muted">
+                    <span id="commitAuthor"></span> committed on <span id="commitDate"></span>
+                    </div>
+                </div>
+                </div>
+                
+                <div class="mb-4">
+                <h6>Files Changed</h6>
+                <div id="commitFilesList" class="list-group">
+                    <!-- Files will be added here -->
+                </div>
+                </div>
+                
+                <div id="fileChangesContainer">
+                <h6>File Changes</h6>
+                <div id="fileChangesContent">
+                    <!-- Code diff will be shown here -->
+                </div>
+                </div>
+            </div>
+            
+            <div id="commitDetailsError" class="alert alert-danger" style="display: none;">
+                Error loading commit details.
+            </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
         </div>
     </div>
 
@@ -2042,22 +2101,184 @@ document.addEventListener('DOMContentLoaded', function() {
         commitsList.appendChild(commitItem);
     });
 }
+
 /**
- * View details of a specific commit (file changes, etc.)
+ * View details of a specific commit
  */
  async function viewCommitDetails(commitId) {
     try {
-        // Here you would typically fetch details about the specific commit
-        // For now, we'll just alert that this feature is coming soon
-        alert('Commit details feature coming soon! Commit ID: ' + commitId);
+        // Initialize the modal
+        const modal = new bootstrap.Modal(document.getElementById('commitDetailsModal'));
         
-        // In a real implementation, you'd fetch commit details and show a modal or navigate to a details page
-        // For example:
-        // window.location.href = `/commit-details.html?id=${commitId}`;
+        // Show the modal with loading state
+        document.getElementById('commitDetailsLoading').style.display = 'block';
+        document.getElementById('commitDetailsContent').style.display = 'none';
+        document.getElementById('commitDetailsError').style.display = 'none';
+        
+        modal.show();
+        
+        // Fetch commit details
+        const response = await fetch(`/api/version-control/commit-details?commitId=${commitId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            // Hide loading and show content
+            document.getElementById('commitDetailsLoading').style.display = 'none';
+            document.getElementById('commitDetailsContent').style.display = 'block';
+            
+            const details = result.data;
+            const commit = details.commit;
+            const fileChanges = details.fileChanges || {};
+            
+            // Update commit info
+            document.getElementById('commitMessage').textContent = commit.message;
+            document.getElementById('commitAuthor').textContent = commit.author ? commit.author.username : 'Unknown';
+            
+            // Format date
+            const commitDate = new Date(commit.createdAt);
+            document.getElementById('commitDate').textContent = commitDate.toLocaleString();
+            
+            // Set author avatar
+            const authorUsername = commit.author ? commit.author.username : 'Unknown';
+            document.getElementById('commitAuthorAvatar').src = 
+                `https://www.gravatar.com/avatar/${hashString(authorUsername)}?d=mp&f=y`;
+            
+            // List changed files
+            const filesList = document.getElementById('commitFilesList');
+            filesList.innerHTML = '';
+            
+            if (Object.keys(fileChanges).length === 0) {
+                filesList.innerHTML = '<div class="list-group-item text-muted">No file changes found</div>';
+            } else {
+                Object.keys(fileChanges).forEach(filePath => {
+                    const listItem = document.createElement('a');
+                    listItem.href = '#';
+                    listItem.className = 'list-group-item list-group-item-action';
+                    
+                    // Get file icon based on extension
+                    const extension = filePath.split('.').pop().toLowerCase();
+                    let fileIcon = 'fa-file';
+                    
+                    if (['js', 'jsx', 'ts', 'tsx'].includes(extension)) {
+                        fileIcon = 'fa-file-code text-warning';
+                    } else if (['html', 'htm', 'xml'].includes(extension)) {
+                        fileIcon = 'fa-file-code text-danger';
+                    } else if (['css', 'scss', 'sass'].includes(extension)) {
+                        fileIcon = 'fa-file-code text-primary';
+                    } else if (['java', 'py', 'rb', 'php', 'c', 'cpp', 'cs'].includes(extension)) {
+                        fileIcon = 'fa-file-code text-success';
+                    } else if (['md', 'txt'].includes(extension)) {
+                        fileIcon = 'fa-file-alt';
+                    } else if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension)) {
+                        fileIcon = 'fa-file-image';
+                    }
+                    
+                    listItem.innerHTML = `
+                        <i class="fa ${fileIcon} me-2"></i>
+                        ${filePath}
+                    `;
+                    
+                    // Click handler to show file content
+                    listItem.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        displayFileChanges(filePath, fileChanges[filePath]);
+                    });
+                    
+                    filesList.appendChild(listItem);
+                });
+                
+                // Automatically display the first file
+                if (Object.keys(fileChanges).length > 0) {
+                    const firstFile = Object.keys(fileChanges)[0];
+                    displayFileChanges(firstFile, fileChanges[firstFile]);
+                }
+            }
+        } else {
+            throw new Error(result.message || 'Failed to load commit details');
+        }
     } catch (error) {
         console.error('Error viewing commit details:', error);
-        alert('Failed to load commit details: ' + error.message);
+        document.getElementById('commitDetailsLoading').style.display = 'none';
+        document.getElementById('commitDetailsError').style.display = 'block';
+        document.getElementById('commitDetailsError').textContent = 'Error: ' + error.message;
     }
+}
+/**
+ * Display file changes in the commit details modal
+ */
+ function displayFileChanges(filePath, content) {
+    const fileChangesContent = document.getElementById('fileChangesContent');
+    
+    // Determine language for syntax highlighting
+    const extension = filePath.split('.').pop().toLowerCase();
+    let language = '';
+    
+    switch (extension) {
+        case 'js':
+            language = 'javascript';
+            break;
+        case 'java':
+            language = 'java';
+            break;
+        case 'py':
+            language = 'python';
+            break;
+        case 'rb':
+            language = 'ruby';
+            break;
+        case 'php':
+            language = 'php';
+            break;
+        case 'html':
+        case 'htm':
+            language = 'html';
+            break;
+        case 'css':
+            language = 'css';
+            break;
+        case 'xml':
+            language = 'xml';
+            break;
+        case 'json':
+            language = 'json';
+            break;
+        case 'md':
+            language = 'markdown';
+            break;
+        case 'sql':
+            language = 'sql';
+            break;
+        default:
+            language = 'plaintext';
+    }
+    
+    // Create a pre>code element with appropriate classes for highlight.js
+    fileChangesContent.innerHTML = `
+        <div class="card">
+            <div class="card-header bg-light">
+                <i class="fa fa-file me-2"></i>${filePath}
+            </div>
+            <div class="card-body p-0">
+                <pre style="margin: 0; border-radius: 0;"><code class="language-${language}">${escapeHtml(content)}</code></pre>
+            </div>
+        </div>
+    `;
+    
+    // Apply syntax highlighting
+    document.querySelectorAll('pre code').forEach((block) => {
+        if (window.hljs) {
+            window.hljs.highlightElement(block);
+        }
+    });
 }
 
 // Initialize after the page loads
