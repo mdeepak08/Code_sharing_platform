@@ -2099,6 +2099,93 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         commitsList.appendChild(commitItem);
+        
+    });
+    setupBatchCommitViewing();
+}
+
+/**
+ * View details of a batch of commits
+ * Redirects to commit-details.html with comma-separated commit IDs
+ */
+ function viewCommitBatch(commitIds) {
+    if (!Array.isArray(commitIds) || commitIds.length === 0) {
+        return;
+    }
+    
+    // Navigate to commit details page with batch commits
+    window.location.href = `/commit-details.html?commits=${commitIds.join(',')}&projectId=${projectId}`;
+}
+
+/**
+ * Enable batch commit viewing functionality
+ */
+ function setupBatchCommitViewing() {
+    // Find consecutive commits with the same timestamp and author
+    const commitGroups = [];
+    let currentGroup = [];
+    
+    // Get all commits from the DOM
+    const commitElements = document.querySelectorAll('.commit-item');
+    
+    commitElements.forEach((element, index) => {
+        const commitId = element.getAttribute('data-commit-id');
+        const commitAuthor = element.getAttribute('data-author');
+        const commitTimestamp = element.getAttribute('data-timestamp');
+        
+        if (index === 0) {
+            // Start first group
+            currentGroup.push(commitId);
+        } else {
+            // Check if this commit belongs to the current group
+            const prevElement = commitElements[index - 1];
+            const prevAuthor = prevElement.getAttribute('data-author');
+            const prevTimestamp = prevElement.getAttribute('data-timestamp');
+            
+            if (prevAuthor === commitAuthor && prevTimestamp === commitTimestamp) {
+                // Same author and timestamp, add to current group
+                currentGroup.push(commitId);
+            } else {
+                // Different author or timestamp, start a new group
+                if (currentGroup.length > 0) {
+                    commitGroups.push([...currentGroup]);
+                }
+                currentGroup = [commitId];
+            }
+        }
+    });
+    
+    // Add the last group if it exists
+    if (currentGroup.length > 0) {
+        commitGroups.push([...currentGroup]);
+    }
+    
+    // For each group with more than one commit, add a "View as batch" button
+    commitGroups.forEach(group => {
+        if (group.length > 1) {
+            // Find the first commit in this group
+            const firstCommitElement = document.querySelector(`.commit-item[data-commit-id="${group[0]}"]`);
+            
+            if (firstCommitElement) {
+                // Add a batch view button
+                const batchBtn = document.createElement('button');
+                batchBtn.className = 'btn btn-sm btn-outline-secondary ms-2';
+                batchBtn.innerHTML = `<i class="fa fa-layer-group me-1"></i> View ${group.length} commits as batch`;
+                
+                // Add click handler
+                batchBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    viewCommitBatch(group);
+                });
+                
+                // Find the commit actions area and append button
+                const actionsArea = firstCommitElement.querySelector('.commit-actions');
+                if (actionsArea) {
+                    actionsArea.appendChild(batchBtn);
+                }
+            }
+        }
     });
 }
 
@@ -2106,6 +2193,7 @@ document.addEventListener('DOMContentLoaded', function() {
  * View details of a specific commit
  */
  async function viewCommitDetails(commitId) {
+    
     try {
         // Initialize the modal
         const modal = new bootstrap.Modal(document.getElementById('commitDetailsModal'));
@@ -2211,6 +2299,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('commitDetailsError').style.display = 'block';
         document.getElementById('commitDetailsError').textContent = 'Error: ' + error.message;
     }
+    window.location.href = `/commit-details.html?id=${commitId}&projectId=${projectId}`;
 }
 /**
  * Display file changes in the commit details modal

@@ -44,6 +44,9 @@ public class VersionControlController {
     private final com.codeshare.platform.repository.CommitRepository commitRepository;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     public VersionControlController(VersionControlService versionControlService,
                                    ProjectService projectService,
                                    BranchService branchService,
@@ -283,6 +286,53 @@ public class VersionControlController {
         } catch (Exception e) {
             return new ResponseEntity<>(ApiResponse.error("Error retrieving commit details: " + e.getMessage()), 
                                       HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+        /**
+     * Get combined commit details for a range of commits
+     */
+    @GetMapping("/commit-batch")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getBatchCommitDetails(
+            @RequestParam List<Long> commitIds) {
+        try {
+            Map<String, Object> combinedDetails = new HashMap<>();
+            List<CommitDTO> commits = new ArrayList<>();
+            Map<String, String> allFileChanges = new HashMap<>();
+            
+            // Process each commit in the batch
+            for (Long commitId : commitIds) {
+                Optional<Commit> commitOpt = commitRepository.findById(commitId);
+                if (commitOpt.isPresent()) {
+                    Commit commit = commitOpt.get();
+                    commits.add(new CommitDTO(commit));
+                    
+                    // Parse and combine file changes
+                    if (commit.getFileChanges() != null && !commit.getFileChanges().isEmpty()) {
+                        try {
+                            @SuppressWarnings("unchecked")
+                            Map<String, String> fileChanges = objectMapper.readValue(commit.getFileChanges(), Map.class);
+                            // Merge file changes, preferring the latest changes for each file
+                            allFileChanges.putAll(fileChanges);
+                        } catch (Exception e) {
+                            // Log error but continue processing
+                            System.err.println("Error parsing file changes for commit " + commitId + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+            
+            // Sort commits by creation date (newest first)
+            commits.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+            
+            combinedDetails.put("commits", commits);
+            combinedDetails.put("fileChanges", allFileChanges);
+            combinedDetails.put("totalCommits", commits.size());
+            
+            return new ResponseEntity<>(ApiResponse.success(combinedDetails), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ApiResponse.error("Error retrieving batch commit details: " + e.getMessage()), 
+                                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
