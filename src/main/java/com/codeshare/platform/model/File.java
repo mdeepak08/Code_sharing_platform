@@ -2,6 +2,10 @@ package com.codeshare.platform.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,6 +24,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "files")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +39,7 @@ public class File {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
+    @JsonIgnoreProperties({"files", "branches", "userProjects", "owner", "hibernateLazyInitializer", "handler"})
     private Project project;
     
     @Column(columnDefinition = "TEXT")

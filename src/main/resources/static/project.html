@@ -847,6 +847,24 @@
     }
 </style>
 <script>
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(16);
+}
+
+// Also need to add the escapeHtml function that's used in displayCommits
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 // Check authentication
 const token = localStorage.getItem('jwt_token');
 if (!token) {
@@ -1975,7 +1993,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Update the commits count badge
-    document.getElementById('commitsCount').textContent = commits.length;
+    if (document.getElementById('commitsCount')) {
+        document.getElementById('commitsCount').textContent = commits.length;
+    }
     
     // Clear the list
     commitsList.innerHTML = '';
@@ -1987,15 +2007,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const formattedDate = commitDate.toLocaleDateString() + ' ' + 
             commitDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
-        // Check if author is an object or just an ID
+        // Check if author exists and has a username
         let authorUsername = "Unknown";
-        if (commit.author) {
-            if (typeof commit.author === 'object') {
-                authorUsername = commit.author.username || "Unknown";
-            } else {
-                // If author is just an ID, we can't display the username
-                authorUsername = `User #${commit.author}`;
-            }
+        if (commit.author && commit.author.username) {
+            authorUsername = commit.author.username;
         }
         
         // Create the commit item
@@ -2043,15 +2058,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error viewing commit details:', error);
         alert('Failed to load commit details: ' + error.message);
     }
-}
-// Helper function to escape HTML to prevent XSS attacks
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }
 
 // Initialize after the page loads

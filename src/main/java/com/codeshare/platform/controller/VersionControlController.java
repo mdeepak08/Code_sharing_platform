@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,17 +17,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codeshare.platform.dto.ApiResponse;
+import com.codeshare.platform.dto.CommitDTO;
 import com.codeshare.platform.model.Branch;
 import com.codeshare.platform.model.Commit;
 import com.codeshare.platform.model.File;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
-import com.codeshare.platform.repository.CommitRepository;
 import com.codeshare.platform.service.BranchService;
 import com.codeshare.platform.service.FileService;
 import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
 import com.codeshare.platform.service.VersionControlService;
+
 
 @RestController
 @RequestMapping("/api/version-control")
@@ -37,7 +39,7 @@ public class VersionControlController {
     private final BranchService branchService;
     private final UserService userService;
     private final FileService fileService;
-    private final CommitRepository commitRepository;
+    private final com.codeshare.platform.repository.CommitRepository commitRepository;
 
     @Autowired
     public VersionControlController(VersionControlService versionControlService,
@@ -45,7 +47,7 @@ public class VersionControlController {
                                    BranchService branchService,
                                    UserService userService,
                                    FileService fileService,
-                                    CommitRepository commitRepository) {
+                                   com.codeshare.platform.repository.CommitRepository commitRepository) {
         this.versionControlService = versionControlService;
         this.projectService = projectService;
         this.branchService = branchService;
@@ -138,52 +140,64 @@ public class VersionControlController {
         }
     }
 
-            /**
-         * Get all commits for a project (regardless of branch)
-         */
-        @GetMapping("/project-commits")
-        public ResponseEntity<ApiResponse<List<Commit>>> getProjectCommits(@RequestParam Long projectId) {
-            try {
-                Optional<Project> projectOpt = projectService.getProjectById(projectId);
-                if (projectOpt.isEmpty()) {
-                    return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
-                }
-                
-                List<Commit> commits = new ArrayList<>();
-                List<Branch> branches = branchService.getBranchesByProject(projectOpt.get());
-                
-                // Collect commits from all branches
-                for (Branch branch : branches) {
-                    commits.addAll(commitRepository.findByBranch(branch));
-                }
-                
-                // Sort commits by creation date (newest first)
-                commits.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
-                
-                return new ResponseEntity<>(ApiResponse.success(commits), HttpStatus.OK);
-            } catch (Exception e) {
-                return new ResponseEntity<>(ApiResponse.error("Error retrieving project commits: " + e.getMessage()), 
-                                            HttpStatus.INTERNAL_SERVER_ERROR);
+    /**
+     * Get all commits for a project (regardless of branch)
+     */
+    @GetMapping("/project-commits")
+    public ResponseEntity<ApiResponse<List<CommitDTO>>> getProjectCommits(@RequestParam Long projectId) {
+        try {
+            Optional<Project> projectOpt = projectService.getProjectById(projectId);
+            if (projectOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
             }
+            
+            List<Commit> commits = new ArrayList<>();
+            List<Branch> branches = branchService.getBranchesByProject(projectOpt.get());
+            
+            // Collect commits from all branches
+            for (Branch branch : branches) {
+                commits.addAll(commitRepository.findByBranch(branch));
+            }
+            
+            // Sort commits by creation date (newest first)
+            commits.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+            
+            // Convert to DTOs
+            List<CommitDTO> commitDTOs = commits.stream()
+                .map(CommitDTO::new)
+                .collect(Collectors.toList());
+            
+            return new ResponseEntity<>(ApiResponse.success(commitDTOs), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ApiResponse.error("Error retrieving project commits: " + e.getMessage()), 
+                                        HttpStatus.INTERNAL_SERVER_ERROR);
         }
-/**
- * Get commit history for a branch
- */
-@GetMapping("/commit-history")
-public ResponseEntity<ApiResponse<List<Commit>>> getCommitHistory(@RequestParam Long branchId) {
-    try {
-        Optional<Branch> branchOpt = branchService.getBranchById(branchId);
-        if (branchOpt.isEmpty()) {
-            return new ResponseEntity<>(ApiResponse.error("Branch not found"), HttpStatus.NOT_FOUND);
-        }
-        
-        List<Commit> commits = versionControlService.getCommitHistory(branchOpt.get());
-        return new ResponseEntity<>(ApiResponse.success(commits), HttpStatus.OK);
-    } catch (Exception e) {
-        return new ResponseEntity<>(ApiResponse.error("Error retrieving commit history: " + e.getMessage()), 
-                                     HttpStatus.INTERNAL_SERVER_ERROR);
     }
-}
+
+    /**
+     * Get commit history for a branch
+     */
+    @GetMapping("/commit-history")
+    public ResponseEntity<ApiResponse<List<CommitDTO>>> getCommitHistory(@RequestParam Long branchId) {
+        try {
+            Optional<Branch> branchOpt = branchService.getBranchById(branchId);
+            if (branchOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Branch not found"), HttpStatus.NOT_FOUND);
+            }
+            
+            List<Commit> commits = versionControlService.getCommitHistory(branchOpt.get());
+            
+            // Convert to DTOs
+            List<CommitDTO> commitDTOs = commits.stream()
+                .map(CommitDTO::new)
+                .collect(Collectors.toList());
+                
+            return new ResponseEntity<>(ApiResponse.success(commitDTOs), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ApiResponse.error("Error retrieving commit history: " + e.getMessage()), 
+                                        HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @GetMapping("/file-history")
     public ResponseEntity<ApiResponse<List<String>>> getFileHistory(@RequestParam Long fileId, @RequestParam Long branchId) {
@@ -222,5 +236,4 @@ public ResponseEntity<ApiResponse<List<Commit>>> getCommitHistory(@RequestParam 
             return new ResponseEntity<>(ApiResponse.error(error.trim()), HttpStatus.NOT_FOUND);
         }
     }
-
 }

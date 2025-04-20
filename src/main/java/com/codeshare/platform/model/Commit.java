@@ -2,6 +2,10 @@ package com.codeshare.platform.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,6 +24,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "commits")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Commit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,10 +36,12 @@ public class Commit {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
+    @JsonIgnoreProperties({"commits", "project"})
     private Branch branch;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
+    @JsonIgnoreProperties({"userProjects", "password", "hibernateLazyInitializer", "handler"})
     private User author;
     
     @Column(nullable = false)
@@ -44,5 +52,6 @@ public class Commit {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_commit_id")
+    @JsonIgnoreProperties({"parentCommit", "branch", "author", "fileChanges"})
     private Commit parentCommit;
 }
