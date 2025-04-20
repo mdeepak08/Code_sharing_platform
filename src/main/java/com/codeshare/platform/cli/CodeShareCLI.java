@@ -358,6 +358,9 @@ public class CodeShareCLI {
                     String filePath = entry.getKey();
                     String content = entry.getValue();
                     
+                    // Normalize line endings to match the local system
+                    content = content.replaceAll("\r\n|\r|\n", System.lineSeparator());
+                    
                     File file = new File(targetDir, filePath);
                     File parentDir = file.getParentFile();
                     if (!parentDir.exists() && !parentDir.mkdirs()) {
@@ -427,8 +430,8 @@ public class CodeShareCLI {
                     .replace("\\\"", "\"")
                     .replace("\\n", "\n")
                     .replace("\\t", "\t")
-                    .replace("\\\\", "\\");
-            
+                    .replace("\\\\", "\\")
+                    .replace("\\r", "\r");
             files.put(key, value);
             
             currentPos = valueEnd + 1;
@@ -544,15 +547,15 @@ private static void pushChanges(String[] args) throws IOException, NoSuchAlgorit
         }
 
         try {
+            // Read file content
             String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-
-            // --- ADD NULL BYTE FILTERING/REPLACEMENT HERE ---
-            // This line replaces all null bytes (\u0000) with an empty string (removes them)
+            
+            // Normalize to Unix line endings (LF) when sending to server
+            content = content.replaceAll("\r\n|\r", "\n");
+            
+            // Filter out null bytes
             content = content.replace("\u0000", "");
-            // You could also replace them with a space if preferred:
-            // content = content.replace("\u0000", " ");
-            // --- END FILTERING ---
-
+            
             chunk.put(filePath, content);
             fileCount++;
 
@@ -832,9 +835,13 @@ private static void pullChanges(String[] args) throws IOException, NoSuchAlgorit
             
             // Write files to local repository
             int updatedFiles = 0;
+            // Write files to local repository
             for (Map.Entry<String, String> entry : remoteFiles.entrySet()) {
                 String filePath = entry.getKey();
                 String content = entry.getValue();
+                
+                // Normalize line endings to match the local system
+                content = content.replaceAll("\r\n|\r|\n", System.lineSeparator());
                 
                 File file = new File(currentDir, filePath);
                 File parentDir = file.getParentFile();
@@ -847,7 +854,10 @@ private static void pullChanges(String[] args) throws IOException, NoSuchAlgorit
                 boolean shouldUpdate = true;
                 if (file.exists()) {
                     String currentContent = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                    shouldUpdate = !currentContent.equals(content);
+                    // Normalize current content for comparison to avoid false positives due to line endings
+                    currentContent = currentContent.replaceAll("\r\n|\r|\n", "\n");
+                    String normalizedNewContent = content.replaceAll("\r\n|\r|\n", "\n");
+                    shouldUpdate = !currentContent.equals(normalizedNewContent);
                 }
                 
                 if (shouldUpdate) {

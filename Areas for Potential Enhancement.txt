@@ -9,4 +9,19 @@ Based on the files, some areas you might consider expanding:
 7. File preview for different file types
 8. CI/CD integration
 
-Lets do all these one by one
+Potential Improvements
+
+Error Handling: Your CLI could benefit from more robust error handling and user-friendly error messages.
+File Diff: GitHub CLI shows diffs when committing; you could add this functionality.
+Local Config: Your .codeshare directory approach is good, but consider making it more persistent across sessions.
+Authentication Flow: Consider adding refresh tokens for better security.
+Command Parity: You could add more GitHub-like commands such as:
+
+status: Show working tree status
+log: Show commit history
+diff: Show changes between commits
+merge: Merge branches
+
+
+
+Overall, your implementation provides a solid foundation for a GitHub-like CLI experience but with your own custom approach to version control.
