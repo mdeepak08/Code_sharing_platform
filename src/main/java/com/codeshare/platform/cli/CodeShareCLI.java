@@ -452,6 +452,11 @@ public class CodeShareCLI {
         }
         return -1;
     }
+// Find the pushChanges method in your CodeShareCLI.java file and replace it with this:
+
+
+// Find the pushChanges method in your CodeShareCLI.java file and replace it with this:
+
 private static void pushChanges(String[] args) throws IOException, NoSuchAlgorithmException {
     // Parse branch name and commit message
     String branchName = null;
@@ -492,6 +497,10 @@ private static void pushChanges(String[] args) throws IOException, NoSuchAlgorit
     // Use branch from config if not specified
     if (branchName == null) {
         branchName = config.get("branch");
+        if (branchName == null || branchName.isEmpty()) {
+            System.out.println("Error: Current branch not set. Please specify a branch name.");
+            return;
+        }
         System.out.println("Using branch from config: " + branchName);
     }
 
@@ -506,7 +515,7 @@ private static void pushChanges(String[] args) throws IOException, NoSuchAlgorit
 
     System.out.println("Found " + changedFiles.size() + " changed files");
     
-    // Group files by directory for easier viewing
+    // Group files by directory for easier viewing - keep this for displaying purposes
     Map<String, List<String>> filesByDirectory = new HashMap<>();
     for (String filePath : changedFiles) {
         String directory = "./";
@@ -530,18 +539,16 @@ private static void pushChanges(String[] args) throws IOException, NoSuchAlgorit
         }
     }
 
-    // Limit number of files per push to avoid overwhelming the server
-    final int MAX_FILES_PER_CHUNK = 10;
-    Map<String, String> chunk = new HashMap<>();
-    int fileCount = 0;
-    int chunkCount = 0;
+    // Create a single map for all file changes
+    Map<String, String> allChanges = new HashMap<>();
+    int totalFileCount = 0;
     
-    // Process files in chunks
+    // Process all files at once
     for (String filePath : changedFiles) {
         // Read file content
         File file = new File(currentDir, filePath);
-        if (!file.exists()) {
-            System.out.println("Skipping non-existent file: " + filePath);
+        if (!file.exists() || !file.isFile()) {
+            System.out.println("Skipping non-existent or non-file: " + filePath);
             continue;
         }
 
@@ -555,43 +562,49 @@ private static void pushChanges(String[] args) throws IOException, NoSuchAlgorit
             // Filter out null bytes
             content = content.replace("\u0000", "");
             
-            chunk.put(filePath, content);
-            fileCount++;
-
-            // Push when chunk is full or this is the last file
-            if (fileCount >= MAX_FILES_PER_CHUNK || fileCount >= changedFiles.size()) {
-                System.out.println("Pushing chunk " + (chunkCount + 1) + " of " +
-                        (int)Math.ceil((double)changedFiles.size() / MAX_FILES_PER_CHUNK) +
-                        " (" + chunk.size() + " files)");
-
-                pushChunk(projectId, branchName, chunk,
-                        chunkCount > 0 ? commitMessage + " (part " + (chunkCount + 1) + ")" : commitMessage);
-
-                // Update state after successful push
-                FileSync.saveCurrentState(currentDir, chunk);
-
-                chunk.clear();
-                fileCount = 0;
-                chunkCount++;
-            }
+            allChanges.put(filePath, content);
+            totalFileCount++;
         } catch (IOException e) {
             System.err.println("Error reading file: " + filePath + ": " + e.getMessage());
         }
     }
-
-    System.out.println("Push completed successfully");
+    
+    if (allChanges.isEmpty()) {
+        System.out.println("No valid files to push");
+        return;
+    }
+    
+    System.out.println("Pushing " + totalFileCount + " files as a single commit...");
+    
+    // Now send a single push request with all files
+    try {
+        sendCommit(projectId, branchName, allChanges, commitMessage);
+        
+        // Update state after successful push
+        FileSync.saveCurrentState(currentDir, allChanges);
+        
+        System.out.println("Push completed successfully");
+    } catch (Exception e) {
+        System.err.println("Failed to push changes: " + e.getMessage());
+    }
 }
 
-private static void pushChunk(String projectId, String branchName, Map<String, String> changes, String commitMessage) throws IOException {
+// Replace pushChunk with a new sendCommit method
+private static void sendCommit(String projectId, String branchName, Map<String, String> changes, String commitMessage) throws IOException {
     // Create API request
     URL url = new URL(API_BASE_URL + "/cli/push?projectId=" + projectId + 
-            (branchName != null ? "&branchName=" + branchName : "") +
+            (branchName != null ? "&branchName=" + URLEncoder.encode(branchName, "UTF-8") : "") +
             "&commitMessage=" + URLEncoder.encode(commitMessage, "UTF-8"));
+    
+    System.out.println("Sending commit to server...");
     
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("POST");
     conn.setRequestProperty("Content-Type", "application/json");
     conn.setRequestProperty("Authorization", "Bearer " + authToken);
+    // Increase timeouts for large requests
+    conn.setConnectTimeout(60000); // 60 seconds connection timeout
+    conn.setReadTimeout(60000);    // 60 seconds read timeout
     conn.setDoOutput(true);
     
     // Convert changes map to JSON
@@ -606,9 +619,9 @@ private static void pushChunk(String projectId, String branchName, Map<String, S
     // Check response
     int responseCode = conn.getResponseCode();
     if (responseCode >= 200 && responseCode < 300) {
-        System.out.println("Chunk pushed successfully");
+        System.out.println("Changes pushed successfully");
     } else {
-        System.out.println("Failed to push chunk: " + responseCode);
+        System.out.println("Failed to push changes: " + responseCode);
         
         // Safely handle error stream which might be null
         try {

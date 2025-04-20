@@ -52,7 +52,7 @@ public class VersionControlServiceImpl implements VersionControlService {
             // Find the latest commit in the branch
             List<Commit> commits = commitRepository.findByBranchOrderByCreatedAtDesc(branch);
             Commit parentCommit = commits.isEmpty() ? null : commits.get(0);
-
+    
             // Create a new commit
             Commit newCommit = new Commit();
             newCommit.setBranch(branch);
@@ -60,14 +60,14 @@ public class VersionControlServiceImpl implements VersionControlService {
             newCommit.setMessage(message);
             newCommit.setCreatedAt(LocalDateTime.now());
             newCommit.setParentCommit(parentCommit);
-
+    
             // Serialize file changes to JSON
             try {
                 newCommit.setFileChanges(objectMapper.writeValueAsString(fileChanges));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize file changes", e);
             }
-
+    
             // Update file contents as well
             for (Map.Entry<String, String> entry : fileChanges.entrySet()) {
                 String filePath = entry.getKey();
@@ -90,7 +90,7 @@ public class VersionControlServiceImpl implements VersionControlService {
                     fileRepository.save(newFile);
                 }
             }
-
+    
             return commitRepository.save(newCommit);
         });
     }

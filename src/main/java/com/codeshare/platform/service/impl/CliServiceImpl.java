@@ -41,6 +41,7 @@ public class CliServiceImpl implements CliService {
         Project project = getProjectById(projectId);
         Branch branch = getBranchForProject(project, branchName);
         
+        // Use the version control service to create a single commit with all changes
         return versionControlService.commitChanges(branch, user, commitMessage, changes);
     }
     

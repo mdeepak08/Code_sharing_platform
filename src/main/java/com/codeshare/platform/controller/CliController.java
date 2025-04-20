@@ -99,7 +99,7 @@ public class CliController {
                     new ApiResponse<>(false, "Branch error: " + e.getMessage(), null));
             }
             
-            // Create commit using the existing service
+            // Create a single commit with all changes
             Commit commit = cliService.pushChanges(projectId, branch.getName(), changes, commitMessage, currentUser);
             return ResponseEntity.ok(new ApiResponse<>(true, "Changes pushed successfully", commit));
         } catch (Exception e) {
