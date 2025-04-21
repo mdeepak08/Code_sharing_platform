@@ -176,6 +176,19 @@
                 </li>
             </ul>
         </div>
+        <!-- Add this language statistics section after your file list but before the commit history section -->
+        <div class="language-stats-container">
+            <div class="language-stats">
+            <h4>Languages</h4>
+            <div id="languageStats" class="language-bars">
+                <!-- Language bars will be added here dynamically -->
+                <div class="placeholder-bars">
+                <div class="skeleton-bar"></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
         <!-- Commits Container (Hidden by default) -->
 <div class="commits-container" id="commitsContainer" style="display: none;">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -916,6 +929,101 @@
     background-color: #ffebe9;
     border-color: #e9aeaa;
 }
+/* Add these styles to match your application's design */
+.language-stats-container {
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.language-stats {
+  background-color: #fff;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.language-stats h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #24292e;
+}
+
+.language-bars {
+  display: flex;
+  height: 10px;
+  width: 100%;
+  margin-bottom: 16px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.language-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.language-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.language-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.language-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.language-name {
+  margin-right: 4px;
+  font-weight: 500;
+}
+
+.language-percentage {
+  color: #586069;
+}
+
+.skeleton-bar {
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 5px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0 }
+  100% { background-position: -200% 0 }
+}
+
+/* For positioning on the right side (if needed) */
+@media (min-width: 992px) {
+  .project-layout {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .main-content {
+    flex: 3;
+  }
+  
+  .sidebar-content {
+    flex: 1;
+    min-width: 250px;
+    max-width: 300px;
+  }
+}
     }
 </style>
 <script>
@@ -979,6 +1087,7 @@ async function initialize() {
     await loadProjectDetails();
     await loadProjectFiles();
     await loadProjectBranches();
+    await loadLanguageStats();
     setupEventListeners();
     updateStarButton();
 }
@@ -2436,6 +2545,109 @@ document.addEventListener('DOMContentLoaded', function() {
             window.hljs.highlightElement(block);
         }
     });
+}
+// Language colors mapping similar to GitHub
+const languageColors = {
+    'Java': '#b07219',
+    'JavaScript': '#f1e05a',
+    'HTML': '#e34c26',
+    'CSS': '#563d7c',
+    'Python': '#3572A5',
+    'C': '#555555',
+    'C++': '#f34b7d',
+    'Shell': '#89e051',
+    'Batch': '#C1F12E',
+    'PowerShell': '#012456',
+    'Gradle': '#02303A',
+    'Text': '#cccccc',
+    'Other': '#ededed'
+};
+// Function to load language statistics
+async function loadLanguageStats() {
+    try {
+        const response = await fetch(`/api/projects/${projectId}/languages`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                displayLanguageStats(result.data);
+            } else {
+                document.getElementById('languageStats').innerHTML = '<div class="text-muted small">Language statistics not available</div>';
+            }
+        } else {
+            console.error('Failed to load language statistics');
+            document.getElementById('languageStats').innerHTML = '<div class="text-muted small">Failed to load language statistics</div>';
+        }
+    } catch (error) {
+        console.error('Error loading language statistics:', error);
+        document.getElementById('languageStats').innerHTML = '<div class="text-muted small">Error loading language statistics</div>';
+    }
+}
+// Function to load language statistics
+async function loadLanguageStats() {
+    try {
+        const response = await fetch(`/api/projects/${projectId}/languages`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+                displayLanguageStats(result.data);
+            } else {
+                document.getElementById('languageStats').innerHTML = '<div class="text-muted small">Language statistics not available</div>';
+            }
+        } else {
+            console.error('Failed to load language statistics');
+            document.getElementById('languageStats').innerHTML = '<div class="text-muted small">Failed to load language statistics</div>';
+        }
+    } catch (error) {
+        console.error('Error loading language statistics:', error);
+        document.getElementById('languageStats').innerHTML = '<div class="text-muted small">Error loading language statistics</div>';
+    }
+}
+
+// Function to display language statistics
+function displayLanguageStats(languageData) {
+    const languageStatsContainer = document.getElementById('languageStats');
+    if (!languageStatsContainer) return;
+    
+    // Sort languages by percentage (descending)
+    const sortedLanguages = Object.entries(languageData)
+        .sort((a, b) => b[1] - a[1]);
+    
+    // Create the language bars (horizontal stacked bar)
+    let barsHtml = '';
+    sortedLanguages.forEach(([language, percentage]) => {
+        const color = languageColors[language] || '#ddd';
+        barsHtml += `<div class="language-bar" style="width: ${percentage}%; background-color: ${color};" 
+                         title="${language}: ${percentage.toFixed(1)}%"></div>`;
+    });
+    
+    // Create the language details
+    let detailsHtml = '<div class="language-details mt-3">';
+    sortedLanguages.forEach(([language, percentage]) => {
+        if (percentage >= 0.1) { // Only show languages that are at least 0.1%
+            const color = languageColors[language] || '#ddd';
+            detailsHtml += `
+                <div class="language-item">
+                    <span class="language-color" style="background-color: ${color};"></span>
+                    <span class="language-name">${language}</span>
+                    <span class="language-percentage">${percentage.toFixed(1)}%</span>
+                </div>
+            `;
+        }
+    });
+    detailsHtml += '</div>';
+    
+    // Update the DOM
+    languageStatsContainer.innerHTML = barsHtml + detailsHtml;
 }
 
 // Initialize after the page loads

@@ -95,13 +95,13 @@ src/main/resources/fxml/LoginView.fxml
 src/main/resources/fxml/MainView.fxml
 src/main/resources/fxml/ProjectView.fxml
 src/main/resources/static/commit-details.html
+src/main/resources/static/css/dark-theme.css
 src/main/resources/static/css/style.css
 src/main/resources/static/css/tree-view.css
 src/main/resources/static/dashboard.html
 src/main/resources/static/error.html
 src/main/resources/static/explore.html
 src/main/resources/static/favicon.ico
-src/main/resources/static/file.html
 src/main/resources/static/index.html
 src/main/resources/static/js/commit-batch.js
 src/main/resources/static/js/main.js

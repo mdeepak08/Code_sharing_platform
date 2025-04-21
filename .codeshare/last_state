@@ -39,7 +39,7 @@ src/main/java/com/codeshare/platform/repository/CommentRepository.java:gbI3RLZhT
 src/main/java/com/codeshare/platform/repository/ProjectRepository.java:gm0+2AEdvG3Zuddxr6t/OU6yKi5SMUexTlFPd/XYz+4=
 src/main/java/com/codeshare/platform/repository/PullRequestReviewRepository.java:XVmZYXebBDVpNsQWBmdFbx+R7wbOy49JforekL8jbm8=
 gradle/wrapper/gradle-wrapper.properties:zasf+0OSGbHbEl48mahs8kJPh2K5s/qkBO0GHjY17N4=
-src/main/resources/static/project.html:JPT6CnZxDMNg82Yqis3r8C6/aQZ5DSdPgDDmGjLOdEo=
+src/main/resources/static/project.html:par2YRHeY/liTovjQrhCuwPIAfeyJOaGAR/DrDCZfDs=
 src/main/java/com/codeshare/platform/dto/UserDto.java:+NRyGR302nbasxNdm34WepFMJCnW79xnVOXZeAvSLwQ=
 src/main/java/com/codeshare/platform/service/impl/FileServiceImpl.java:NJ6XHGqKLNnRy8IkCizOoTXw/wS566Yn+UWnT2nORyk=
 src/main/resources/static/explore.html:V17afcnR+P33byLEIaThzXSmuJ2e0JHDWbH2kfCkju8=
@@ -61,7 +61,6 @@ src/main/java/com/codeshare/platform/controller/BranchController.java:kXlppKDtpD
 src/main/java/com/codeshare/platform/service/FileService.java:FGS+tVyZ0mPlqHodKuT6nbRqBJhJJ5qUOqHGuCRE+sc=
 src/main/java/com/codeshare/platform/dto/ApiResponse.java:9KMnTo8wTDXixHqPKBGeo+0JA/r7Rhd57g4n1Dj4XG8=
 src/main/resources/styles/application.css:PZ8EXaNkF72c/YZFWM03/4mdD/DItZjpD2a1e4RM67g=
-src/main/resources/static/file.html:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=
 src/main/java/com/codeshare/platform/model/PullRequestReview.java:pjGOxbXT98jMFRfpjk2TMA/jXSTWQftzwmm9QQDEYQs=
 src/main/java/com/codeshare/platform/service/impl/VersionControlServiceImpl.java:vHXNGMc8b6SeebuVT7SXxSwtFgLOSeSyS8Quj6tUzV8=
 src/main/java/com/codeshare/platform/util/ConfigManager.java:wrmsJPsOy5O66jl1g5OI2Si/gIU/FJWL9Is7rO9tfXc=
@@ -76,6 +75,7 @@ codeshare.bat:OfA3y5GRchEwSWkWhcJaDQ8Cz8M1FRlCCaivBorevaU=
 src/main/resources/static/pull-requests.html:ZtAz4KpkeNxvlTLtgbbUmNYXJtm6zClu2DYENm5ljGs=
 src/main/java/com/codeshare/platform/security/CustomUserDetailsService.java:feyvYWKTRu15QGYhmpRNwcVZ84/FO1z2oDqwymy076g=
 gradlew:c0s4edNQHc5HHPBSLTvLr+doc9n8USk0W2f7Q70V6TM=
+src/main/resources/static/css/dark-theme.css:0lBp/gSnHpOau/MLf2qh7Yw0RDXPMPVGwfsFyfp06Pc=
 src/main/java/com/codeshare/platform/controller/VersionControlController.java:8ZwsXvI/rwQi+P3lHXcWBuFD9N/vYvbMMbLbRZLFyJ4=
 src/main/java/com/codeshare/platform/repository/FileRepository.java:MBcyIqLc4RN6tQGd1gxLmvvj2LA0RGQY1sM55ZmH3l0=
 src/main/java/com/codeshare/platform/model/Branch.java:V3rppNL0vMsj8qabkOyGUdzlfMkT4iNghs/jUFFy6xc=

@@ -334,6 +334,112 @@ private String generateDefaultReadme(Project project) {
         }
     }
 
+    /**
+ * Get language statistics for a project
+ */
+@GetMapping("/{projectId}/languages")
+public ResponseEntity<ApiResponse<Map<String, Double>>> getLanguageStatistics(@PathVariable Long projectId) {
+    try {
+        Optional<Project> projectOpt = projectService.getProjectById(projectId);
+        if (projectOpt.isEmpty()) {
+            return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+        }
+        
+        Project project = projectOpt.get();
+        List<File> files = fileService.getFilesByProject(project);
+        
+        // Calculate language statistics
+        Map<String, Long> languageBytes = new HashMap<>();
+        long totalBytes = 0;
+        
+        for (File file : files) {
+            String language = detectLanguage(file.getName());
+            if (language != null) {
+                // Count bytes of content for this language
+                long bytes = file.getContent() != null ? file.getContent().getBytes().length : 0;
+                languageBytes.put(language, languageBytes.getOrDefault(language, 0L) + bytes);
+                totalBytes += bytes;
+            }
+        }
+        
+        // Convert byte counts to percentages
+        Map<String, Double> languagePercentages = new HashMap<>();
+        if (totalBytes > 0) {
+            for (Map.Entry<String, Long> entry : languageBytes.entrySet()) {
+                double percentage = (entry.getValue() * 100.0) / totalBytes;
+                languagePercentages.put(entry.getKey(), percentage);
+            }
+        }
+        
+        return new ResponseEntity<>(ApiResponse.success(languagePercentages), HttpStatus.OK);
+    } catch (Exception e) {
+        return new ResponseEntity<>(ApiResponse.error("Error calculating language statistics: " + e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+/**
+ * Detect programming language based on file extension
+ */
+private String detectLanguage(String filename) {
+    String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+    
+    switch (ext) {
+        case "java":
+            return "Java";
+        case "js":
+            return "JavaScript";
+        case "jsx":
+            return "JavaScript";
+        case "ts":
+            return "TypeScript";
+        case "html":
+        case "htm":
+            return "HTML";
+        case "css":
+            return "CSS";
+        case "scss":
+        case "sass":
+            return "CSS";
+        case "py":
+            return "Python";
+        case "rb":
+            return "Ruby";
+        case "php":
+            return "PHP";
+        case "c":
+            return "C";
+        case "cpp":
+        case "cc":
+        case "cxx":
+            return "C++";
+        case "cs":
+            return "C#";
+        case "go":
+            return "Go";
+        case "rs":
+            return "Rust";
+        case "swift":
+            return "Swift";
+        case "kt":
+            return "Kotlin";
+        case "sh":
+        case "bash":
+            return "Shell";
+        case "xml":
+            return "XML";
+        case "json":
+            return "JSON";
+        case "md":
+            return "Markdown";
+        case "yml":
+        case "yaml":
+            return "YAML";
+        default:
+            return null; // Unknown or unsupported language
+    }
+}
+
     // Helper method to convert Project to ProjectDto (already exists in your original code)
     private ProjectDto convertToDto(Project project) {
         ProjectDto dto = new ProjectDto();
