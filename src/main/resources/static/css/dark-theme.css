@@ -1,0 +1,177 @@
+:root {
+    /* Dark theme colors */
+    --dark-bg: #0d1117;
+    --dark-header: #161b22;
+    --dark-border: #30363d;
+    --dark-text: #c9d1d9;
+    --dark-secondary-text: #8b949e;
+    --dark-link: #58a6ff;
+    --dark-button-bg: #21262d;
+    --dark-button-hover: #30363d;
+    --dark-card-bg: #161b22;
+    --dark-highlight: #3c1e1d;
+    --dark-diff-add: #2ea04320;
+    --dark-diff-del: #f8514920;
+    --dark-code-bg: #111926;
+  }
+  
+  /* Apply dark theme to the entire application */
+  body {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+  }
+  
+  /* Navbar styling */
+  .navbar {
+    background-color: var(--dark-header) !important;
+    border-bottom: 1px solid var(--dark-border);
+  }
+  
+  /* Card and container styling */
+  .card, .container-card, .pr-header, .commit-header, .file-explorer, 
+  .code-container, .diff-section, .branch-dropdown-content {
+    background-color: var(--dark-card-bg) !important;
+    border-color: var(--dark-border) !important;
+  }
+  
+  /* Breadcrumb styling */
+  .breadcrumb-item a {
+    color: var(--dark-link) !important;
+  }
+  
+  .breadcrumb-item.active {
+    color: var(--dark-secondary-text) !important;
+  }
+  
+  /* Buttons styling */
+  .gh-btn, .btn-outline-secondary, .branch-selector {
+    background-color: var(--dark-button-bg) !important;
+    border-color: var(--dark-border) !important;
+    color: var(--dark-text) !important;
+  }
+  
+  .gh-btn:hover, .btn-outline-secondary:hover {
+    background-color: var(--dark-button-hover) !important;
+  }
+  
+  .btn-primary, .btn-success {
+    /* Keep primary and success buttons with their colors but darken them */
+    filter: brightness(0.85);
+  }
+  
+  /* File explorer and tree styling */
+  .file-explorer-header, .diff-header {
+    background-color: var(--dark-header) !important;
+    border-color: var(--dark-border) !important;
+  }
+  
+  .file-item, .dir-item {
+    border-color: var(--dark-border) !important;
+  }
+  
+  .file-item:hover, .dir-item:hover {
+    background-color: var(--dark-button-hover) !important;
+  }
+  
+  .file-name, .dir-name {
+    color: var(--dark-link) !important;
+  }
+  
+  /* Code styling */
+  .code-content, pre, code {
+    background-color: var(--dark-code-bg) !important;
+    color: var(--dark-text) !important;
+  }
+  
+  .code-header {
+    background-color: var(--dark-header) !important;
+  }
+  
+  /* Diff styling */
+  .diff-line-num {
+    color: var(--dark-secondary-text) !important;
+    border-color: var(--dark-border) !important;
+  }
+  
+  .diff-line.added {
+    background-color: var(--dark-diff-add) !important;
+  }
+  
+  .diff-line.removed {
+    background-color: var(--dark-diff-del) !important;
+  }
+  
+  /* Tables */
+  .table {
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+  }
+  
+  /* Form controls */
+  input, select, textarea {
+    background-color: var(--dark-button-bg) !important;
+    border-color: var(--dark-border) !important;
+    color: var(--dark-text) !important;
+  }
+  
+  /* Tabs styling */
+  .nav-tabs {
+    border-color: var(--dark-border) !important;
+  }
+  
+  .nav-tabs .nav-link.active {
+    background-color: var(--dark-card-bg) !important;
+    border-color: var(--dark-border) !important;
+    color: var(--dark-text) !important;
+  }
+  
+  .nav-tabs .nav-link {
+    color: var(--dark-secondary-text) !important;
+  }
+  
+  /* Dropdown menus */
+  .dropdown-menu {
+    background-color: var(--dark-card-bg) !important;
+    border-color: var(--dark-border) !important;
+  }
+  
+  .dropdown-item {
+    color: var(--dark-text) !important;
+  }
+  
+  .dropdown-item:hover {
+    background-color: var(--dark-button-hover) !important;
+  }
+  
+  /* Icons */
+  .fa, .fas {
+    color: var(--dark-secondary-text);
+  }
+  
+  /* File icons specific colors */
+  .file-dir-icon {
+    color: #8b949e !important;
+  }
+  
+  .text-success, .additions {
+    color: #56d364 !important;
+  }
+  
+  .text-danger, .deletions {
+    color: #f85149 !important;
+  }
+  
+  /* Syntax highlighting - adjust this based on your preferred code highlighting theme */
+  .hljs {
+    background-color: var(--dark-code-bg) !important;
+  }
+  
+  /* Modal styling */
+  .modal-content {
+    background-color: var(--dark-card-bg) !important;
+    border-color: var(--dark-border) !important;
+  }
+  
+  .modal-header, .modal-footer {
+    border-color: var(--dark-border) !important;
+  }
