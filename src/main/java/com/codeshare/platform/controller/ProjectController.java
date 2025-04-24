@@ -382,6 +382,11 @@ public ResponseEntity<ApiResponse<Map<String, Double>>> getLanguageStatistics(@P
  * Detect programming language based on file extension
  */
 private String detectLanguage(String filename) {
+    if (!filename.contains(".")) {
+        return "Other";
+    }
+    
+
     String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
     
     switch (ext) {
@@ -426,17 +431,25 @@ private String detectLanguage(String filename) {
         case "sh":
         case "bash":
             return "Shell";
+        case "bat":
+            return "Batch";
+        case "ps1":
+            return "PowerShell";
         case "xml":
             return "XML";
         case "json":
             return "JSON";
         case "md":
             return "Markdown";
+        case "txt":
+            return "Text";
         case "yml":
         case "yaml":
             return "YAML";
+        case "gradle":
+            return "Gradle";
         default:
-            return null; // Unknown or unsupported language
+            return "Other";
     }
 }
 

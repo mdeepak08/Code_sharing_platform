@@ -16,7 +16,7 @@ src/main/java/com/codeshare/platform/model/Commit.java:RWj6GvaeUUihuLCAzAn/0p8UF
 src/main/java/com/codeshare/platform/repository/UserProjectRepository.java:ye4VhTdmu78+cNyS9ucRFNSghof1G7UbbqyOHv9Pl+U=
 src/main/java/com/codeshare/platform/controller/CliController.java:HLNM8lKo79OW67PkoSF6hpnf+lL0v2qcFSxYYvM/ubs=
 src/main/java/com/codeshare/platform/ui/JavaFxApplication.java:CHZsGuo4TzxFRpPf0tfJCvSO+idIdJmGH6C/k1/vpRI=
-src/main/java/com/codeshare/platform/controller/ProjectController.java:5mnk3KpHWO2b0O8Y6r2CZuTFk/lqIp4DMc5NbXOgSI0=
+src/main/java/com/codeshare/platform/controller/ProjectController.java:W4FhDoDWmgPRGUL7qr68ZZiDMbfbq7LstPNXMwbvQE4=
 src/main/java/com/codeshare/platform/dto/CommitDTO.java:bwnqSJY/4DFiFMmbKrqeXGz+W3YT7tgGezHz2dOLhyE=
 src/main/java/com/codeshare/platform/service/CliService.java:XwyyP+MA9xmqqebUdEeHqL0Quo4Yaw8RrnMX9sccxws=
 src/main/java/com/codeshare/platform/security/JwtAuthenticationFilter.java:jkSzz4f4HSyUZRPMP3qcw/QjeRLOd/lLpD3PDT9o8Uw=
@@ -39,7 +39,7 @@ src/main/java/com/codeshare/platform/repository/CommentRepository.java:gbI3RLZhT
 src/main/java/com/codeshare/platform/repository/ProjectRepository.java:gm0+2AEdvG3Zuddxr6t/OU6yKi5SMUexTlFPd/XYz+4=
 src/main/java/com/codeshare/platform/repository/PullRequestReviewRepository.java:XVmZYXebBDVpNsQWBmdFbx+R7wbOy49JforekL8jbm8=
 gradle/wrapper/gradle-wrapper.properties:zasf+0OSGbHbEl48mahs8kJPh2K5s/qkBO0GHjY17N4=
-src/main/resources/static/project.html:par2YRHeY/liTovjQrhCuwPIAfeyJOaGAR/DrDCZfDs=
+src/main/resources/static/project.html:FgkXis6S4VerocVoashwoesogLOOICQRbtSsgA9MKeg=
 src/main/java/com/codeshare/platform/dto/UserDto.java:+NRyGR302nbasxNdm34WepFMJCnW79xnVOXZeAvSLwQ=
 src/main/java/com/codeshare/platform/service/impl/FileServiceImpl.java:NJ6XHGqKLNnRy8IkCizOoTXw/wS566Yn+UWnT2nORyk=
 src/main/resources/static/explore.html:V17afcnR+P33byLEIaThzXSmuJ2e0JHDWbH2kfCkju8=
