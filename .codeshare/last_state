@@ -8,6 +8,7 @@ src/main/resources/static/css/tree-view.css:8jOkwnGFmLW0MfZRQXeDHTxzUqS98n9eiSTa
 src/main/java/com/codeshare/platform/dto/JwtAuthResponse.java:o3HuiAJexBBz5v3JGzODzDy0qIKfnkX6jZDa2gqIHbg=
 src/main/resources/static/css/style.css:9GSNJBGFDIX90YLT7zOSXM9KqD2i7Px4YSbkF1F9PKw=
 src/main/java/com/codeshare/platform/cli/CodeShareCLI.java:GukM6nI45dEZkcFIzYWODsYohYweVXDf7m9QDmRdBiI=
+src/main/resources/static/js/theme-switcher.js:dypuKWRRyKy17+kAtOXePI5WspsTqpFB+wopnXcJWM8=
 src/main/java/com/codeshare/platform/service/impl/PullRequestServiceImpl.java:inkLl0Rh+aWwj+Y52QMD/7oEgU2bCbh6wGoLZYs+Vao=
 src/main/resources/styles/code-editor.css:ooO3uGQr6eYCVO3UDf7X52PCYIPLo3jtcKh/9cgiEqk=
 src/main/java/com/codeshare/platform/service/ConcurrencyService.java:b4P72q/L1u1R0WkazGQBiR+1IZuCUH/umMCySt5IGm4=
@@ -39,7 +40,7 @@ src/main/java/com/codeshare/platform/repository/CommentRepository.java:gbI3RLZhT
 src/main/java/com/codeshare/platform/repository/ProjectRepository.java:gm0+2AEdvG3Zuddxr6t/OU6yKi5SMUexTlFPd/XYz+4=
 src/main/java/com/codeshare/platform/repository/PullRequestReviewRepository.java:XVmZYXebBDVpNsQWBmdFbx+R7wbOy49JforekL8jbm8=
 gradle/wrapper/gradle-wrapper.properties:zasf+0OSGbHbEl48mahs8kJPh2K5s/qkBO0GHjY17N4=
-src/main/resources/static/project.html:FgkXis6S4VerocVoashwoesogLOOICQRbtSsgA9MKeg=
+src/main/resources/static/project.html:mwC1YuBYMG1k2YT9DRkwtalG7kLAhHNdW/o/tNhmPnw=
 src/main/java/com/codeshare/platform/dto/UserDto.java:+NRyGR302nbasxNdm34WepFMJCnW79xnVOXZeAvSLwQ=
 src/main/java/com/codeshare/platform/service/impl/FileServiceImpl.java:NJ6XHGqKLNnRy8IkCizOoTXw/wS566Yn+UWnT2nORyk=
 src/main/resources/static/explore.html:V17afcnR+P33byLEIaThzXSmuJ2e0JHDWbH2kfCkju8=

@@ -139,7 +139,6 @@
             </div>
         </div>
 
-        <!-- Repository navigation tabs -->
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
                 <a class="nav-link active" href="#" id="filesTab">Files</a>
@@ -154,138 +153,128 @@
                 <a class="nav-link" href="#" id="issuesTab">Issues</a>
             </li>
         </ul>
-        
-        <!-- File Explorer -->
-        <div class="file-explorer mb-4">
-            <div class="file-explorer-header">
-                <div class="commit-info">
-                    <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="commit-avatar">
-                    <span id="lastCommitUser">User</span>
-                    committed <span id="lastCommitTime">recently</span>
+    
+        <div class="row">
+    
+            <div class="col-lg-9"> 
+                <div class="file-explorer mb-4">
+                    <div class="file-explorer-header">
+                        <div class="commit-info">
+                            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="User" class="commit-avatar">
+                            <span id="lastCommitUser">User</span>
+                            committed <span id="lastCommitTime">recently</span>
+                        </div>
+                        <a href="#" class="text-small text-decoration-none" id="commitsLink">
+                            <i class="fa fa-history"></i> History
+                        </a>
+                    </div>
+    
+                    <ul class="file-list" id="fileList">
+                        <li class="dir-item">
+                            <i class="fa fa-folder file-icon file-dir-icon"></i>
+                            <a href="#" class="dir-name">Loading...</a>
+                        </li>
+                    </ul>
                 </div>
-                <a href="#" class="text-small text-decoration-none" id="commitsLink">
-                    <i class="fa fa-history"></i> History
-                </a>
-            </div>
-            
-            <ul class="file-list" id="fileList">
-                <!-- File items will be added here dynamically -->
-                <li class="dir-item">
-                    <i class="fa fa-folder file-icon file-dir-icon"></i>
-                    <a href="#" class="dir-name">Loading...</a>
-                </li>
-            </ul>
-        </div>
-
-    <!-- Replace the existing languages section with this code -->
-    <div class="languages-container">
-        <h3 class="section-title">Languages</h3>
-        <div class="language-bar-container">
-        <!-- Loading state will be replaced by actual bars -->
-        <div class="language-bar-loading" id="language-bar-loading"></div>
-        <!-- Language bars will be added here dynamically -->
-        <div class="language-bars" id="language-bars" style="display:none;"></div>
-        </div>
-        <ul class="language-list" id="language-list">
-        <!-- Languages will be added here dynamically -->
-        </ul>
-    </div>
-
-        <!-- Commits Container (Hidden by default) -->
-<div class="commits-container" id="commitsContainer" style="display: none;">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Commit History</h4>
-        <div class="d-flex align-items-center">
-            <div class="dropdown me-2">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="branchFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa fa-code-branch me-1"></i>
-                    <span id="currentBranchFilter">Current Branch</span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="branchFilterDropdown" id="branchFilterList">
-                    <!-- Branch items will be added dynamically -->
-                </ul>
-            </div>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="commitFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa fa-filter me-1"></i> Filter
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="commitFilterDropdown">
-                    <li><a class="dropdown-item" href="#" data-filter="all">All Commits</a></li>
-                    <li><a class="dropdown-item" href="#" data-filter="my-commits">My Commits</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#" data-filter="recent">Last 7 Days</a></li>
-                    <li><a class="dropdown-item" href="#" data-filter="month">Last 30 Days</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
     
-    <div id="commitsList" class="commits-list">
-        <!-- Commits will be loaded here -->
-        <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-        <!-- Pull Requests Container (Hidden by default) -->
-    <div class="pull-requests-container" id="pullRequestsContainer" style="display: none;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4>Pull Requests</h4>
-            <button class="btn btn-success" id="newPRButton">
-                <i class="fa fa-plus me-1"></i> New Pull Request
-            </button>
-        </div>
+                <div class="code-container mb-4" id="codeContainer" style="display: none;">
+                     <div class="code-header">
+                        <div class="code-header-filename" id="currentFileName">No file selected</div>
+                        <div class="code-header-actions">
+                            <a href="#" id="rawButton"><i class="fa fa-file-code"></i> Raw</a>
+                            <a href="#" id="downloadButton"><i class="fa fa-download"></i> Download</a>
+                            <a href="#" id="copyButton"><i class="fa fa-copy"></i> Copy</a>
+                            <a href="#" id="fullScreenButton"><i class="fa fa-expand"></i> Full screen</a>
+                        </div>
+                    </div>
+                    <div class="code-content">
+                        <table class="code-blob" id="codeTable">
+                            <tbody>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
     
-    <div class="card">
-            <div class="card-header">
-                <ul class="nav nav-tabs card-header-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" data-pr-status="OPEN">Open</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" data-pr-status="CLOSED">Closed</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" data-pr-status="MERGED">Merged</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="card-body p-0">
-                <div id="pullRequestsList" class="list-group list-group-flush">
-                    <!-- Pull Requests will be loaded here -->
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                 <div class="commits-container mb-4" id="commitsContainer" style="display: none;">
+                     <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0">Commit History</h4>
+                        <div class="d-flex align-items-center">
+                            <div class="dropdown me-2">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="branchFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-code-branch me-1"></i>
+                                    <span id="currentBranchFilter">Current Branch</span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="branchFilterDropdown" id="branchFilterList">
+                                    </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="commitFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-filter me-1"></i> Filter
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="commitFilterDropdown">
+                                    <li><a class="dropdown-item" href="#" data-filter="all">All Commits</a></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="my-commits">My Commits</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="recent">Last 7 Days</a></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="month">Last 30 Days</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div id="commitsList" class="commits-list">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-        
-        <!-- Code Display (Only visible when a file is selected) -->
-        <div class="code-container" id="codeContainer" style="display: none;">
-            <div class="code-header">
-                <div class="code-header-filename" id="currentFileName">No file selected</div>
-                <div class="code-header-actions">
-                    <a href="#" id="rawButton"><i class="fa fa-file-code"></i> Raw</a>
-                    <a href="#" id="downloadButton"><i class="fa fa-download"></i> Download</a>
-                    <a href="#" id="copyButton"><i class="fa fa-copy"></i> Copy</a>
-                    <a href="#" id="fullScreenButton"><i class="fa fa-expand"></i> Full screen</a>
+    
+                <div class="pull-requests-container mb-4" id="pullRequestsContainer" style="display: none;">
+                     <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Pull Requests</h4>
+                        <button class="btn btn-success" id="newPRButton">
+                            <i class="fa fa-plus me-1"></i> New Pull Request
+                        </button>
+                    </div>
+    
+                    <div class="card">
+                            <div class="card-header">
+                                <ul class="nav nav-tabs card-header-tabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="#" data-pr-status="OPEN">Open</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" data-pr-status="CLOSED">Closed</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" data-pr-status="MERGED">Merged</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="pullRequestsList" class="list-group list-group-flush">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                 </div>
-            </div>
-            <div class="code-content">
-                <table class="code-blob" id="codeTable">
-                    <tbody>
-                        <!-- Code content with line numbers will be added here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    
+            </div><div class="col-lg-3">
+                <div class="languages-container mb-4">
+                    <h3 class="section-title">Languages</h3>
+                    <div class="language-bar-container">
+                        <div class="language-bar-loading" id="language-bar-loading"></div>
+                        <div class="language-bars" id="language-bars" style="display:none;"></div>
+                    </div>
+                    <ul class="language-list" id="language-list">
+                        </ul>
+                </div>
     
     <!-- GitHub-like Modal for Full Screen View -->
     <div class="github-modal" id="fullScreenModal">
@@ -398,6 +387,7 @@
         display: flex;
         gap: 16px;
         margin-top: 16px;
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
     }
     
     .repo-stat {
@@ -499,7 +489,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 400px;
+        max-width: 400px; /* Adjust as needed */
         margin-left: auto;
         padding-left: 20px;
     }
@@ -508,7 +498,7 @@
         border: 1px solid var(--gh-border-color);
         border-radius: 6px;
         overflow: hidden;
-        margin-bottom: 20px;
+        /* margin-bottom removed here, added mb-4 in HTML */
     }
     
     .code-header {
@@ -540,7 +530,7 @@
     .code-content pre {
         margin: 0;
         padding: 16px;
-        overflow-y: hidden;
+        overflow-y: hidden; /* Keep this if you don't want vertical scroll inside pre */
         background-color: white;
     }
     
@@ -551,15 +541,7 @@
         tab-size: 4;
     }
     
-    .code-line-numbers {
-        float: left;
-        text-align: right;
-        color: #aaa;
-        border-right: 1px solid #e1e4e8;
-        padding: 16px 8px 16px 16px;
-        margin-right: 16px;
-        user-select: none;
-    }
+    /* Removed .code-line-numbers as the table structure handles this */
     
     .breadcrumb-item a {
         color: var(--gh-link-color);
@@ -570,7 +552,7 @@
         color: var(--gh-text-color);
     }
     
-    /* Styles for directory tree */
+    /* Styles for directory tree (if used elsewhere, keep) */
     .directory-structure {
         list-style-type: none;
         padding-left: 0;
@@ -602,7 +584,7 @@
     }
     
     .file-content {
-        display: none;
+        display: none; /* If used elsewhere */
     }
     
     /* GitHub-like UI elements */
@@ -747,6 +729,7 @@
         vertical-align: top;
         cursor: pointer;
         user-select: none;
+        border-right: 1px solid var(--gh-border-color); /* Added border */
     }
     
     .code-blob .line-content {
@@ -757,6 +740,7 @@
         line-height: 20px;
         white-space: pre;
         vertical-align: top;
+        width: 99%; /* Ensure content takes remaining space */
     }
     
     /* Utility classes */
@@ -768,13 +752,7 @@
         color: var(--gh-secondary-text) !important;
     }
     
-    .d-flex {
-        display: flex !important;
-    }
-    
-    .align-items-center {
-        align-items: center !important;
-    }
+    /* d-flex and align-items-center are Bootstrap classes, no need to redefine */
     
     /* Modal */
     .github-modal {
@@ -826,8 +804,8 @@
     }
 
     #currentPath a {
-    color: var(--gh-link-color);
-    text-decoration: none;
+        color: var(--gh-link-color);
+        text-decoration: none;
     }
 
     #currentPath a:hover {
@@ -838,352 +816,307 @@
         color: var(--gh-text-color);
     }
     
-    /* For mobile responsiveness */
-    @media (max-width: 768px) {
+    /* Commit item styles */
+    .commit-item {
+        transition: all 0.2s ease;
+    }
+
+    .commit-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .commit-header {
+        border-radius: 6px;
+        /* background-color: var(--gh-bg); /* Use gh-bg-color */
+        background-color: var(--gh-bg-color);
+        /* border: 1px solid var(--gh-border); /* Use gh-border-color */
+        border: 1px solid var(--gh-border-color);
+    }
+
+    .commit-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gh-text-color);
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        /* max-width: 80%; /* Let flexbox handle width */
+    }
+
+    .commit-meta {
+        font-size: 13px;
+        /* color: var(--gh-gray); /* Use gh-secondary-text */
+        color: var(--gh-secondary-text);
+    }
+
+    .view-details-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Commits container styles */
+    #commitsList {
+        /* padding: 16px; /* Padding handled by container */
+        background-color: #fff;
+        border-radius: 0 0 6px 6px; /* Keep if needed */
+    }
+
+    /* Commit details section (for future expansion) */
+    .commit-details {
+        margin-top: 16px;
+        padding: 16px;
+        background-color: #fff;
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+    }
+
+    .commit-file-changes {
+        margin-top: 16px;
+    }
+
+    .file-change-item {
+        padding: 8px 12px;
+        border: 1px solid var(--gh-border-color);
+        border-radius: 4px;
+        margin-bottom: 8px;
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 13px;
+    }
+
+    .file-change-added {
+        background-color: #e6ffec;
+        border-color: #b4e2c0;
+    }
+
+    .file-change-modified {
+        background-color: #f1f8ff;
+        border-color: #c8e1ff;
+    }
+
+    .file-change-deleted {
+        background-color: #ffebe9;
+        border-color: #e9aeaa;
+    }
+
+    /* Language Stats Styles (Now Global) */
+    .languages-container {
+        /* margin-top: 24px; /* Removed, spacing handled by column */
+        /* margin-bottom: 24px; /* Removed, spacing handled by column */
+        padding: 16px;
+        background-color: white;
+        border: 1px solid var(--gh-border-color);
+        border-radius: 6px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--gh-text-color);
+    }
+
+    .language-bar-container {
+        width: 100%;
+        height: 10px;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    .language-bars {
+        display: flex;
+        height: 100%;
+        width: 100%;
+    }
+
+    .language-bar {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+
+    .language-bar-loading {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 5px; /* Added */
+    }
+
+    .language-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px; /* Consistent gap */
+    }
+
+    .language-item {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        /* margin-right: 16px; /* Replaced by gap */
+    }
+
+    .language-color {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+
+    .language-name {
+        font-weight: 600;
+        margin-right: 4px;
+    }
+
+    .language-percentage {
+        color: var(--gh-secondary-text);
+    }
+
+    /* Styles previously inside @media (min-width: 992px) for languages */
+    .languages-section { /* This class might not be used anymore, but keeping styles */
+        background-color: #0d1117; /* Example dark theme color */
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #c9d1d9;
+    }
+
+    .languages-section h4 {
+        font-size: 16px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    /* Language bar container (duplicate, check which one is used) */
+    /* .language-bar-container { ... } */
+
+    /* Individual language bars */
+    .lang-bar { /* This class might not be used anymore */
+        height: 100%;
+        display: inline-block;
+    }
+
+    /* Language list styling (duplicate, check which one is used) */
+    /* .language-list { ... } */
+
+    .lang-item { /* This class might not be used anymore */
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    /* Colored dot for each language */
+    .lang-color { /* This class might not be used anymore */
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+
+    .lang-name { /* This class might not be used anymore */
+        margin-right: 5px;
+    }
+
+    .lang-percent { /* This class might not be used anymore */
+        color: #8b949e;
+    }
+
+    .loading-placeholder { /* This class might not be used anymore */
+        height: 8px;
+        width: 100%;
+        background: linear-gradient(90deg, #1f2937, #374151, #1f2937);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 4px;
+    }
+
+    /* Keyframes for loading animation */
+    @keyframes loading {
+        0% { background-position: 200% 0 }
+        100% { background-position: -200% 0 }
+    }
+
+    /* Toast Notifications */
+    #toast-container {
+        z-index: 1050; /* Ensure it's above other elements */
+        position: fixed; /* Keep fixed positioning */
+        bottom: 1rem;   /* Adjust positioning */
+        right: 1rem;    /* Adjust positioning */
+    }
+    
+    .toast {
+        min-width: 250px;
+        margin-bottom: 10px;
+        /* Bootstrap handles base styling */
+    }
+    
+    .toast-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724; /* Text color for body */
+    }
+    
+    .toast-success .toast-header {
+        background-color: #c3e6cb;
+        color: #155724;
+        border-bottom: 1px solid #b1dfbb; /* Optional header border */
+    }
+     .toast-success .btn-close {
+        filter: invert(40%) sepia(50%) saturate(600%) hue-rotate(80deg); /* Greenish close button */
+    }
+    
+    .toast-error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24; /* Text color for body */
+    }
+    
+    .toast-error .toast-header {
+        background-color: #f5c6cb;
+        color: #721c24;
+        border-bottom: 1px solid #f1b0b7; /* Optional header border */
+    }
+     .toast-error .btn-close {
+        filter: invert(25%) sepia(30%) saturate(1000%) hue-rotate(320deg); /* Reddish close button */
+    }
+
+    /* Mobile Responsiveness Adjustments */
+    @media (max-width: 991.98px) { /* Below Bootstrap lg breakpoint */
+        .languages-container {
+            margin-top: 1.5rem; /* Add some space when stacked */
+        }
+    }
+
+    @media (max-width: 767.98px) { /* Below Bootstrap md breakpoint */
         .commit-msg {
-            display: none;
+            display: none; /* Hide commit message on smaller screens */
         }
         
         .code-header-actions {
-            display: none;
+            display: none; /* Hide code actions on smaller screens */
         }
         
         .repo-stats {
-            flex-wrap: wrap;
+             gap: 10px; /* Reduce gap */
+             justify-content: start; /* Align stats to start */
         }
-    /* Commit item styles */
-.commit-item {
-    transition: all 0.2s ease;
-}
-
-.commit-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.commit-header {
-    border-radius: 6px;
-    background-color: var(--gh-bg);
-    border: 1px solid var(--gh-border);
-}
-
-.commit-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--gh-text-color);
-    margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 80%;
-}
-
-.commit-meta {
-    font-size: 13px;
-    color: var(--gh-gray);
-}
-
-.view-details-btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-}
-
-/* Commits container styles */
-#commitsList {
-    padding: 16px;
-    background-color: #fff;
-    border-radius: 0 0 6px 6px;
-}
-
-/* Commit details section (for future expansion) */
-.commit-details {
-    margin-top: 16px;
-    padding: 16px;
-    background-color: #fff;
-    border: 1px solid var(--gh-border);
-    border-radius: 6px;
-}
-
-.commit-file-changes {
-    margin-top: 16px;
-}
-
-.file-change-item {
-    padding: 8px 12px;
-    border: 1px solid var(--gh-border);
-    border-radius: 4px;
-    margin-bottom: 8px;
-    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 13px;
-}
-
-.file-change-added {
-    background-color: #e6ffec;
-    border-color: #b4e2c0;
-}
-
-.file-change-modified {
-    background-color: #f1f8ff;
-    border-color: #c8e1ff;
-}
-
-.file-change-deleted {
-    background-color: #ffebe9;
-    border-color: #e9aeaa;
-}
-/* Add these styles to match your application's design */
-.language-stats-container {
-  margin-bottom: 20px;
-  padding: 0 10px;
-}
-.languages-container {
-  margin-top: 24px;
-  margin-bottom: 24px;
-  padding: 16px;
-  background-color: white;
-  border: 1px solid var(--gh-border-color);
-  border-radius: 6px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: var(--gh-text-color);
-}
-
-.language-bar-container {
-  width: 100%;
-  height: 10px;
-  border-radius: 5px;
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-
-.language-bars {
-  display: flex;
-  height: 100%;
-  width: 100%;
-}
-
-.language-bar {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.language-bar-loading {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-}
-
-@keyframes loading {
-  0% { background-position: 200% 0 }
-  100% { background-position: -200% 0 }
-}
-
-.language-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.language-item {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  margin-right: 16px;
-}
-
-.language-color {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.language-name {
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.language-percentage {
-  color: var(--gh-secondary-text);
-}
-
-.language-stats {
-  background-color: #fff;
-  border: 1px solid #e1e4e8;
-  border-radius: 6px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-
-.language-stats h4 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: #24292e;
-}
-
-.language-bars {
-  display: flex;
-  height: 10px;
-  width: 100%;
-  margin-bottom: 16px;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.language-bar {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.language-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.language-item {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-
-.language-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.language-name {
-  margin-right: 4px;
-  font-weight: 500;
-}
-
-.language-percentage {
-  color: #586069;
-}
-
-.skeleton-bar {
-  width: 100%;
-  height: 10px;
-  background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-  border-radius: 5px;
-}
-
-@keyframes loading {
-  0% { background-position: 200% 0 }
-  100% { background-position: -200% 0 }
-}
-
-/* For positioning on the right side (if needed) */
-@media (min-width: 992px) {
-  .project-layout {
-    display: flex;
-    gap: 20px;
-  }
-  
-  .main-content {
-    flex: 3;
-  }
-  
-  .sidebar-content {
-    flex: 1;
-    min-width: 250px;
-    max-width: 300px;
-  }
-
-    /* Languages section styling */
-    .languages-section {
-    background-color: #0d1117;
-    border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 20px;
-    color: #c9d1d9;
-  }
-
-  .languages-section h4 {
-    font-size: 16px;
-    margin-bottom: 10px;
-    font-weight: 600;
-  }
-
-  /* Language bar container */
-  .language-bar-container {
-    display: flex;
-    height: 8px;
-    width: 100%;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  /* Individual language bars */
-  .lang-bar {
-    height: 100%;
-    display: inline-block;
-  }
-
-  /* Language list styling */
-  .language-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-
-  .lang-item {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-  }
-
-  /* Colored dot for each language */
-  .lang-color {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 5px;
-  }
-
-  .lang-name {
-    margin-right: 5px;
-  }
-
-  .lang-percent {
-    color: #8b949e;
-  }
-
-  .loading-placeholder {
-    height: 8px;
-    width: 100%;
-    background: linear-gradient(90deg, #1f2937, #374151, #1f2937);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 4px;
-  }
-
-  @keyframes loading {
-    0% { background-position: 200% 0 }
-    100% { background-position: -200% 0 }
-  }
-}
+        .gh-header .d-flex.gap-2 { /* Target Star/Fork buttons container */
+            width: 100%;
+            margin-top: 1rem;
+            justify-content: start;
+        }
+         .gh-header > .d-flex.gap-2.align-items-center { /* Target Visibility/Star/Fork container */
+             width: 100%;
+             margin-top: 1rem;
+             justify-content: start;
+         }
     }
 </style>
 <script>
