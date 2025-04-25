@@ -15,6 +15,7 @@ public class FileDto {
     private Long projectId;
     private String projectName;
     private String directory; // Add this field
+    private Long branchId;
     
     public FileDto(File file) {
         this.id = file.getId();
@@ -33,5 +34,11 @@ public class FileDto {
             this.projectId = file.getProject().getId();
             this.projectName = file.getProject().getName();
         }
+    }
+    public Long getBranchId() {
+        return branchId;
+    }
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 }

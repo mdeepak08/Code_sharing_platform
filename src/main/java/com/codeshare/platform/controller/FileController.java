@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,9 +25,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.codeshare.platform.dto.ApiResponse;
 import com.codeshare.platform.dto.FileDto;
+import com.codeshare.platform.model.Branch;
 import com.codeshare.platform.model.File;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.service.BranchService;
 import com.codeshare.platform.service.ConcurrencyService;
 import com.codeshare.platform.service.FileLockManager;
 import com.codeshare.platform.service.FileService;
@@ -42,6 +45,8 @@ public class FileController {
     private final UserService userService;
     private final ConcurrencyService concurrencyService;
     private final FileLockManager fileLockManager;
+    @Autowired
+    private BranchService branchService;
 
     @Autowired
     public FileController(
@@ -112,6 +117,41 @@ public ResponseEntity<ApiResponse<List<FileDto>>> getFilesByProject(@PathVariabl
     });
 }
 
+@GetMapping("/project/{projectId}/branch/{branchId}")
+public ResponseEntity<ApiResponse<List<FileDto>>> getFilesByProjectAndBranch(
+        @PathVariable Long projectId,
+        @PathVariable Long branchId) {
+    
+    return concurrencyService.executeWithReadLock(projectId, () -> {
+        Optional<Project> projectOpt = projectService.getProjectById(projectId);
+        Optional<Branch> branchOpt = branchService.getBranchById(branchId);
+        
+        if (projectOpt.isEmpty()) {
+            return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+        }
+        
+        if (branchOpt.isEmpty()) {
+            return new ResponseEntity<>(ApiResponse.error("Branch not found"), HttpStatus.NOT_FOUND);
+        }
+        
+        Project project = projectOpt.get();
+        Branch branch = branchOpt.get();
+        
+        // Get files for this specific branch using our version control service
+        List<File> files = fileService.getFilesByProjectAndBranch(project, branch);
+        
+        List<FileDto> fileDtos = files.stream()
+            .map(file -> {
+                FileDto dto = new FileDto(file);
+                // Manually add branch ID to the DTO
+                dto.setBranchId(branchId);
+                return dto;
+            })
+            .collect(Collectors.toList());
+            
+        return new ResponseEntity<>(ApiResponse.success(fileDtos), HttpStatus.OK);
+    });
+}
 
 
     @DeleteMapping("/{id}")

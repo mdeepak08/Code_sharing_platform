@@ -524,8 +524,10 @@
     }
     
     .code-content {
-        overflow-x: auto;
-    }
+    overflow-x: auto; /* Keep this to allow horizontal scrolling */
+    background-color: white; /* Consistent background */
+    font-size: 12px; /* Consistent font size */
+}
     
     .code-content pre {
         margin: 0;
@@ -533,6 +535,19 @@
         overflow-y: hidden; /* Keep this if you don't want vertical scroll inside pre */
         background-color: white;
     }
+    .github-modal-body pre {
+    margin: 0;
+    padding: 16px;
+    background-color: white;
+    overflow-x: auto;
+}
+
+.github-modal-body code {
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    tab-size: 4;
+}
     
     .code-content code {
         font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
@@ -707,9 +722,11 @@
     
     /* GitHub code blob table */
     .code-blob {
-        width: 100%;
-        border-spacing: 0;
-    }
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse; /* Ensure cells are tightly packed */
+    tab-size: 4; /* Proper tab size */
+}
     
     .code-blob tr:hover {
         background-color: var(--gh-bg-color);
@@ -733,15 +750,16 @@
     }
     
     .code-blob .line-content {
-        padding-left: 10px;
-        padding-right: 10px;
-        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-        font-size: 12px;
-        line-height: 20px;
-        white-space: pre;
-        vertical-align: top;
-        width: 99%; /* Ensure content takes remaining space */
-    }
+    padding-left: 10px;
+    padding-right: 10px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: pre; /* This is crucial - keeps spaces intact */
+    vertical-align: top;
+    width: 99%; /* Ensure content takes remaining space */
+    overflow-x: visible; /* Allow overflow to be visible */
+}
     
     /* Utility classes */
     .text-small {
@@ -1122,6 +1140,7 @@
 <script>
 function hashString(str) {
     let hash = 0;
+    if (!str) return '0'; // Handle null or empty strings
     for (let i = 0; i < str.length; i++) {
         hash = ((hash << 5) - hash) + str.charCodeAt(i);
         hash |= 0; // Convert to 32bit integer
@@ -1131,6 +1150,9 @@ function hashString(str) {
 
 // Also need to add the escapeHtml function that's used in displayCommits
 function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') {
+        return ''; // Return empty string if input is not a string
+    }
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -1138,26 +1160,36 @@ function escapeHtml(unsafe) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
 // Check authentication
 const token = localStorage.getItem('jwt_token');
 if (!token) {
     window.location.href = '/login.html';
 }
 
-// Global variables
+// --- Global variables ---
 let currentProject = null;
 let projectFiles = [];
 let projectBranches = [];
-let currentBranch = 'main';
+let currentBranch = 'main'; // Default branch name
 let currentPath = '';
 
-// DOM Elements
+// --- DOM Elements (Define them globally for easier access) ---
 const branchButton = document.getElementById('branchButton');
 const branchDropdown = document.getElementById('branchDropdown');
 const branchList = document.getElementById('branchList');
 const branchSearchInput = document.getElementById('branchSearchInput');
 const fullScreenModal = document.getElementById('fullScreenModal');
 const modalClose = document.querySelector('.github-modal-close');
+const filesTab = document.getElementById('filesTab');
+const commitsTab = document.getElementById('commitsTab');
+const pullRequestsTab = document.getElementById('pullRequestsTab');
+const issuesTab = document.getElementById('issuesTab');
+const fileExplorerContainer = document.querySelector('.file-explorer'); // Use querySelector if no ID
+const codeContainer = document.getElementById('codeContainer');
+const commitsContainer = document.getElementById('commitsContainer');
+const pullRequestsContainer = document.getElementById('pullRequestsContainer');
+// Add other containers if needed (e.g., issuesContainer)
 
 // Get project ID from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -1168,41 +1200,38 @@ if (!projectId) {
     window.location.href = '/dashboard.html';
 }
 
-// Functions
+// --- Functions ---
 function logout() {
     localStorage.removeItem('jwt_token');
     window.location.href = '/login.html';
 }
 
-// Initialize
+// Initialize function - called after DOM is loaded
 async function initialize() {
+    console.log("Initializing project page...");
     await loadUserInfo();
-    await loadProjectDetails();
-    await loadProjectFiles();
-    await loadProjectBranches();
-    loadLanguageStats();
-    setupEventListeners();
-    updateStarButton();
+    await loadProjectDetails(); // Loads project info, sets visibility button state
+    await loadProjectBranches(); // Loads branches, sets currentBranch, populates dropdown
+    await loadProjectFiles(); // Loads files for the current branch
+    loadLanguageStats(); // Loads language stats
+    setupEventListeners(); // Sets up ALL event listeners
+    updateStarButton(); // Sets initial star button state
+    console.log("Initialization complete.");
 }
 
 // Load user info
 async function loadUserInfo() {
     try {
         const response = await fetch('/api/auth/user', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
-                document.getElementById('userInfo').textContent = `Welcome, ${result.data.username}`;
-            } else {
-                document.getElementById('userInfo').textContent = 'Welcome';
-            }
+                document.getElementById('userInfo').textContent = `Welcome, ${escapeHtml(result.data.username)}`;
+            } else { document.getElementById('userInfo').textContent = 'Welcome'; }
         } else {
-            console.error('Failed to load user info');
+            console.error('Failed to load user info, status:', response.status);
             document.getElementById('userInfo').textContent = 'Welcome';
         }
     } catch (error) {
@@ -1211,279 +1240,326 @@ async function loadUserInfo() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  loadLanguageStats();
-});
-
 // Load project details
 async function loadProjectDetails() {
-        try {
-            const response = await fetch(`/api/projects/${projectId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success && result.data) {
-                    currentProject = result.data;
-                    
-                    // Update page elements
-                    document.title = `${currentProject.name} - Code Sharing Platform`;
-                    document.getElementById('projectTitle').textContent = currentProject.name;
-                    document.getElementById('projectNameBreadcrumb').textContent = currentProject.name;
-                    document.getElementById('projectNameBreadcrumb').innerHTML = `<a href="#">${currentProject.name}</a>`;
-                    document.getElementById('projectDescription').textContent = currentProject.description || 'No description provided';
-                    document.getElementById('projectOwner').textContent = currentProject.owner.username;
-                    document.getElementById('projectCreated').textContent = new Date(currentProject.createdAt).toLocaleDateString();
-                    
-                    // Set visibility status and update UI
-                    const isPublic = currentProject.isPublic !== undefined ? currentProject.isPublic : currentProject.public;
-                    document.getElementById('projectVisibility').textContent = isPublic ? 'Public' : 'Private';
-                    updateVisibilityDisplay(isPublic);
-                    
-                    /* Rest of your existing code */
-                } else {
-                    alert('Failed to load project details');
-                    window.location.href = '/dashboard.html';
-                }
-            } else {
-                alert('Failed to load project details');
-                window.location.href = '/dashboard.html';
-            }
-        } catch (error) {
-            console.error('Error loading project details:', error);
-            alert('Failed to load project details');
-            window.location.href = '/dashboard.html';
-        }
-    }
-
-// Load project files
-async function loadProjectFiles() {
     try {
-        const response = await fetch(`/api/files/project/${projectId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+        const response = await fetch(`/api/projects/${projectId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
+                currentProject = result.data;
+                document.title = `${escapeHtml(currentProject.name)} - Code Sharing Platform`;
+                document.getElementById('projectTitle').textContent = escapeHtml(currentProject.name);
+                document.getElementById('projectNameBreadcrumb').innerHTML = `<a href="#project" onclick="navigateToPath('')">${escapeHtml(currentProject.name)}</a>`; // Make project name clickable to go to root
+                document.getElementById('projectDescription').textContent = escapeHtml(currentProject.description || 'No description provided');
+                document.getElementById('projectOwner').textContent = escapeHtml(currentProject.owner?.username || 'N/A'); // Optional chaining
+                document.getElementById('projectCreated').textContent = new Date(currentProject.createdAt).toLocaleDateString();
+
+                const isPublic = currentProject.isPublic !== undefined ? currentProject.isPublic : (currentProject.public !== undefined ? currentProject.public : false); // Handle potential naming difference
+                document.getElementById('projectVisibility').textContent = isPublic ? 'Public' : 'Private';
+                updateVisibilityDisplay(isPublic); // Update button based on loaded state
+            } else {
+                throw new Error(result.message || 'Failed to parse project details');
+            }
+        } else {
+            throw new Error(`HTTP error ${response.status} loading project details`);
+        }
+    } catch (error) {
+        console.error('Error loading project details:', error);
+        alert(`Failed to load project details: ${error.message}`);
+        // Maybe redirect or show a more permanent error message
+        // window.location.href = '/dashboard.html';
+    }
+}
+
+async function loadProjectFiles() {
+    // Ensure currentBranch is set
+    if (!currentBranch) {
+        console.warn("loadProjectFiles called before currentBranch is set. Waiting for branches...");
+        return;
+    }
+    
+    console.log(`Loading files for branch: ${currentBranch}`);
+    const fileListElement = document.getElementById('fileList');
+    fileListElement.innerHTML = '<li class="dir-item"><span class="text-muted">Loading files...</span></li>';
+
+    try {
+        // Find the branch ID by name
+        const branch = projectBranches.find(b => b.name === currentBranch);
+        if (!branch || !branch.id) {
+            console.warn(`Could not find branch ID for branch: ${currentBranch}`);
+            throw new Error(`Branch ID not found for: ${currentBranch}`);
+        }
+        
+        // Use the branch-specific endpoint
+        const response = await fetch(`/api/files/project/${projectId}/branch/${branch.id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && Array.isArray(result.data)) {
                 projectFiles = result.data;
                 document.getElementById('fileCount').textContent = projectFiles.length;
                 displayFiles(buildFileTree(projectFiles));
             } else {
-                document.getElementById('fileList').innerHTML = '<li class="file-item"><span class="text-muted">No files yet. Add some!</span></li>';
+                console.warn("No files data received or invalid format:", result);
+                fileListElement.innerHTML = `<li class="file-item">
+                    <span class="text-muted">No files found in branch '${escapeHtml(currentBranch)}'.</span>
+                </li>`;
+                document.getElementById('fileCount').textContent = 0;
             }
         } else {
-            document.getElementById('fileList').innerHTML = '<li class="file-item"><div class="alert alert-danger">Failed to load files</div></li>';
+            // If we get a 404 it might mean the endpoint isn't implemented yet
+            if (response.status === 404 || response.status === 403) {
+                console.warn("Branch-specific endpoint not available, falling back to project files");
+                // Fallback to regular project files endpoint
+                const fallbackResponse = await fetch(`/api/files/project/${projectId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (fallbackResponse.ok) {
+                    const fallbackResult = await fallbackResponse.json();
+                    if (fallbackResult.success && Array.isArray(fallbackResult.data)) {
+                        projectFiles = fallbackResult.data;
+                        document.getElementById('fileCount').textContent = projectFiles.length;
+                        displayFiles(buildFileTree(projectFiles));
+                        // Display a notice about fallback behavior
+                        showToast(`Branch-specific files not available. Showing all project files.`, 'warning');
+                    } else {
+                        throw new Error("Failed to load files with fallback method");
+                    }
+                } else {
+                    throw new Error(`HTTP error ${fallbackResponse.status} in fallback`);
+                }
+            } else {
+                throw new Error(`HTTP error ${response.status} loading files`);
+            }
         }
     } catch (error) {
         console.error('Error loading files:', error);
-        document.getElementById('fileList').innerHTML = '<li class="file-item"><div class="alert alert-danger">Failed to load files</div></li>';
+        fileListElement.innerHTML = `<li class="file-item">
+            <div class="alert alert-danger p-2">Failed to load files: ${error.message}</div>
+        </li>`;
+        document.getElementById('fileCount').textContent = 0;
     }
 }
-//Load All Branches
+
+// Load All Branches
 async function loadProjectBranches() {
     try {
         console.log("Loading project branches...");
         const response = await fetch(`/api/branches/project/${projectId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
             const result = await response.json();
             console.log("Branches API response:", result);
-            
-            if (result.success && result.data) {
+
+            if (result.success && Array.isArray(result.data)) {
                 projectBranches = result.data;
                 document.getElementById('branchCount').textContent = projectBranches.length;
-                
-                // Find default branch
+
                 const defaultBranch = projectBranches.find(branch => branch.default);
                 if (defaultBranch) {
                     currentBranch = defaultBranch.name;
                     console.log("Default branch found:", currentBranch);
-                    document.getElementById('currentBranch').textContent = currentBranch;
                 } else if (projectBranches.length > 0) {
-                    // If no default branch, use the first one
-                    currentBranch = projectBranches[0].name;
+                    currentBranch = projectBranches[0].name; // Fallback to first branch
                     console.log("No default branch, using first branch:", currentBranch);
-                    document.getElementById('currentBranch').textContent = currentBranch;
                 } else {
-                    // No branches found, create master branch
-                    console.log("No branches found, displaying default branch name");
-                    currentBranch = "master"; // Default to master if no branches
-                    document.getElementById('currentBranch').textContent = currentBranch;
+                    currentBranch = "main"; // Fallback if no branches exist at all
+                    console.log("No branches found, defaulting to 'main'");
+                    document.getElementById('branchCount').textContent = "0";
                 }
-                
-                // Populate branch dropdown
-                populateBranchDropdown();
+                document.getElementById('currentBranch').textContent = escapeHtml(currentBranch);
+                populateBranchDropdown(); // Populate dropdown AFTER branches are loaded
+                // Now that branches are loaded and currentBranch is set, load files
+                await loadProjectFiles(); // Load files for the determined branch
             } else {
-                console.log("No branches returned from API");
-                // Handle the case where no branches exist yet
-                currentBranch = "master"; // Default to master if no branches
+                console.log("No branches returned from API or invalid format.");
+                projectBranches = []; // Ensure it's an empty array
+                currentBranch = "main"; // Default branch name
                 document.getElementById('currentBranch').textContent = currentBranch;
                 document.getElementById('branchCount').textContent = "0";
+                populateBranchDropdown(); // Populate with empty state if needed
+                await loadProjectFiles(); // Attempt to load files for default branch
             }
         } else {
-            console.error('Failed to load branches, status:', response.status);
-            // Show error message in console
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
+             throw new Error(`HTTP error ${response.status} loading branches`);
         }
     } catch (error) {
         console.error('Error loading branches:', error);
+        // Display error or default state
+        projectBranches = [];
+        currentBranch = "main";
+        document.getElementById('currentBranch').textContent = currentBranch;
+        document.getElementById('branchCount').textContent = "0";
+        populateBranchDropdown(); // Show empty dropdown state
+         // Optionally try loading files for 'main' even if branch loading failed
+         await loadProjectFiles();
     }
 }
 
 // Populate branch dropdown
 function populateBranchDropdown() {
-    branchList.innerHTML = '';
-    
+    branchList.innerHTML = ''; // Clear previous items
+
+    if (projectBranches.length === 0) {
+         branchList.innerHTML = '<div class="p-2 text-muted text-small">No branches found.</div>';
+         return;
+    }
+
     projectBranches.forEach(branch => {
         const branchItem = document.createElement('div');
-        branchItem.className = `branch-item ${branch.name === currentBranch ? 'active' : ''}`;
-        branchItem.dataset.branch = branch.name;
-        
+        branchItem.className = `branch-item d-flex justify-content-between align-items-center ${branch.name === currentBranch ? 'active' : ''}`;
+        branchItem.dataset.branch = branch.name; // Store branch name
+
         branchItem.innerHTML = `
-            <i class="fa fa-code-branch"></i>
-            <span class="branch-name">${branch.name}</span>
-            ${branch.default ? '<span class="badge bg-success text-small">default</span>' : ''}
+            <div class="d-flex align-items-center">
+                <i class="fa fa-code-branch me-2"></i>
+                <span class="branch-name">${escapeHtml(branch.name)}</span>
+            </div>
+            ${branch.default ? '<span class="badge bg-success text-small ms-auto">default</span>' : ''}
         `;
-        
-        branchItem.addEventListener('click', function() {
-            currentBranch = this.dataset.branch;
-            document.getElementById('currentBranch').textContent = currentBranch;
-            branchDropdown.style.display = 'none';
-            loadProjectFiles(); // Reload files for the new branch
+
+        branchItem.addEventListener('click', async function() { // Make async
+            const selectedBranch = this.dataset.branch;
+            if (selectedBranch !== currentBranch) {
+                 console.log(`Switching to branch: ${selectedBranch}`);
+                 currentBranch = selectedBranch;
+                 document.getElementById('currentBranch').textContent = escapeHtml(currentBranch);
+                 // Update active item in dropdown
+                 document.querySelectorAll('#branchList .branch-item').forEach(item => item.classList.remove('active'));
+                 this.classList.add('active');
+                 // Reset path and reload files for the new branch
+                 currentPath = ''; // Go back to root when switching branches
+                 updateBreadcrumbPath(currentPath);
+                 document.getElementById('codeContainer').style.display = 'none'; // Hide code view
+                 await loadProjectFiles(); // Await file loading
+            }
+            branchDropdown.style.display = 'none'; // Close dropdown
         });
-        
+
         branchList.appendChild(branchItem);
     });
 }
 
-// Build file tree from flat list
+
+// Build file tree from flat list of files for the *current branch*
 function buildFileTree(files) {
     const root = { type: 'dir', name: '', path: '', children: {} };
-    
+
     files.forEach(file => {
-        let path = file.path;
+        // Normalize path: remove leading/trailing slashes and split
+        let path = file.path.replace(/^\/+|\/+$/g, ''); // Remove leading/trailing slashes
         let parts = path.split('/');
-        
+
         let currentDir = root;
-        let currentPath = '';
-        
+        let currentPathAccumulator = ''; // Accumulate path for dirs
+
         for (let i = 0; i < parts.length - 1; i++) {
             const part = parts[i];
-            if (!part) continue;
-            
-            currentPath = currentPath ? `${currentPath}/${part}` : part;
-            
+            if (!part) continue; // Skip empty parts (e.g., double slashes)
+
+            currentPathAccumulator = currentPathAccumulator ? `${currentPathAccumulator}/${part}` : part;
+
             if (!currentDir.children[part]) {
                 currentDir.children[part] = {
                     type: 'dir',
                     name: part,
-                    path: currentPath,
+                    path: currentPathAccumulator, // Store the full path to this dir
                     children: {}
                 };
             }
-            
             currentDir = currentDir.children[part];
         }
-        
+
         const fileName = parts[parts.length - 1];
-        if (fileName) {
+        if (fileName) { // Ensure it's not just a directory path
             currentDir.children[fileName] = {
                 type: 'file',
                 name: fileName,
-                path: file.path,
-                id: file.id,
-                content: file.content
+                path: file.path, // Store original full path from API
+                id: file.id, // Assuming file object has an ID
+                // content: file.content // Avoid storing content here unless small/necessary
             };
         }
     });
-    
     return root;
 }
 
-// Display files
+
+// Display files based on the *currentPath* within the *projectFiles* tree
 function displayFiles(root) {
-    const fileList = document.getElementById('fileList');
-    fileList.innerHTML = '';
-    
-    // Add parent directory link if we're in a subdirectory
+    const fileListElement = document.getElementById('fileList');
+    fileListElement.innerHTML = ''; // Clear previous list
+
+    // --- Navigate to the correct directory within the tree based on currentPath ---
+    let currentDir = root;
+    if (currentPath) {
+        const pathParts = currentPath.split('/');
+        for (const part of pathParts) {
+            if (part && currentDir.children && currentDir.children[part] && currentDir.children[part].type === 'dir') {
+                currentDir = currentDir.children[part];
+            } else if (part) {
+                console.error(`Path part "${part}" not found or not a directory in current tree structure.`);
+                fileListElement.innerHTML = '<li class="file-item"><div class="alert alert-warning">Error navigating path.</div></li>';
+                return; // Stop rendering if path is invalid
+            }
+        }
+    }
+    // --- ---
+
+    // Add parent directory link ('..') if not at the root
     if (currentPath !== '') {
         const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
         const parentItem = document.createElement('li');
         parentItem.className = 'dir-item';
         parentItem.innerHTML = `
-            <i class="fa fa-folder file-icon file-dir-icon"></i>
-            <a href="#" class="dir-name" data-path="${parentPath}">..</a>
+            <i class="fa fa-level-up-alt file-icon text-secondary me-2"></i>
+            <a href="#.." class="dir-name" data-path="${parentPath}">..</a>
         `;
         parentItem.querySelector('a').addEventListener('click', function(e) {
             e.preventDefault();
-            navigateToPath(parentPath);
+            navigateToPath(this.dataset.path);
         });
-        fileList.appendChild(parentItem);
+        fileListElement.appendChild(parentItem);
     }
-    
-    // Find current directory based on path
-    let currentDir = root;
-    if (currentPath) {
-        const pathParts = currentPath.split('/');
-        for (const part of pathParts) {
-            if (part && currentDir.children && currentDir.children[part]) {
-                currentDir = currentDir.children[part];
-            }
-        }
-    }
-    
-    // Display directories first
-    const dirEntries = [];
-    const fileEntries = [];
-    
-    for (const name in currentDir.children) {
-        const entry = currentDir.children[name];
-        if (entry.type === 'dir') {
-            dirEntries.push(entry);
-        } else {
-            fileEntries.push(entry);
-        }
-    }
-    
-    // Sort entries by name
-    dirEntries.sort((a, b) => a.name.localeCompare(b.name));
-    fileEntries.sort((a, b) => a.name.localeCompare(b.name));
-    
-    // Add directories
+
+    // Get directory and file entries for the current level
+    const entries = Object.values(currentDir.children || {});
+    const dirEntries = entries.filter(entry => entry.type === 'dir').sort((a, b) => a.name.localeCompare(b.name));
+    const fileEntries = entries.filter(entry => entry.type === 'file').sort((a, b) => a.name.localeCompare(b.name));
+
+    // Display Directories
     dirEntries.forEach(entry => {
         const listItem = document.createElement('li');
         listItem.className = 'dir-item';
         listItem.innerHTML = `
-            <i class="fa fa-folder file-icon file-dir-icon"></i>
-            <a href="#" class="dir-name" data-path="${entry.path}">${entry.name}</a>
-        `;
+            <i class="fa fa-folder file-icon file-dir-icon me-2"></i>
+            <a href="#${entry.path}" class="dir-name" data-path="${entry.path}">${escapeHtml(entry.name)}</a>
+            <span class="commit-msg text-muted ms-auto"></span> `;
         listItem.querySelector('a').addEventListener('click', function(e) {
             e.preventDefault();
-            navigateToPath(entry.path);
+            navigateToPath(this.dataset.path);
         });
-        fileList.appendChild(listItem);
+        fileListElement.appendChild(listItem);
     });
-    
-    // Add files
+
+    // Display Files
     fileEntries.forEach(entry => {
         const listItem = document.createElement('li');
         listItem.className = 'file-item';
-        
-        // Determine file icon based on extension
+
+        // Determine file icon
         let fileIconClass = 'fa-file';
         const ext = entry.name.split('.').pop().toLowerCase();
-        if (['java', 'js', 'ts', 'py', 'rb', 'php', 'c', 'cpp', 'h', 'cs'].includes(ext)) {
+        // (Keep your existing icon logic here)
+         if (['java', 'js', 'ts', 'py', 'rb', 'php', 'c', 'cpp', 'h', 'cs'].includes(ext)) {
             fileIconClass = 'fa-file-code';
         } else if (['md', 'txt', 'log'].includes(ext)) {
             fileIconClass = 'fa-file-alt';
@@ -1493,1365 +1569,950 @@ function displayFiles(root) {
             fileIconClass = 'fa-file-pdf';
         } else if (['zip', 'rar', 'tar', 'gz'].includes(ext)) {
             fileIconClass = 'fa-file-archive';
-        } else if (['doc', 'docx'].includes(ext)) {
-            fileIconClass = 'fa-file-word';
-        } else if (['xls', 'xlsx'].includes(ext)) {
-            fileIconClass = 'fa-file-excel';
-        } else if (['ppt', 'pptx'].includes(ext)) {
-            fileIconClass = 'fa-file-powerpoint';
-        } else if (['mp3', 'wav', 'ogg'].includes(ext)) {
-            fileIconClass = 'fa-file-audio';
-        } else if (['mp4', 'avi', 'mov', 'wmv'].includes(ext)) {
-            fileIconClass = 'fa-file-video';
-        }
-        
+        } // Add more else if blocks for other icons
+
         listItem.innerHTML = `
-            <i class="fa ${fileIconClass} file-icon"></i>
-            <a href="#" class="file-name" data-file-id="${entry.id}">${entry.name}</a>
-            <span class="commit-msg">Updated recently</span>
-        `;
-        
+            <i class="fa ${fileIconClass} file-icon me-2"></i>
+            <a href="#${entry.path}" class="file-name" data-file-id="${entry.id}">${escapeHtml(entry.name)}</a>
+            <span class="commit-msg text-muted ms-auto">Updated recently</span> `;
+
         listItem.querySelector('a').addEventListener('click', function(e) {
             e.preventDefault();
-            loadFile(entry.id);
+            loadFile(entry.id); // Load file by its unique ID
         });
-        
-        fileList.appendChild(listItem);
+        fileListElement.appendChild(listItem);
     });
-    
-    // Update current path display with clickable breadcrumbs
-    document.getElementById('currentPath').textContent = currentPath || '.';
+
+     // Handle empty directory
+     if (dirEntries.length === 0 && fileEntries.length === 0 && currentPath === '') { // Only show "empty repo" at root
+         if (fileListElement.children.length === 0) { // Check if only '..' link is present
+             fileListElement.innerHTML = '<li class="file-item text-muted p-3">This repository is empty.</li>';
+         }
+     } else if (dirEntries.length === 0 && fileEntries.length === 0 && currentPath !== '') {
+          if (fileListElement.children.length <= 1) { // Check if only '..' link is present
+             const emptyMsg = document.createElement('li');
+             emptyMsg.className = 'file-item text-muted p-3';
+             emptyMsg.textContent = 'This directory is empty.';
+             fileListElement.appendChild(emptyMsg);
+         }
+     }
+
+    // Update breadcrumb display
     updateBreadcrumbPath(currentPath);
 }
 
+// Update breadcrumb display
 function updateBreadcrumbPath(path) {
     const currentPathElement = document.getElementById('currentPath');
-    
-    // Clear the current path display
-    currentPathElement.innerHTML = '';
-    
+    currentPathElement.innerHTML = ''; // Clear existing breadcrumbs
+
+    // Always add the root project link
+     const projectLink = document.createElement('a');
+     projectLink.href = '#project-root';
+     projectLink.textContent = escapeHtml(currentProject?.name || 'Project'); // Use loaded project name
+     projectLink.dataset.path = ''; // Root path is empty string
+     projectLink.addEventListener('click', function(e) {
+         e.preventDefault();
+         navigateToPath(this.dataset.path);
+     });
+     currentPathElement.appendChild(projectLink);
+
+
     if (!path || path === '') {
-        // If at root, just display a dot
-        currentPathElement.textContent = '.';
+        // We are at the root, project name is already added
         return;
     }
-    
-    // Split the path into segments
+
+    // Add path segments
     const segments = path.split('/');
-    let currentPath = '';
-    
-    // Create clickable elements for each segment
-    for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        if (!segment) continue; // Skip empty segments
-        
-        // Update current path
-        currentPath += (currentPath ? '/' : '') + segment;
-        
-        // Create the segment element - last segment is not clickable
-        if (i === segments.length - 1) {
-            // Last segment - not clickable
+    let accumulatedPath = '';
+
+    segments.forEach((segment, index) => {
+        if (!segment) return; // Skip empty segments
+
+        accumulatedPath += (accumulatedPath ? '/' : '') + segment;
+
+        // Add separator
+        const separator = document.createElement('span');
+        separator.textContent = ' / ';
+        separator.className = 'mx-1'; // Add some spacing
+        currentPathElement.appendChild(separator);
+
+        if (index === segments.length - 1) {
+            // Last segment - display as text
             const span = document.createElement('span');
-            span.textContent = segment;
+            span.textContent = escapeHtml(segment);
+            span.className = 'fw-bold'; // Make last part bold
             currentPathElement.appendChild(span);
         } else {
-            // Intermediate segment - clickable
+            // Intermediate segment - make clickable link
             const link = document.createElement('a');
-            link.href = '#';
-            link.textContent = segment;
-            link.dataset.path = currentPath;
-            
-            // Add click event handler
+            link.href = `#${accumulatedPath}`;
+            link.textContent = escapeHtml(segment);
+            link.dataset.path = accumulatedPath;
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 navigateToPath(this.dataset.path);
             });
-            
             currentPathElement.appendChild(link);
-            
-            // Add separator
-            const separator = document.createElement('span');
-            separator.textContent = ' / ';
-            currentPathElement.appendChild(separator);
         }
-    }
+    });
 }
 
-// Navigate to directory path
+
+// Navigate to a directory path within the current branch
 function navigateToPath(path) {
+    console.log(`Navigating to path: "${path}"`);
     currentPath = path;
-    // Re-display files for the new path
-    displayFiles(buildFileTree(projectFiles));
-    // Update the breadcrumb path
-    updateBreadcrumbPath(path);
-    // Hide code display when navigating
-    document.getElementById('codeContainer').style.display = 'none';
+    // Re-display files using the existing projectFiles for the current branch
+    // The buildFileTree function is called within displayFiles if needed,
+    // but ideally, we rebuild the tree only when switching branches.
+    // For navigation, we just traverse the existing tree structure.
+    displayFiles(buildFileTree(projectFiles)); // Re-render the file list for the new path
+    document.getElementById('codeContainer').style.display = 'none'; // Hide code view when navigating folders
 }
 
-// Load file content
+// Load specific file content by ID
 async function loadFile(fileId) {
+    console.log(`Loading file ID: ${fileId}`);
+    const codeTableBody = document.querySelector('#codeTable tbody'); // Target tbody
+    const currentFileNameElement = document.getElementById('currentFileName');
+    const codeContainerElement = document.getElementById('codeContainer');
+
+    // Show loading state in code view
+    currentFileNameElement.textContent = 'Loading file...';
+    if (codeTableBody) codeTableBody.innerHTML = '<tr><td colspan="2" class="text-center p-3 text-muted">Loading...</td></tr>';
+    codeContainerElement.style.display = 'block'; // Show the container
+
     try {
-        const response = await fetch(`/api/files/${fileId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+        const response = await fetch(`/api/files/${fileId}`, { // Assuming API endpoint takes file ID
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
                 const file = result.data;
-                displayFileContent(file);
+                displayFileContent(file); // Call function to render content
             } else {
-                alert('Failed to load file content');
+                throw new Error(result.message || 'Failed to load file content from API');
             }
         } else {
-            alert('Failed to load file content');
+             throw new Error(`HTTP error ${response.status} loading file content`);
         }
     } catch (error) {
         console.error('Error loading file content:', error);
-        alert('Failed to load file content');
+        currentFileNameElement.textContent = 'Error loading file';
+        if (codeTableBody) codeTableBody.innerHTML = `<tr><td colspan="2"><div class="alert alert-danger m-2">Failed to load file: ${error.message}</div></td></tr>`;
     }
 }
 
-// Display file content
+
+// Display file content in the code view
 function displayFileContent(file) {
-    // Update file name in header
-    document.getElementById('currentFileName').textContent = file.name;
-    
-    // Get the code container and make it visible
-    const codeContainer = document.getElementById('codeContainer');
-    codeContainer.style.display = 'block';
-    
-    // Build the code table with line numbers
-    const codeTable = document.getElementById('codeTable');
-    codeTable.innerHTML = '';
-    
-    // Split content by lines and add line numbers
-    const lines = file.content ? file.content.split('\n') : ['No content'];
-    
-    lines.forEach((line, index) => {
-        const row = document.createElement('tr');
-        
-        // Line number cell
-        const lineNumberCell = document.createElement('td');
-        lineNumberCell.className = 'line-number';
-        lineNumberCell.textContent = index + 1;
-        lineNumberCell.dataset.lineNumber = index + 1;
-        row.appendChild(lineNumberCell);
-        
-        // Line content cell
-        const lineContentCell = document.createElement('td');
-        lineContentCell.className = 'line-content';
-        lineContentCell.textContent = line;
-        row.appendChild(lineContentCell);
-        
-        codeTable.appendChild(row);
-    });
-    
-    // Set up the raw button link
-    document.getElementById('rawButton').href = `/api/files/${file.id}/raw`;
-    
-    // Set up download button
-    document.getElementById('downloadButton').href = `/api/files/${file.id}/raw`;
-    document.getElementById('downloadButton').download = file.name;
-    
-    // Scroll to top of page
-    window.scrollTo(0, 0);
-    
-    // Update modal data for full screen view
-    document.getElementById('modalFileName').textContent = file.name;
-    document.getElementById('modalCode').textContent = file.content || 'No content';
-    
-    // Apply syntax highlighting based on file extension
-    applyCodeHighlighting(file.name);
+    const currentFileNameElement = document.getElementById('currentFileName');
+    const codeTableBody = document.querySelector('#codeTable tbody'); // Target tbody
+    const codeContainerElement = document.getElementById('codeContainer');
+    const rawButton = document.getElementById('rawButton');
+    const downloadButton = document.getElementById('downloadButton');
+    const modalFileName = document.getElementById('modalFileName');
+    const modalCode = document.getElementById('modalCode');
+
+
+    if (!codeTableBody || !currentFileNameElement || !codeContainerElement || !rawButton || !downloadButton || !modalFileName || !modalCode) {
+        console.error("One or more elements for code display are missing.");
+        return;
+    }
+
+    // Update file name display
+    currentFileNameElement.textContent = escapeHtml(file.name);
+
+    // Clear previous content
+    codeTableBody.innerHTML = '';
+
+    // Process file content
+    const fileContent = file.content ?? ''; // Use empty string if content is null/undefined
+    const lines = fileContent.split('\n');
+
+    // Handle empty file case
+    if (lines.length === 1 && lines[0] === '') {
+         const row = codeTableBody.insertRow();
+         const lineNumberCell = row.insertCell();
+         lineNumberCell.className = 'line-number';
+         lineNumberCell.textContent = '1';
+         lineNumberCell.dataset.lineNumber = '1';
+
+         const lineContentCell = row.insertCell();
+         lineContentCell.className = 'line-content';
+         lineContentCell.innerHTML = '<span class="text-muted">(empty file)</span>'; // Indicate empty file
+    } else {
+         // Build the code table with line numbers
+        lines.forEach((line, index) => {
+            const row = codeTableBody.insertRow(); // Use insertRow for table body
+
+            // Line number cell
+            const lineNumberCell = row.insertCell(); // Use insertCell
+            lineNumberCell.className = 'line-number';
+            lineNumberCell.textContent = index + 1;
+            lineNumberCell.dataset.lineNumber = index + 1; // For potential linking/highlighting
+
+            // Line content cell - this is where the fix is needed
+            const lineContentCell = row.insertCell(); // Use insertCell
+            lineContentCell.className = 'line-content';
+            
+            // FIX: Don't wrap content in nested pre/code tags, just use the cell directly
+            // Instead of creating a pre>code structure, use the proper CSS to maintain formatting
+            lineContentCell.textContent = line; // Set raw line text directly
+            
+            // Determine language - use this for possible syntax highlighting in the future
+            const ext = file.name.split('.').pop().toLowerCase();
+            const langClass = getHighlightLanguageClass(ext); // Get class name
+            if (langClass) {
+                lineContentCell.classList.add(`language-${langClass}`);
+            }
+        });
+    }
+
+
+    // Set up action buttons
+    // Adjust API endpoint for raw/download if needed
+    rawButton.href = `/api/files/${file.id}/raw?token=${token}`; // Example: Pass token if needed by API
+    downloadButton.href = `/api/files/${file.id}/raw?token=${token}`; // Example: Pass token if needed by API
+    downloadButton.download = file.name;
+
+    // Update modal data for full screen view - this is working correctly
+    modalFileName.textContent = escapeHtml(file.name);
+    modalCode.textContent = fileContent; // Use the raw content for the modal
+    const modalLangClass = getHighlightLanguageClass(file.name.split('.').pop().toLowerCase());
+    modalCode.className = modalLangClass ? `language-${modalLangClass}` : ''; // Set class for modal highlighting
+    if (window.hljs && modalLangClass) {
+        hljs.highlightElement(modalCode); // Highlight modal content too
+    }
+
+
+    // Ensure code container is visible
+    codeContainerElement.style.display = 'block';
+
+    // Optional: Scroll code container or page to top
+    codeContainerElement.querySelector('.code-content').scrollTop = 0; // Scroll code content div
 }
 
-// Apply syntax highlighting
-function applyCodeHighlighting(fileName) {
-    // Get file extension
-    const ext = fileName.split('.').pop().toLowerCase();
-    
-    // Map of extensions to highlight.js language classes
+// Helper function to get highlight.js language class
+function getHighlightLanguageClass(ext) {
     const languageMap = {
-        'js': 'javascript',
-        'jsx': 'javascript',
-        'ts': 'typescript',
-        'tsx': 'typescript',
-        'html': 'html',
-        'xml': 'xml',
-        'css': 'css',
-        'scss': 'scss',
-        'sass': 'scss',
-        'less': 'less',
-        'java': 'java',
-        'py': 'python',
-        'rb': 'ruby',
-        'php': 'php',
-        'c': 'c',
-        'cpp': 'cpp',
-        'h': 'cpp',
-        'cs': 'csharp',
-        'go': 'go',
-        'rs': 'rust',
-        'swift': 'swift',
-        'kt': 'kotlin',
-        'md': 'markdown',
-        'json': 'json',
-        'yml': 'yaml',
-        'yaml': 'yaml',
-        'sql': 'sql',
-        'sh': 'bash',
-        'bat': 'batch',
-        'ps1': 'powershell',
-        'dockerfile': 'dockerfile',
-        'properties': 'properties',
-        'gradle': 'gradle'
+        'js': 'javascript', 'jsx': 'javascript', 'ts': 'typescript', 'tsx': 'typescript',
+        'html': 'xml', 'xml': 'xml', // Use XML for HTML highlighting often works well
+        'css': 'css', 'scss': 'scss', 'sass': 'scss', 'less': 'less',
+        'java': 'java', 'py': 'python', 'rb': 'ruby', 'php': 'php',
+        'c': 'c', 'cpp': 'cpp', 'h': 'cpp', 'cs': 'csharp',
+        'go': 'go', 'rs': 'rust', 'swift': 'swift', 'kt': 'kotlin',
+        'md': 'markdown', 'json': 'json', 'yml': 'yaml', 'yaml': 'yaml',
+        'sql': 'sql', 'sh': 'bash', 'bat': 'batch', 'ps1': 'powershell',
+        'dockerfile': 'dockerfile', 'properties': 'properties', 'gradle': 'gradle',
+        'txt': 'plaintext', '': 'plaintext' // Handle no extension or treat as text
     };
-    
-    // Set class on modal code element for highlighting
-    const language = languageMap[ext] || '';
-    if (language) {
-        const modalCode = document.getElementById('modalCode');
+    return languageMap[ext] || 'plaintext'; // Default to plaintext
+}
+
+
+// Apply syntax highlighting (Now primarily used for the modal)
+function applyCodeHighlighting(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    const language = getHighlightLanguageClass(ext); // Use helper
+
+    const modalCode = document.getElementById('modalCode');
+    if (modalCode && language) {
         modalCode.className = `language-${language}`;
-        
-        // Initialize highlight.js
         if (window.hljs) {
             window.hljs.highlightElement(modalCode);
         }
     }
 }
-        // Add these functions to the project.html JavaScript:
 
-        // Toggle star status
-        function toggleStar() {
-            const projectId = parseInt(urlParams.get('id'));
-            
-            // Get current starred repos from localStorage
-            let starredRepoIds = JSON.parse(localStorage.getItem('starredRepos') || '[]');
-            
-            const isStarred = starredRepoIds.includes(projectId);
-            
-            if (isStarred) {
-                // Remove from starred
-                starredRepoIds = starredRepoIds.filter(id => id !== projectId);
-            } else {
-                // Add to starred
-                starredRepoIds.push(projectId);
-            }
-            
-            // Update localStorage
-            localStorage.setItem('starredRepos', JSON.stringify(starredRepoIds));
-            
-            // Update UI
-            const starButton = document.querySelector('.gh-btn:nth-child(1)');
-            if (starButton) {
-                starButton.innerHTML = isStarred ? 
-                    '<i class="fa fa-star-o"></i> Star' : 
-                    '<i class="fa fa-star"></i> Unstar';
-            }
-        }
+// Toggle star status (using localStorage for simulation)
+function toggleStar() {
+    if (!projectId) return;
+    const projectIdNum = parseInt(projectId); // Ensure it's a number if IDs are numeric
+    let starredRepoIds = JSON.parse(localStorage.getItem('starredRepos') || '[]');
+    const starButton = document.getElementById('starBtn'); // Use the correct ID
 
-        // Fork repository
-        function forkRepository() {
-            const projectId = parseInt(urlParams.get('id'));
-            alert('Repository forked successfully! (This is a simulation)');
-        }
+    if (starredRepoIds.includes(projectIdNum)) {
+        // Unstar
+        starredRepoIds = starredRepoIds.filter(id => id !== projectIdNum);
+        if(starButton) starButton.innerHTML = `<i class="fa fa-star-o"></i> Star`;
+        showToast('Repository unstarred.', 'info'); // Use info toast
+    } else {
+        // Star
+        starredRepoIds.push(projectIdNum);
+         if(starButton) starButton.innerHTML = `<i class="fa fa-star"></i> Unstar`;
+         showToast('Repository starred!', 'success');
+    }
+    localStorage.setItem('starredRepos', JSON.stringify(starredRepoIds));
+    // Update count if you have a star count element
+}
 
-        // Update event listeners in setupEventListeners function:
-        document.querySelector('.gh-btn:nth-child(1)').addEventListener('click', toggleStar);
-        document.querySelector('.gh-btn:nth-child(2)').addEventListener('click', forkRepository);
+// Fork repository (simulation)
+function forkRepository() {
+    if (!projectId) return;
+    // Add actual API call here in a real application
+    console.log(`Forking project ID: ${projectId}`);
+    showToast('Repository forked successfully! (Simulation)', 'success');
+    // Maybe update fork count display if available
+}
 
-        // Add this to the initialize function:
-        // Check if repository is already starred and update UI
-        function updateStarButton() {
-            const projectId = parseInt(urlParams.get('id'));
-            const starredRepoIds = JSON.parse(localStorage.getItem('starredRepos') || '[]');
-            const isStarred = starredRepoIds.includes(projectId);
-            
-            const starButton = document.querySelector('.gh-btn:nth-child(1)');
-            if (starButton) {
-                starButton.innerHTML = isStarred ? 
-                    '<i class="fa fa-star"></i> Unstar' : 
-                    '<i class="fa fa-star-o"></i> Star';
-            }
-        }
+// Update star button UI based on localStorage
+function updateStarButton() {
+    if (!projectId) return;
+    const projectIdNum = parseInt(projectId);
+    const starredRepoIds = JSON.parse(localStorage.getItem('starredRepos') || '[]');
+    const isStarred = starredRepoIds.includes(projectIdNum);
+    const starButton = document.getElementById('starBtn'); // Use the correct ID
 
-        function setupEventListeners() {
-    // Branch dropdown toggle
-    branchButton.addEventListener('click', function() {
-        if (branchDropdown.style.display === 'block') {
-            branchDropdown.style.display = 'none';
-        } else {
-            branchDropdown.style.display = 'block';
-            branchSearchInput.focus();
+    if (starButton) {
+        starButton.innerHTML = isStarred
+            ? '<i class="fa fa-star"></i> Unstar'
+            : '<i class="fa fa-star-o"></i> Star';
+    }
+}
+
+// Setup ALL event listeners
+function setupEventListeners() {
+    console.log("Setting up event listeners...");
+
+    // --- Tab Switching Logic ---
+    const tabs = [filesTab, commitsTab, pullRequestsTab, issuesTab];
+    const containers = {
+        filesTab: [fileExplorerContainer, codeContainer], // Files tab shows explorer OR code view
+        commitsTab: [commitsContainer],
+        pullRequestsTab: [pullRequestsContainer],
+        issuesTab: [] // Add issuesContainer here if created
+    };
+
+    tabs.forEach(tab => {
+        if (tab) {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                const clickedTabId = this.id;
+
+                // Update active tab style
+                tabs.forEach(t => t?.classList.remove('active')); // Use optional chaining
+                this.classList.add('active');
+
+                // Hide all containers first
+                 Object.values(containers).flat().forEach(container => {
+                     if (container) container.style.display = 'none';
+                 });
+
+                // Show containers for the clicked tab
+                if (containers[clickedTabId]) {
+                    containers[clickedTabId].forEach(container => {
+                        if (container) {
+                            // Special handling for filesTab: only show fileExplorer initially
+                            if (clickedTabId === 'filesTab' && container === fileExplorerContainer) {
+                                container.style.display = 'block';
+                            } else if (clickedTabId !== 'filesTab') {
+                                container.style.display = 'block';
+                            }
+                            // codeContainer visibility is handled by loadFile/navigateToPath
+                        }
+                    });
+                }
+
+                // Load data if necessary
+                if (clickedTabId === 'commitsTab') {
+                    loadCommitHistory();
+                } else if (clickedTabId === 'pullRequestsTab') {
+                    loadPullRequests('OPEN'); // Load initial 'OPEN' PRs
+                } else if (clickedTabId === 'issuesTab') {
+                    // loadIssues(); // Call function to load issues
+                    console.log("Issues tab clicked - implement functionality");
+                }
+                 else if (clickedTabId === 'filesTab') {
+                     // When clicking back to Files tab, ensure file explorer is shown
+                     // and code view is hidden if it was previously open.
+                     if(fileExplorerContainer) fileExplorerContainer.style.display = 'block';
+                     if(codeContainer) codeContainer.style.display = 'none';
+                     // Optionally reload files if needed, though maybe not necessary unless branch changed
+                     // displayFiles(buildFileTree(projectFiles)); // Re-render based on current path
+                 }
+            });
         }
     });
-    
-    // Branch search
-    branchSearchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const branchItems = branchList.querySelectorAll('.branch-item');
-        
-        branchItems.forEach(item => {
-            const branchName = item.querySelector('.branch-name').textContent.toLowerCase();
-            if (branchName.includes(searchTerm)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
+
+
+    // --- Branch Dropdown Logic ---
+    if (branchButton) {
+        branchButton.addEventListener('click', function() {
+            branchDropdown.style.display = branchDropdown.style.display === 'block' ? 'none' : 'block';
+             if(branchDropdown.style.display === 'block') branchSearchInput.focus();
         });
-    });
-    
+    }
+    if (branchSearchInput) {
+        branchSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const branchItems = branchList.querySelectorAll('.branch-item');
+            branchItems.forEach(item => {
+                const branchName = item.querySelector('.branch-name')?.textContent.toLowerCase() || '';
+                item.style.display = branchName.includes(searchTerm) ? 'flex' : 'none';
+            });
+        });
+    }
     // Close dropdown when clicking outside
     document.addEventListener('click', function(event) {
-        if (!branchButton.contains(event.target) && !branchDropdown.contains(event.target)) {
+        if (branchButton && branchDropdown && !branchButton.contains(event.target) && !branchDropdown.contains(event.target)) {
             branchDropdown.style.display = 'none';
         }
     });
 
-    // Visibility toggle event listeners
-    document.getElementById('makePublicOption').addEventListener('click', function(e) {
-        e.preventDefault();
-        toggleProjectVisibility(true);
-    });
-    
-    document.getElementById('makePrivateOption').addEventListener('click', function(e) {
-        e.preventDefault();
-        toggleProjectVisibility(false);
-    });
+    // --- Visibility Toggle Logic ---
+    const makePublicOption = document.getElementById('makePublicOption');
+    const makePrivateOption = document.getElementById('makePrivateOption');
+    if(makePublicOption) makePublicOption.addEventListener('click', (e) => { e.preventDefault(); toggleProjectVisibility(true); });
+    if(makePrivateOption) makePrivateOption.addEventListener('click', (e) => { e.preventDefault(); toggleProjectVisibility(false); });
 
-    // Copy button
-    document.getElementById('copyButton').addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Get content from lines
-        const lineContents = document.querySelectorAll('.line-content');
-        let content = '';
-        lineContents.forEach(line => {
-            content += line.textContent + '\n';
+    // --- Star/Fork Button Logic ---
+     const starButton = document.getElementById('starBtn');
+     const forkButton = document.getElementById('forkBtn');
+     if(starButton) starButton.addEventListener('click', toggleStar);
+     if(forkButton) forkButton.addEventListener('click', forkRepository);
+
+
+    // --- Code Action Buttons Logic ---
+    const copyButton = document.getElementById('copyButton');
+    const fullScreenButton = document.getElementById('fullScreenButton');
+
+    if (copyButton) {
+        copyButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const codeContent = Array.from(document.querySelectorAll('#codeTable .line-content code'))
+                                     .map(code => code.textContent)
+                                     .join('\n');
+            navigator.clipboard.writeText(codeContent).then(() => {
+                showToast('Content copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                 showToast('Failed to copy content.', 'error');
+            });
         });
-        
-        // Copy to clipboard
-        navigator.clipboard.writeText(content).then(function() {
-            alert('Content copied to clipboard!');
-        }).catch(function(err) {
-            console.error('Could not copy text: ', err);
+    }
+
+    if (fullScreenButton && fullScreenModal) {
+        fullScreenButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            fullScreenModal.style.display = 'block';
+            // Ensure highlighting is applied when modal opens
+             const modalCode = document.getElementById('modalCode');
+             if (window.hljs && modalCode.className.includes('language-')) {
+                  hljs.highlightElement(modalCode);
+             }
         });
-    });
-    
-    // Full screen button
-    document.getElementById('fullScreenButton').addEventListener('click', function(e) {
-        e.preventDefault();
-        fullScreenModal.style.display = 'block';
-        
-        // Apply syntax highlighting
-        if (window.hljs) {
-            window.hljs.highlightElement(document.getElementById('modalCode'));
-        }
-    });
-    
-    // Close modal
-    modalClose.addEventListener('click', function() {
-        fullScreenModal.style.display = 'none';
-    });
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === fullScreenModal) {
+    }
+
+    // --- Modal Close Logic ---
+    if (modalClose && fullScreenModal) {
+        modalClose.addEventListener('click', () => { fullScreenModal.style.display = 'none'; });
+    }
+    // Close modal on outside click
+    window.addEventListener('click', (event) => {
+        if (fullScreenModal && event.target === fullScreenModal) {
             fullScreenModal.style.display = 'none';
         }
     });
-    
-    // Set up commit tab listener
-    setupCommitTabListener();
-}
 
-function setupCommitTabListener() {
-    const commitsTab = document.getElementById('commitsTab');
-    if (commitsTab) {
-        commitsTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Update active tab
-            document.querySelectorAll('.nav-tabs .nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            commitsTab.classList.add('active');
-            
-            // Hide other content sections
-            document.querySelector('.file-explorer').style.display = 'none';
-            document.getElementById('codeContainer').style.display = 'none';
-            document.getElementById('pullRequestsContainer').style.display = 'none';
-            
-            // Show commits container
-            document.getElementById('commitsContainer').style.display = 'block';
-            
-            // Load commits
-            loadCommitHistory();
-        });
-    }
-}
-document.head.insertAdjacentHTML('beforeend', `
-        <style>
-            #toast-container {
-                z-index: 1050;
-            }
-            
-            .toast {
-                min-width: 250px;
-                margin-bottom: 10px;
-            }
-            
-            .toast-success {
-                background-color: #d4edda;
-                border-color: #c3e6cb;
-            }
-            
-            .toast-success .toast-header {
-                background-color: #c3e6cb;
-                color: #155724;
-            }
-            
-            .toast-error {
-                background-color: #f8d7da;
-                border-color: #f5c6cb;
-            }
-            
-            .toast-error .toast-header {
-                background-color: #f5c6cb;
-                color: #721c24;
-            }
-        </style>
-    `);
- // Toggle project visibility
- async function toggleProjectVisibility(makePublic) {
-        try {
-            const response = await fetch(`/api/projects/${projectId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    isPublic: makePublic
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
-                // Update UI to reflect the new visibility status
-                updateVisibilityDisplay(makePublic);
-                
-                // Show toast notification
-                const message = makePublic ? 
-                    'Repository is now public - anyone can see it' : 
-                    'Repository is now private - only you and collaborators can see it';
-                showToast(message, 'success');
-            } else {
-                throw new Error(result.message || 'Failed to update project visibility');
-            }
-        } catch (error) {
-            console.error('Error updating project visibility:', error);
-            showToast('Failed to update repository visibility', 'error');
-        }
-    }
-
-    // Update visibility display based on state
-    function updateVisibilityDisplay(isPublic) {
-        // Update button icon and text
-        const visibilityBtnIcon = document.getElementById('visibilityBtnIcon');
-        const visibilityBtnText = document.getElementById('visibilityBtnText');
-        
-        // Update project stats indicator
-        const projectVisibility = document.getElementById('projectVisibility');
-        
-        // Update dropdown options
-        const makePublicOption = document.getElementById('makePublicOption');
-        const makePrivateOption = document.getElementById('makePrivateOption');
-        
-        if (isPublic) {
-            visibilityBtnIcon.className = 'fa fa-globe';
-            visibilityBtnText.textContent = 'Public';
-            projectVisibility.textContent = 'Public';
-            makePublicOption.style.display = 'none';
-            makePrivateOption.style.display = 'block';
-        } else {
-            visibilityBtnIcon.className = 'fa fa-lock';
-            visibilityBtnText.textContent = 'Private';
-            projectVisibility.textContent = 'Private';
-            makePublicOption.style.display = 'block';
-            makePrivateOption.style.display = 'none';
-        }
-    }
-
-    // Show toast notification
-    function showToast(message, type = 'info') {
-        // Simple implementation - you can enhance this with a proper toast library
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-header">
-                <strong class="me-auto">Notification</strong>
-                <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
-            </div>
-        `;
-        
-        // Add toast container if it doesn't exist
-        let toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toast-container';
-            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
-            document.body.appendChild(toastContainer);
-        }
-        
-        toastContainer.appendChild(toast);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    }
-
-
-// Add to your existing JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Pull Request tab handling
-    const filesTab = document.getElementById('filesTab');
-    const pullRequestsTab = document.getElementById('pullRequestsTab');
-    const commitsTab = document.getElementById('commitsTab');
-    const issuesTab = document.getElementById('issuesTab');
-    
-    const fileExplorer = document.querySelector('.file-explorer');
-    const codeContainer = document.getElementById('codeContainer');
-    const pullRequestsContainer = document.getElementById('pullRequestsContainer');
-    
-    if (filesTab && pullRequestsTab) {
-        filesTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Update active tab
-            document.querySelectorAll('.nav-tabs .nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            filesTab.classList.add('active');
-            
-            // Show files, hide pull requests
-            fileExplorer.style.display = 'block';
-            if (codeContainer) codeContainer.style.display = 'none';
-            pullRequestsContainer.style.display = 'none';
-        });
-        
-        pullRequestsTab.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Update active tab
-            document.querySelectorAll('.nav-tabs .nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            pullRequestsTab.classList.add('active');
-            
-            // Hide files, show pull requests
-            fileExplorer.style.display = 'none';
-            if (codeContainer) codeContainer.style.display = 'none';
-            pullRequestsContainer.style.display = 'block';
-            
-            // Load pull requests
-            loadPullRequests('OPEN');
-        });
-    }
-    
-    // Function to load pull requests
-    function loadPullRequests(status = 'OPEN') {
-        const projectId = new URLSearchParams(window.location.search).get('id');
-        if (!projectId) return;
-        
-        const pullRequestsList = document.getElementById('pullRequestsList');
-        pullRequestsList.innerHTML = `
-            <div class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        `;
-        
-        fetch(`/api/pull-requests/project/${projectId}?status=${status}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.data) {
-                displayPullRequests(data.data);
-            } else {
-                pullRequestsList.innerHTML = `
-                    <div class="list-group-item text-center py-4">
-                        <p class="mb-0 text-muted">No pull requests found</p>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error loading pull requests:', error);
-            pullRequestsList.innerHTML = `
-                <div class="list-group-item text-center py-4">
-                    <p class="mb-0 text-danger">Failed to load pull requests</p>
-                </div>
-            `;
-        });
-    }
-    
-    // Function to display pull requests
-    function displayPullRequests(pullRequests) {
-        const pullRequestsList = document.getElementById('pullRequestsList');
-        
-        if (pullRequests.length === 0) {
-            pullRequestsList.innerHTML = `
-                <div class="list-group-item text-center py-4">
-                    <p class="mb-0 text-muted">No pull requests found</p>
-                </div>
-            `;
-            return;
-        }
-        
-        pullRequestsList.innerHTML = '';
-        
-        pullRequests.forEach(pr => {
-            const statusClass = 
-                pr.status === 'OPEN' ? 'bg-success' : 
-                pr.status === 'MERGED' ? 'bg-info' : 'bg-secondary';
-            
-            const listItem = document.createElement('a');
-            listItem.href = `/pull-request.html?id=${pr.id}`;
-            listItem.className = 'list-group-item list-group-item-action';
-            
-            listItem.innerHTML = `
-                <div class="d-flex w-100 justify-content-between align-items-center">
-                    <h5 class="mb-1">${pr.title}</h5>
-                    <span class="badge ${statusClass}">${pr.status}</span>
-                </div>
-                <p class="mb-1">${pr.description || 'No description provided'}</p>
-                <small class="text-muted">
-                    #${pr.id} opened by ${pr.author.username} 
-                    ${timeAgo(new Date(pr.createdAt))}
-                </small>
-            `;
-            
-            pullRequestsList.appendChild(listItem);
-        });
-    }
-    
-    // Status filter for pull requests
-    document.querySelectorAll('.card-header-tabs .nav-link').forEach(tab => {
+     // --- Pull Request Status Tabs ---
+     document.querySelectorAll('.card-header-tabs .nav-link[data-pr-status]').forEach(tab => {
         tab.addEventListener('click', function(e) {
             e.preventDefault();
-            
-            // Update active tab
-            document.querySelectorAll('.card-header-tabs .nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
+            document.querySelectorAll('.card-header-tabs .nav-link[data-pr-status]').forEach(link => link.classList.remove('active'));
             this.classList.add('active');
-            
-            // Load pull requests with selected status
             const status = this.getAttribute('data-pr-status');
             loadPullRequests(status);
         });
     });
-    
-    // New Pull Request button
-    const newPRButton = document.getElementById('newPRButton');
-    if (newPRButton) {
-        newPRButton.addEventListener('click', function() {
-            // Navigate to new PR page or show modal
-            const projectId = new URLSearchParams(window.location.search).get('id');
-            window.location.href = `/pull-request.html?projectId=${projectId}`;
-        });
-    }
-    
-    // Helper function to format time ago
-    function timeAgo(date) {
-        const seconds = Math.floor((new Date() - date) / 1000);
-        
-        let interval = Math.floor(seconds / 31536000);
-        if (interval >= 1) {
-            return interval + " year" + (interval === 1 ? "" : "s") + " ago";
-        }
-        
-        interval = Math.floor(seconds / 2592000);
-        if (interval >= 1) {
-            return interval + " month" + (interval === 1 ? "" : "s") + " ago";
-        }
-        
-        interval = Math.floor(seconds / 86400);
-        if (interval >= 1) {
-            return interval + " day" + (interval === 1 ? "" : "s") + " ago";
-        }
-        
-        interval = Math.floor(seconds / 3600);
-        if (interval >= 1) {
-            return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
-        }
-        
-        interval = Math.floor(seconds / 60);
-        if (interval >= 1) {
-            return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
-        }
-        
-        return Math.floor(seconds) + " second" + (seconds === 1 ? "" : "s") + " ago";
-    }
-});
 
-/**
- * Load commit history for the current project and branch
- */
- async function loadCommitHistory() {
+     // --- New Pull Request Button ---
+     const newPRButton = document.getElementById('newPRButton');
+     if (newPRButton) {
+         newPRButton.addEventListener('click', function() {
+             if (projectId) {
+                  window.location.href = `/pull-request.html?projectId=${projectId}`;
+             } else {
+                 console.error("Project ID not found for New PR button");
+                 alert("Could not determine the project ID.");
+             }
+         });
+     }
+
+     console.log("Event listeners setup complete.");
+}
+
+
+// Toggle project visibility
+async function toggleProjectVisibility(makePublic) {
     try {
-        // Show loading indicator
-        document.getElementById('commitsList').innerHTML = `
-            <div class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        `;
-
-        console.log("Loading commit history...");
-        console.log("Available branches:", projectBranches);
-        console.log("Current branch name:", currentBranch);
-        
-        // Get branch ID from projectBranches array
-        let branchId = null;
-        if (projectBranches && projectBranches.length > 0) {
-            const branch = projectBranches.find(b => b.name === currentBranch);
-            if (branch) {
-                branchId = branch.id;
-                console.log("Found branch ID:", branchId);
-            } else {
-                // If we can't find the branch by name, use the first branch
-                branchId = projectBranches[0].id;
-                console.log("Using first branch ID:", branchId);
-            }
-        } else {
-            console.log("No branches found in projectBranches array");
-            // Direct API call to get project's branches
-            try {
-                const branchResponse = await fetch(`/api/branches/project/${projectId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (branchResponse.ok) {
-                    const branchResult = await branchResponse.json();
-                    console.log("Direct branch API response:", branchResult);
-                    
-                    if (branchResult.success && branchResult.data && branchResult.data.length > 0) {
-                        branchId = branchResult.data[0].id;
-                        console.log("Found branch ID from direct API call:", branchId);
-                    }
-                }
-            } catch (e) {
-                console.error("Error fetching branches directly:", e);
-            }
-        }
-
-        // If we still don't have a branch ID, show an error
-        if (!branchId) {
-            document.getElementById('commitsList').innerHTML = `
-                <div class="alert alert-warning">
-                    <i class="fa fa-exclamation-triangle me-2"></i>
-                    No branches found for this project. You need to create a branch first.
-                </div>
-            `;
-            return;
-        }
-        
-        // Now that we have a branch ID, get the commits
-        const response = await fetch(`/api/version-control/commit-history?branchId=${branchId}`, {
+        const response = await fetch(`/api/projects/${projectId}`, {
+            method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isPublic: makePublic }) // Ensure body field matches API expectation
         });
-        
-        if (response.ok) {
-            const result = await response.json();
-            console.log("Commit history response:", result);
-            
-            if (result.success && result.data && result.data.length > 0) {
-                displayCommits(result.data);
-            } else {
-                document.getElementById('commitsList').innerHTML = `
-                    <div class="alert alert-warning">
-                        No commits found for this branch.
-                    </div>
-                `;
-            }
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            updateVisibilityDisplay(makePublic); // Update UI elements
+            const message = makePublic
+                ? 'Repository is now public.'
+                : 'Repository is now private.';
+            showToast(message, 'success');
+            // Update the global project object if necessary
+            if (currentProject) currentProject.isPublic = makePublic;
+             document.getElementById('projectVisibility').textContent = makePublic ? 'Public' : 'Private'; // Update stats display
         } else {
-            console.error("Error fetching commits:", response.status);
-            const errorText = await response.text();
-            console.error("Error response:", errorText);
-            throw new Error(`Failed to load commits: ${response.status}`);
+            throw new Error(result.message || 'Failed to update project visibility');
+        }
+    } catch (error) {
+        console.error('Error updating project visibility:', error);
+        showToast(`Failed to update repository visibility: ${error.message}`, 'error');
+    }
+}
+
+// Update visibility display elements
+function updateVisibilityDisplay(isPublic) {
+    const visibilityBtnIcon = document.getElementById('visibilityBtnIcon');
+    const visibilityBtnText = document.getElementById('visibilityBtnText');
+    const makePublicOption = document.getElementById('makePublicOption');
+    const makePrivateOption = document.getElementById('makePrivateOption');
+    const projectVisibilityStat = document.getElementById('projectVisibility'); // The stat element
+
+    if (isPublic) {
+        if(visibilityBtnIcon) visibilityBtnIcon.className = 'fa fa-globe me-1'; // Add margin
+        if(visibilityBtnText) visibilityBtnText.textContent = 'Public';
+        if(projectVisibilityStat) projectVisibilityStat.textContent = 'Public';
+        if(makePublicOption) makePublicOption.style.display = 'none'; // Hide "Make Public"
+        if(makePrivateOption) makePrivateOption.style.display = 'block'; // Show "Make Private"
+    } else {
+        if(visibilityBtnIcon) visibilityBtnIcon.className = 'fa fa-lock me-1'; // Add margin
+        if(visibilityBtnText) visibilityBtnText.textContent = 'Private';
+         if(projectVisibilityStat) projectVisibilityStat.textContent = 'Private';
+        if(makePublicOption) makePublicOption.style.display = 'block'; // Show "Make Public"
+        if(makePrivateOption) makePrivateOption.style.display = 'none'; // Hide "Make Private"
+    }
+}
+
+// Show toast notification
+function showToast(message, type = 'info') {
+    // Ensure toast container exists
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        // Use Bootstrap positioning classes for bottom-right
+        toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '1100'; // Ensure high z-index
+        document.body.appendChild(toastContainer);
+    }
+
+    const toastId = `toast-${Date.now()}`; // Unique ID for the toast
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    // Base Bootstrap toast classes + custom type
+    toast.className = `toast align-items-center text-white border-0 toast-${type}`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+
+    // Set background color based on type
+     let bgColorClass = 'bg-secondary'; // Default
+     if (type === 'success') bgColorClass = 'bg-success';
+     else if (type === 'error') bgColorClass = 'bg-danger';
+     else if (type === 'warning') bgColorClass = 'bg-warning text-dark'; // Warning might need dark text
+     else if (type === 'info') bgColorClass = 'bg-info text-dark'; // Info might need dark text
+     toast.classList.add(bgColorClass);
+
+
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${escapeHtml(message)}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Initialize Bootstrap toast
+    const bootstrapToast = new bootstrap.Toast(toast, { delay: 3000 }); // Auto-hide after 3 seconds
+    bootstrapToast.show();
+
+    // Optional: Remove the element after it's hidden
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+
+// --- Pull Request Functions ---
+async function loadPullRequests(status = 'OPEN') {
+    if (!projectId) return;
+    const pullRequestsList = document.getElementById('pullRequestsList');
+    if (!pullRequestsList) return;
+
+    pullRequestsList.innerHTML = `
+        <div class="list-group-item text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div> Loading pull requests...
+        </div>`;
+
+    try {
+        const response = await fetch(`/api/pull-requests/project/${projectId}?status=${status}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+            displayPullRequests(data.data);
+        } else {
+             console.warn("No PR data received or invalid format:", data);
+            pullRequestsList.innerHTML = `
+                <div class="list-group-item text-center py-4">
+                    <p class="mb-0 text-muted">No ${status.toLowerCase()} pull requests found.</p>
+                </div>`;
+        }
+    } catch (error) {
+        console.error('Error loading pull requests:', error);
+        pullRequestsList.innerHTML = `
+            <div class="list-group-item text-center py-4">
+                <p class="mb-0 text-danger">Failed to load pull requests: ${error.message}</p>
+            </div>`;
+    }
+}
+
+function displayPullRequests(pullRequests) {
+    const pullRequestsList = document.getElementById('pullRequestsList');
+    if (!pullRequestsList) return;
+
+    if (pullRequests.length === 0) {
+        // Get the currently active status tab to display a more specific message
+        const activeStatusTab = document.querySelector('.card-header-tabs .nav-link.active');
+        const status = activeStatusTab ? activeStatusTab.getAttribute('data-pr-status') : 'selected';
+        pullRequestsList.innerHTML = `
+            <div class="list-group-item text-center py-4">
+                <i class="fa fa-code-pull-request fa-2x text-muted mb-2"></i>
+                <p class="mb-0 text-muted">No ${status.toLowerCase()} pull requests found.</p>
+            </div>`;
+        return;
+    }
+
+    pullRequestsList.innerHTML = ''; // Clear loading/previous
+
+    pullRequests.forEach(pr => {
+        let statusClass = 'bg-secondary';
+        let statusIcon = 'fa-circle-question'; // Default icon
+        if (pr.status === 'OPEN') {
+            statusClass = 'text-success'; // Use text color for open
+            statusIcon = 'fa-code-pull-request';
+        } else if (pr.status === 'MERGED') {
+            statusClass = 'text-info'; // Use text color for merged
+            statusIcon = 'fa-code-merge';
+        } else if (pr.status === 'CLOSED') {
+             statusClass = 'text-danger'; // Use text color for closed
+             statusIcon = 'fa-xmark-circle'; // Or fa-ban
+        }
+
+        const listItem = document.createElement('a');
+        // Update this href if you have a dedicated PR view page
+        listItem.href = `/pull-request.html?id=${pr.id}&projectId=${projectId}`;
+        listItem.className = 'list-group-item list-group-item-action d-flex align-items-center';
+
+        listItem.innerHTML = `
+            <i class="fa ${statusIcon} ${statusClass} fa-lg me-3"></i>
+            <div class="flex-grow-1">
+                <h6 class="mb-1 fw-bold">${escapeHtml(pr.title)}</h6>
+                <small class="text-muted d-block">
+                    #${pr.id} opened ${timeAgo(new Date(pr.createdAt))} by ${escapeHtml(pr.author?.username || 'Unknown')}
+                     · ${pr.sourceBranch || '?'} → ${pr.targetBranch || '?'}
+                </small>
+                 ${pr.description ? `<p class="mb-0 mt-1 text-muted text-small">${escapeHtml(pr.description.substring(0, 100))}${pr.description.length > 100 ? '...' : ''}</p>` : ''}
+            </div>
+            `;
+        pullRequestsList.appendChild(listItem);
+    });
+}
+
+// --- Commit History Functions ---
+async function loadCommitHistory() {
+     const commitsListElement = document.getElementById('commitsList');
+     if (!commitsListElement) return;
+
+    commitsListElement.innerHTML = `
+        <div class="text-center py-4">
+             <div class="spinner-border spinner-border-sm text-primary" role="status">
+                 <span class="visually-hidden">Loading...</span>
+             </div> Loading commit history...
+        </div>`;
+
+    try {
+        console.log("Loading commit history for branch:", currentBranch);
+        const branch = projectBranches.find(b => b.name === currentBranch);
+        const branchId = branch ? branch.id : null;
+
+        if (!branchId && projectBranches.length > 0) {
+             console.warn("Could not find ID for current branch name, API call might fail or use name.");
+             // Decide if you want to proceed without ID or show error
+        }
+         if (!branchId && projectBranches.length === 0) {
+             throw new Error("No branches available to fetch commits for.");
+         }
+
+        // *** Adjust API endpoint as needed ***
+        // Example: /api/version-control/commits?projectId=X&branchId=Y or &branchName=main
+        const apiUrl = branchId
+            ? `/api/version-control/commit-history?branchId=${branchId}`
+            : `/api/version-control/commit-history?projectId=${projectId}&branchName=${encodeURIComponent(currentBranch)}`; // Fallback using name
+
+        const response = await fetch(apiUrl, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+
+        const result = await response.json();
+        console.log("Commit history response:", result);
+
+        if (result.success && Array.isArray(result.data)) {
+            displayCommits(result.data);
+        } else {
+             console.warn("No commit data received or invalid format:", result);
+             commitsListElement.innerHTML = `
+                 <div class="list-group-item text-center py-4">
+                     <i class="fa fa-history fa-2x text-muted mb-2"></i>
+                     <p class="mb-0 text-muted">No commits found for the '${escapeHtml(currentBranch)}' branch.</p>
+                 </div>`;
         }
     } catch (error) {
         console.error('Error loading commits:', error);
-        document.getElementById('commitsList').innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fa fa-exclamation-triangle me-2"></i>
-                Failed to load commits: ${error.message}
-            </div>
-        `;
+        commitsListElement.innerHTML = `
+            <div class="list-group-item text-center py-4">
+                 <p class="mb-0 text-danger">Failed to load commits: ${error.message}</p>
+             </div>`;
     }
 }
-/**
- * Display commits in the commits tab
- */
- function displayCommits(commits) {
+
+function displayCommits(commits) {
     const commitsList = document.getElementById('commitsList');
-    
-    // If no commits, show a message
+    if (!commitsList) return;
+
     if (!commits || commits.length === 0) {
         commitsList.innerHTML = `
-            <div class="alert alert-info">
-                <i class="fa fa-info-circle me-2"></i>
-                No commits found for this branch.
-            </div>
-        `;
+             <div class="list-group-item text-center py-4">
+                 <i class="fa fa-history fa-2x text-muted mb-2"></i>
+                 <p class="mb-0 text-muted">No commits found for this branch.</p>
+             </div>`;
         return;
     }
 
-    // Update the commits count badge
-    if (document.getElementById('commitsCount')) {
-        document.getElementById('commitsCount').textContent = commits.length;
-    }
-    
-    // Clear the list
-    commitsList.innerHTML = '';
-    
-    // Add each commit to the list
-    commits.forEach(commit => {
-        // Format date nicely
-        const commitDate = new Date(commit.createdAt);
-        const formattedDate = commitDate.toLocaleDateString() + ' ' + 
-            commitDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        // Check if author exists and has a username
-        let authorUsername = "Unknown";
-        if (commit.author && commit.author.username) {
-            authorUsername = commit.author.username;
-        }
-        
-        // Create the commit item
-        const commitItem = document.createElement('div');
-        commitItem.className = 'commit-item mb-3';
-        commitItem.innerHTML = `
-            <div class="commit-header d-flex align-items-center p-3 bg-light border rounded">
-                <img src="https://www.gravatar.com/avatar/${hashString(authorUsername)}?d=mp&f=y" 
-                    alt="${authorUsername}" class="avatar-img-medium me-3">
-                <div class="flex-grow-1">
-                    <h5 class="commit-title mb-1">${escapeHtml(commit.message || "No message")}</h5>
-                    <div class="commit-meta">
-                        <span class="me-3">
-                            <strong>${escapeHtml(authorUsername)}</strong> committed on ${formattedDate}
-                        </span>
-                        <span class="text-muted">
-                            <i class="fa fa-code-commit me-1"></i>
-                            Commit ${commit.id.toString()}
-                        </span>
-                    </div>
-                </div>
-                <button class="btn btn-sm btn-outline-secondary view-details-btn" 
-                    data-commit-id="${commit.id}" onclick="viewCommitDetails(${commit.id})">
-                    <i class="fa fa-eye me-1"></i> View
-                </button>
-            </div>
-        `;
-        
-        commitsList.appendChild(commitItem);
-        
-    });
-    setupBatchCommitViewing();
-}
+    commitsList.innerHTML = ''; // Clear loading/previous
 
-/**
- * View details of a batch of commits
- * Redirects to commit-details.html with comma-separated commit IDs
- */
- function viewCommitBatch(commitIds) {
-    if (!Array.isArray(commitIds) || commitIds.length === 0) {
-        return;
-    }
-    
-    // Navigate to commit details page with batch commits
-    window.location.href = `/commit-details.html?commits=${commitIds.join(',')}&projectId=${projectId}`;
-}
+    // Group commits by date (optional but nice)
+    const commitsByDate = commits.reduce((acc, commit) => {
+        const date = new Date(commit.createdAt).toLocaleDateString();
+        if (!acc[date]) {
+            acc[date] = [];
+        }
+        acc[date].push(commit);
+        return acc;
+    }, {});
 
-/**
- * Enable batch commit viewing functionality
- */
- function setupBatchCommitViewing() {
-    // Find consecutive commits with the same timestamp and author
-    const commitGroups = [];
-    let currentGroup = [];
-    
-    // Get all commits from the DOM
-    const commitElements = document.querySelectorAll('.commit-item');
-    
-    commitElements.forEach((element, index) => {
-        const commitId = element.getAttribute('data-commit-id');
-        const commitAuthor = element.getAttribute('data-author');
-        const commitTimestamp = element.getAttribute('data-timestamp');
-        
-        if (index === 0) {
-            // Start first group
-            currentGroup.push(commitId);
-        } else {
-            // Check if this commit belongs to the current group
-            const prevElement = commitElements[index - 1];
-            const prevAuthor = prevElement.getAttribute('data-author');
-            const prevTimestamp = prevElement.getAttribute('data-timestamp');
-            
-            if (prevAuthor === commitAuthor && prevTimestamp === commitTimestamp) {
-                // Same author and timestamp, add to current group
-                currentGroup.push(commitId);
-            } else {
-                // Different author or timestamp, start a new group
-                if (currentGroup.length > 0) {
-                    commitGroups.push([...currentGroup]);
-                }
-                currentGroup = [commitId];
-            }
-        }
-    });
-    
-    // Add the last group if it exists
-    if (currentGroup.length > 0) {
-        commitGroups.push([...currentGroup]);
-    }
-    
-    // For each group with more than one commit, add a "View as batch" button
-    commitGroups.forEach(group => {
-        if (group.length > 1) {
-            // Find the first commit in this group
-            const firstCommitElement = document.querySelector(`.commit-item[data-commit-id="${group[0]}"]`);
-            
-            if (firstCommitElement) {
-                // Add a batch view button
-                const batchBtn = document.createElement('button');
-                batchBtn.className = 'btn btn-sm btn-outline-secondary ms-2';
-                batchBtn.innerHTML = `<i class="fa fa-layer-group me-1"></i> View ${group.length} commits as batch`;
-                
-                // Add click handler
-                batchBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    viewCommitBatch(group);
-                });
-                
-                // Find the commit actions area and append button
-                const actionsArea = firstCommitElement.querySelector('.commit-actions');
-                if (actionsArea) {
-                    actionsArea.appendChild(batchBtn);
-                }
-            }
-        }
-    });
-}
+    // Display commits grouped by date
+    Object.keys(commitsByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { // Sort dates descending
+         // Add date header
+         const dateHeader = document.createElement('div');
+         dateHeader.className = 'list-group-item bg-light py-1 px-3 fw-bold text-muted text-small sticky-top'; // Make date header sticky
+         dateHeader.style.top = '0'; // Adjust based on navbar height if fixed
+         dateHeader.textContent = `Commits on ${new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`;
+         commitsList.appendChild(dateHeader);
 
-/**
- * View details of a specific commit
- */
- async function viewCommitDetails(commitId) {
-    
-    try {
-        // Initialize the modal
-        const modal = new bootstrap.Modal(document.getElementById('commitDetailsModal'));
-        
-        // Show the modal with loading state
-        document.getElementById('commitDetailsLoading').style.display = 'block';
-        document.getElementById('commitDetailsContent').style.display = 'none';
-        document.getElementById('commitDetailsError').style.display = 'none';
-        
-        modal.show();
-        
-        // Fetch commit details
-        const response = await fetch(`/api/version-control/commit-details?commitId=${commitId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            // Hide loading and show content
-            document.getElementById('commitDetailsLoading').style.display = 'none';
-            document.getElementById('commitDetailsContent').style.display = 'block';
-            
-            const details = result.data;
-            const commit = details.commit;
-            const fileChanges = details.fileChanges || {};
-            
-            // Update commit info
-            document.getElementById('commitMessage').textContent = commit.message;
-            document.getElementById('commitAuthor').textContent = commit.author ? commit.author.username : 'Unknown';
-            
-            // Format date
+         // Add commits for this date
+         commitsByDate[date].forEach(commit => {
             const commitDate = new Date(commit.createdAt);
-            document.getElementById('commitDate').textContent = commitDate.toLocaleString();
-            
-            // Set author avatar
-            const authorUsername = commit.author ? commit.author.username : 'Unknown';
-            document.getElementById('commitAuthorAvatar').src = 
-                `https://www.gravatar.com/avatar/${hashString(authorUsername)}?d=mp&f=y`;
-            
-            // List changed files
-            const filesList = document.getElementById('commitFilesList');
-            filesList.innerHTML = '';
-            
-            if (Object.keys(fileChanges).length === 0) {
-                filesList.innerHTML = '<div class="list-group-item text-muted">No file changes found</div>';
-            } else {
-                Object.keys(fileChanges).forEach(filePath => {
-                    const listItem = document.createElement('a');
-                    listItem.href = '#';
-                    listItem.className = 'list-group-item list-group-item-action';
-                    
-                    // Get file icon based on extension
-                    const extension = filePath.split('.').pop().toLowerCase();
-                    let fileIcon = 'fa-file';
-                    
-                    if (['js', 'jsx', 'ts', 'tsx'].includes(extension)) {
-                        fileIcon = 'fa-file-code text-warning';
-                    } else if (['html', 'htm', 'xml'].includes(extension)) {
-                        fileIcon = 'fa-file-code text-danger';
-                    } else if (['css', 'scss', 'sass'].includes(extension)) {
-                        fileIcon = 'fa-file-code text-primary';
-                    } else if (['java', 'py', 'rb', 'php', 'c', 'cpp', 'cs'].includes(extension)) {
-                        fileIcon = 'fa-file-code text-success';
-                    } else if (['md', 'txt'].includes(extension)) {
-                        fileIcon = 'fa-file-alt';
-                    } else if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension)) {
-                        fileIcon = 'fa-file-image';
-                    }
-                    
-                    listItem.innerHTML = `
-                        <i class="fa ${fileIcon} me-2"></i>
-                        ${filePath}
-                    `;
-                    
-                    // Click handler to show file content
-                    listItem.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        displayFileChanges(filePath, fileChanges[filePath]);
-                    });
-                    
-                    filesList.appendChild(listItem);
-                });
-                
-                // Automatically display the first file
-                if (Object.keys(fileChanges).length > 0) {
-                    const firstFile = Object.keys(fileChanges)[0];
-                    displayFileChanges(firstFile, fileChanges[firstFile]);
-                }
-            }
-        } else {
-            throw new Error(result.message || 'Failed to load commit details');
-        }
-    } catch (error) {
-        console.error('Error viewing commit details:', error);
-        document.getElementById('commitDetailsLoading').style.display = 'none';
-        document.getElementById('commitDetailsError').style.display = 'block';
-        document.getElementById('commitDetailsError').textContent = 'Error: ' + error.message;
-    }
-    window.location.href = `/commit-details.html?id=${commitId}&projectId=${projectId}`;
-}
-/**
- * Display file changes in the commit details modal
- */
- function displayFileChanges(filePath, content) {
-    const fileChangesContent = document.getElementById('fileChangesContent');
-    
-    // Determine language for syntax highlighting
-    const extension = filePath.split('.').pop().toLowerCase();
-    let language = '';
-    
-    switch (extension) {
-        case 'js':
-            language = 'javascript';
-            break;
-        case 'java':
-            language = 'java';
-            break;
-        case 'py':
-            language = 'python';
-            break;
-        case 'rb':
-            language = 'ruby';
-            break;
-        case 'php':
-            language = 'php';
-            break;
-        case 'html':
-        case 'htm':
-            language = 'html';
-            break;
-        case 'css':
-            language = 'css';
-            break;
-        case 'xml':
-            language = 'xml';
-            break;
-        case 'json':
-            language = 'json';
-            break;
-        case 'md':
-            language = 'markdown';
-            break;
-        case 'sql':
-            language = 'sql';
-            break;
-        default:
-            language = 'plaintext';
-    }
-    
-    // Create a pre>code element with appropriate classes for highlight.js
-    fileChangesContent.innerHTML = `
-        <div class="card">
-            <div class="card-header bg-light">
-                <i class="fa fa-file me-2"></i>${filePath}
-            </div>
-            <div class="card-body p-0">
-                <pre style="margin: 0; border-radius: 0;"><code class="language-${language}">${escapeHtml(content)}</code></pre>
-            </div>
-        </div>
-    `;
-    
-    // Apply syntax highlighting
-    document.querySelectorAll('pre code').forEach((block) => {
-        if (window.hljs) {
-            window.hljs.highlightElement(block);
-        }
-    });
-}
-// Language colors mapping similar to GitHub
-const languageColors = {
-  'HTML': '#e34c26',
-  'Java': '#b07219',
-  'JavaScript': '#f1e05a',
-  'TypeScript': '#2b7489',
-  'CSS': '#563d7c',
-  'Python': '#3572A5',
-  'Ruby': '#701516',
-  'PHP': '#4F5D95',
-  'C': '#555555',
-  'C++': '#f34b7d',
-  'C#': '#178600',
-  'Shell': '#89e051',
-  'Batch': '#C1F12E',
-  'PowerShell': '#012456',
-  'Go': '#00ADD8',
-  'Kotlin': '#F18E33',
-  'Swift': '#ffac45',
-  'Rust': '#dea584',
-  'Gradle': '#02303A',
-  'XML': '#0060ac',
-  'JSON': '#292929',
-  'Markdown': '#083fa1',
-  'Text': '#cccccc',
-  'YAML': '#cb171e',
-  'Other': '#8b949e'
-};
-/**
- * Fetch and display language statistics for the current project
- */
- async function loadLanguageStats() {
-  // Get container elements
-  const languageBars = document.getElementById('language-bars');
-  const languageList = document.getElementById('language-list');
-  const loadingBar = document.getElementById('language-bar-loading');
-  
-  if (!languageBars || !languageList) return;
-  
-  try {
-    // Get project ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const projectId = urlParams.get('id');
-    
-    if (!projectId) {
-      throw new Error('Project ID not found');
-    }
-    
-    // Make API request to get language statistics
-    const response = await fetch(`/api/projects/${projectId}/languages`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to load language statistics: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    if (!result.success || !result.data) {
-      throw new Error('Invalid response from server');
-    }
-    
-    const languageData = result.data;
-    
-    // If no languages found
-    if (Object.keys(languageData).length === 0) {
-      languageList.innerHTML = '<li class="text-muted">No language data available</li>';
-      return;
-    }
-    
-    // Sort languages by percentage (descending)
-    const sortedLanguages = Object.entries(languageData)
-      .sort((a, b) => b[1] - a[1]);
-    
-    // Generate the language bars
-    let barsHtml = '';
-    sortedLanguages.forEach(([language, percentage]) => {
-      const color = languageColors[language] || '#8b949e'; // Default color for unknown languages
-      barsHtml += `<div class="language-bar" 
-                      style="width: ${percentage}%; background-color: ${color};" 
-                      title="${language}: ${percentage.toFixed(1)}%"></div>`;
-    });
-    
-    // Update bars and hide loading
-    languageBars.innerHTML = barsHtml;
-    languageBars.style.display = 'flex';
-    loadingBar.style.display = 'none';
-    
-    // Generate the language list
-    languageList.innerHTML = '';
-    sortedLanguages.forEach(([language, percentage]) => {
-      if (percentage >= 0.1) { // Only show languages with at least 0.1%
-        const color = languageColors[language] || '#8b949e';
-        const listItem = document.createElement('li');
-        listItem.className = 'language-item';
-        listItem.innerHTML = `
-          <span class="language-color" style="background-color: ${color};"></span>
-          <span class="language-name">${language}</span>
-          <span class="language-percentage">${percentage.toFixed(1)}%</span>
-        `;
-        languageList.appendChild(listItem);
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error loading language statistics:', error);
-    languageList.innerHTML = '<li class="text-muted">Unable to load language statistics</li>';
-    
-    // Hide loading indicator
-    if (loadingBar) loadingBar.style.display = 'none';
-  }
-}
-function generateLanguageStats(languageData) {
-  // If no languages found
-  if (Object.keys(languageData).length === 0) {
-    return `
-      <div class="languages-section">
-        <h4>Languages</h4>
-        <div class="text-muted">No language data available</div>
-      </div>
-    `;
-  }
+            const formattedTime = commitDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const authorUsername = commit.author?.username || 'Unknown';
+            const commitIdShort = commit.id.toString().substring(0, 7); // Short commit hash
 
-  // Sort languages by percentage (descending)
-  const sortedLanguages = Object.entries(languageData)
-    .sort((a, b) => b[1] - a[1]);
+            const commitItem = document.createElement('div');
+            commitItem.className = 'list-group-item list-group-item-action commit-item'; // Use list-group-item for consistency
 
-  // Generate the bar HTML
-  let barHtml = '';
-  sortedLanguages.forEach(([language, percentage]) => {
-    const color = languageColors[language] || '#8b949e'; // Default color for unknown languages
-    barHtml += `<span class="lang-bar" 
-                    style="width: ${percentage}%; background-color: ${color};" 
-                    title="${language}: ${percentage.toFixed(1)}%"></span>`;
-  });
-
-  // Generate the language list HTML
-  let listHtml = '';
-  sortedLanguages.forEach(([language, percentage]) => {
-    if (percentage >= 0.1) { // Only show languages with at least 0.1%
-      const color = languageColors[language] || '#8b949e';
-      listHtml += `
-        <li class="lang-item">
-          <span class="lang-color" style="background-color: ${color};"></span>
-          <span class="lang-name">${language}</span>
-          <span class="lang-percent">${percentage.toFixed(1)}%</span>
-        </li>
-      `;
-    }
-  });
-
-  // Complete HTML
-  return `
-    <div class="languages-section">
-      <h4>Languages</h4>
-      <div class="language-bar-container">
-        ${barHtml}
-      </div>
-      <ul class="language-list">
-        ${listHtml}
-      </ul>
-    </div>
-  `;
-}
-
-// Function to display language statistics
-function displayLanguageStats(languageData) {
-    const languageStatsContainer = document.getElementById('languageStats');
-    if (!languageStatsContainer) return;
-    
-    // Sort languages by percentage (descending)
-    const sortedLanguages = Object.entries(languageData)
-        .sort((a, b) => b[1] - a[1]);
-    
-    // Create the language bars (horizontal stacked bar)
-    let barsHtml = '';
-    sortedLanguages.forEach(([language, percentage]) => {
-        const color = languageColors[language] || '#ddd';
-        barsHtml += `<div class="language-bar" style="width: ${percentage}%; background-color: ${color};" 
-                         title="${language}: ${percentage.toFixed(1)}%"></div>`;
-    });
-    
-    // Create the language details
-    let detailsHtml = '<div class="language-details mt-3">';
-    sortedLanguages.forEach(([language, percentage]) => {
-        if (percentage >= 0.1) { // Only show languages that are at least 0.1%
-            const color = languageColors[language] || '#ddd';
-            detailsHtml += `
-                <div class="language-item">
-                    <span class="language-color" style="background-color: ${color};"></span>
-                    <span class="language-name">${language}</span>
-                    <span class="language-percentage">${percentage.toFixed(1)}%</span>
+            commitItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1 me-3">
+                        <a href="#" class="fw-bold text-dark text-decoration-none commit-title-link" data-commit-id="${commit.id}">
+                            ${escapeHtml(commit.message || "No commit message")}
+                        </a>
+                        <div class="commit-meta text-muted text-small mt-1">
+                            <img src="https://www.gravatar.com/avatar/${hashString(authorUsername)}?d=mp&s=20"
+                                 alt="${escapeHtml(authorUsername)}" class="avatar-img-small me-1">
+                            <strong>${escapeHtml(authorUsername)}</strong> authored ${timeAgo(commitDate)}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                         <button class="btn btn-sm btn-outline-secondary view-details-btn"
+                                 data-commit-id="${commit.id}" title="View commit details">
+                             <i class="fa fa-code"></i> ${commitIdShort}
+                         </button>
+                         </div>
                 </div>
             `;
-        }
-    });
-    detailsHtml += '</div>';
-    
-    // Update the DOM
-    languageStatsContainer.innerHTML = barsHtml + detailsHtml;
+
+             // Add click listener to the button AND the title link
+             commitItem.querySelector('.view-details-btn').addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation(); // Prevent triggering other listeners if nested
+                  viewCommitDetails(commit.id);
+             });
+              commitItem.querySelector('.commit-title-link').addEventListener('click', (e) => {
+                  e.preventDefault();
+                  viewCommitDetails(commit.id);
+             });
+
+            commitsList.appendChild(commitItem);
+        });
+     });
+
+    // setupBatchCommitViewing(); // Re-enable if needed
 }
 
-// Initialize after the page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initialize(); // This should be your main initialization function
-});
+// View Commit Details (Redirects to a new page)
+function viewCommitDetails(commitId) {
+    if (!commitId || !projectId) {
+        console.error("Missing commitId or projectId for viewing details.");
+        return;
+    }
+    // Redirect to a dedicated commit details page
+    window.location.href = `/commit-details.html?id=${commitId}&projectId=${projectId}`;
+}
+
+// --- Language Stats Functions ---
+const languageColors = { /* Keep your languageColors object */
+    'HTML': '#e34c26', 'Java': '#b07219', 'JavaScript': '#f1e05a', 'TypeScript': '#2b7489',
+    'CSS': '#563d7c', 'Python': '#3572A5', 'Ruby': '#701516', 'PHP': '#4F5D95',
+    'C': '#555555', 'C++': '#f34b7d', 'C#': '#178600', 'Shell': '#89e051',
+    'Batch': '#C1F12E', 'PowerShell': '#012456', 'Go': '#00ADD8', 'Kotlin': '#F18E33',
+    'Swift': '#ffac45', 'Rust': '#dea584', 'Gradle': '#02303A', 'XML': '#0060ac',
+    'JSON': '#292929', 'Markdown': '#083fa1', 'Text': '#cccccc', 'YAML': '#cb171e',
+    'Other': '#8b949e'
+};
+
+async function loadLanguageStats() {
+    const languageBars = document.getElementById('language-bars');
+    const languageList = document.getElementById('language-list');
+    const loadingBar = document.getElementById('language-bar-loading');
+    const languagesContainer = document.querySelector('.languages-container'); // Get the main container
+
+    if (!languageBars || !languageList || !loadingBar || !languagesContainer) {
+         console.warn("Language stats elements not found.");
+         if(languagesContainer) languagesContainer.style.display = 'none'; // Hide container if elements missing
+         return;
+    }
+
+    // Show loading state
+    loadingBar.style.display = 'block';
+    languageBars.style.display = 'none';
+    languageList.innerHTML = ''; // Clear list while loading
+    languagesContainer.style.display = 'block'; // Ensure container is visible
+
+    try {
+        if (!projectId) throw new Error('Project ID not found');
+
+        const response = await fetch(`/api/projects/${projectId}/languages`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+
+        const result = await response.json();
+        if (!result.success || typeof result.data !== 'object') { // Check if data is an object
+            throw new Error('Invalid language data format from server');
+        }
+
+        const languageData = result.data;
+        if (Object.keys(languageData).length === 0) {
+            languageList.innerHTML = '<li class="text-muted text-small">No language data available.</li>';
+            loadingBar.style.display = 'none'; // Hide loading even if empty
+            languageBars.style.display = 'flex'; // Show empty bar container
+            languageBars.innerHTML = '<div class="language-bar" style="width: 100%; background-color: #eee;"></div>'; // Optional: show gray bar
+            return;
+        }
+
+        const sortedLanguages = Object.entries(languageData).sort((a, b) => b[1] - a[1]);
+
+        // Generate bars
+        let barsHtml = '';
+        sortedLanguages.forEach(([language, percentage]) => {
+            const color = languageColors[language] || languageColors['Other'];
+            barsHtml += `<div class="language-bar"
+                             style="width: ${percentage}%; background-color: ${color};"
+                             title="${escapeHtml(language)}: ${percentage.toFixed(1)}%"></div>`;
+        });
+        languageBars.innerHTML = barsHtml;
+
+        // Generate list
+        sortedLanguages.forEach(([language, percentage]) => {
+            if (percentage >= 0.1) { // Threshold for displaying
+                const color = languageColors[language] || languageColors['Other'];
+                const listItem = document.createElement('li');
+                listItem.className = 'language-item';
+                listItem.innerHTML = `
+                    <span class="language-color" style="background-color: ${color};"></span>
+                    <span class="language-name">${escapeHtml(language)}</span>
+                    <span class="language-percentage">${percentage.toFixed(1)}%</span>
+                `;
+                languageList.appendChild(listItem);
+            }
+        });
+
+        // Hide loading, show content
+        loadingBar.style.display = 'none';
+        languageBars.style.display = 'flex';
+
+    } catch (error) {
+        console.error('Error loading language statistics:', error);
+        languageList.innerHTML = `<li class="text-muted text-small">Error loading stats.</li>`;
+        loadingBar.style.display = 'none'; // Hide loading on error
+         languageBars.style.display = 'flex';
+         languageBars.innerHTML = '<div class="language-bar bg-danger" style="width: 100%;" title="Error loading stats"></div>'; // Show error bar
+    }
+}
+
+
+// --- Utility Functions --- (Keep timeAgo, hashString, escapeHtml)
+function timeAgo(date) {
+    if (!(date instanceof Date)) date = new Date(date); // Ensure it's a Date object
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return interval + " year" + (interval === 1 ? "" : "s") + " ago";
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return interval + " month" + (interval === 1 ? "" : "s") + " ago";
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+    const roundedSeconds = Math.floor(seconds);
+    return roundedSeconds + " second" + (roundedSeconds === 1 ? "" : "s") + " ago";
+}
+
+
+// --- Initial Load Trigger ---
+// Use DOMContentLoaded to ensure elements exist before running scripts
+document.addEventListener('DOMContentLoaded', initialize);
+
 </script>
+
 </body>
 </html>

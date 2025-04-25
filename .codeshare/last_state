@@ -40,13 +40,13 @@ src/main/java/com/codeshare/platform/repository/CommentRepository.java:gbI3RLZhT
 src/main/java/com/codeshare/platform/repository/ProjectRepository.java:gm0+2AEdvG3Zuddxr6t/OU6yKi5SMUexTlFPd/XYz+4=
 src/main/java/com/codeshare/platform/repository/PullRequestReviewRepository.java:XVmZYXebBDVpNsQWBmdFbx+R7wbOy49JforekL8jbm8=
 gradle/wrapper/gradle-wrapper.properties:zasf+0OSGbHbEl48mahs8kJPh2K5s/qkBO0GHjY17N4=
-src/main/resources/static/project.html:mwC1YuBYMG1k2YT9DRkwtalG7kLAhHNdW/o/tNhmPnw=
+src/main/resources/static/project.html:+Boyag6nM9onm18zPAESQ1HCmr1LwIPCEExh4pm6ohg=
 src/main/java/com/codeshare/platform/dto/UserDto.java:+NRyGR302nbasxNdm34WepFMJCnW79xnVOXZeAvSLwQ=
-src/main/java/com/codeshare/platform/service/impl/FileServiceImpl.java:NJ6XHGqKLNnRy8IkCizOoTXw/wS566Yn+UWnT2nORyk=
+src/main/java/com/codeshare/platform/service/impl/FileServiceImpl.java:8UIAISxqIDmT9RywpFNDV+vw97g+30qSr/ERww4X+2o=
 src/main/resources/static/explore.html:V17afcnR+P33byLEIaThzXSmuJ2e0JHDWbH2kfCkju8=
 src/main/java/com/codeshare/platform/model/User.java:26hZ5rzNgRPmBloY6j9EWvc1MT5nfV3HHDyvaZFSfwE=
 src/main/java/com/codeshare/platform/ui/controller/MainViewController.java:gx3auklQ+7TyUjSXUyyBNGZXhCX/4itVnag9WxO1+k8=
-src/main/java/com/codeshare/platform/controller/FileController.java:8tFJN+BbNMnrDFmdBr1wVzS2vRTm3bH+nMXgncmbqNs=
+src/main/java/com/codeshare/platform/controller/FileController.java:PqGGvb8ydH6np8CoG2fuFt0uI0JCXVs2aClij4ohIkY=
 src/main/java/com/codeshare/platform/service/FileLockManager.java:k66o10yPVx6yT0ybNrB0+e+k02Wez2MkgDvqDa2hsVE=
 src/main/java/com/codeshare/platform/controller/UserController.java:qzziaSigmJMbpbVFUTX+AvkHFvX0jlG51h4MqbmKYAI=
 src/main/java/com/codeshare/platform/exception/ResourceNotFoundException.java:8SPBRcgl7kHzJDcuzeeHBaeJVrwJUagDmoRhgQsAfDU=
@@ -59,7 +59,7 @@ src/main/java/com/codeshare/platform/ui/JavaFxLauncher.java:53GZi2QyFSWnkp6ilbR5
 src/main/resources/static/commit-details.html:OQqlkajIm/S/xpWpRBLaDFlzpfVdNTbNU1Hx/TX6tIU=
 src/main/java/com/codeshare/platform/config/DatabaseConfig.java:oSQAxfdm2S6+JIjC8Q7ZSdkY/dCcpwalCRLLSnDakBo=
 src/main/java/com/codeshare/platform/controller/BranchController.java:kXlppKDtpDeM08g7PIsiAVoXDM9u63aoVF8PEOWRDSE=
-src/main/java/com/codeshare/platform/service/FileService.java:FGS+tVyZ0mPlqHodKuT6nbRqBJhJJ5qUOqHGuCRE+sc=
+src/main/java/com/codeshare/platform/service/FileService.java:wfMhpoR09tkcaYHx0D6Q5DQ5sJPxj8B2xGcQcWhxVGU=
 src/main/java/com/codeshare/platform/dto/ApiResponse.java:9KMnTo8wTDXixHqPKBGeo+0JA/r7Rhd57g4n1Dj4XG8=
 src/main/resources/styles/application.css:PZ8EXaNkF72c/YZFWM03/4mdD/DItZjpD2a1e4RM67g=
 src/main/java/com/codeshare/platform/model/PullRequestReview.java:pjGOxbXT98jMFRfpjk2TMA/jXSTWQftzwmm9QQDEYQs=
@@ -83,7 +83,7 @@ src/main/java/com/codeshare/platform/model/Branch.java:V3rppNL0vMsj8qabkOyGUdzlf
 src/main/java/com/codeshare/platform/service/impl/CommitServiceImpl.java:+d4F21Ja7jK4sd6WdC0aSwrUoxOc+OoUjc0ISxdh2yE=
 src/main/java/com/codeshare/platform/dto/ProjectDto.java:yUibawvE3GureP98etKi7ttlP2NaXjPTsPpx/piUeE0=
 src/main/resources/static/index.html:gE7D/Js5voGXK95v2rJueM8OjuIdbiY3JnMvDqwqCuA=
-src/main/java/com/codeshare/platform/dto/FileDto.java:8NRv3hwQ0QmDdEd+6eDcbf/6L/OAjKDSR6rXCK/d4yY=
+src/main/java/com/codeshare/platform/dto/FileDto.java:nGW61bQFZ0b8ALfzaiv/GbSzPINudHmULcl6YDpuV40=
 src/main/java/com/codeshare/platform/service/impl/UserServiceImpl.java:mQ56jO4KqxlGJP1QiDxoPChilNi7aaalygL1f6zDgGI=
 psql commands.txt:nLScEAeBeXDpfeRivxOBknqcXG/Hcly0bq4FbtA6AXU=
 src/main/java/com/codeshare/platform/model/PullRequestStatus.java:UGZN/vD3fYkOYdoZfJQ81/zEsyB/flynYuHO6rISYqg=
@@ -103,7 +103,7 @@ src/main/java/com/codeshare/platform/security/JwtUtil.java:xj0uF7QH4iKMJhkvUN2bM
 src/main/java/com/codeshare/platform/config/SecurityConfig.java:f2dkqeyHIpEOoWkBi6FXkFVaN6nYEFf48NedHnzzuYk=
 settings.gradle:/0f7fGd9gJ7k7fVSrOQPkA2V3pVIOA6YwtgiuuQzFIQ=
 src/main/java/com/codeshare/platform/controller/PullRequestController.java:88YaAxY9iVIM1PUw4ecS9mcTCKyHAOvmwjb46um7GxE=
-src/main/java/com/codeshare/platform/repository/CommitRepository.java:9YoTJ8R488dfPtoM7eey+eywT49dB6JG4rVOVIxHNEE=
+src/main/java/com/codeshare/platform/repository/CommitRepository.java:/fp3x8W5YJxS7e0KMN2hGXcik3Dcpe0cgvU+HlAZksE=
 src/main/java/com/codeshare/platform/service/UserService.java:AjCYtPmZan35n8I2rUvJUjZW+BUfHFNTrAEmh87tsMo=
 src/main/resources/static/favicon.ico:uC7ppcXNls/iutXYT3miXP2lDchOmy3V4+U50/inGhQ=
 src/main/java/com/codeshare/platform/model/Project.java:feCjA3Im7UxCvejkxgnfKNhUpEjzinPqY4M6yJq/d88=

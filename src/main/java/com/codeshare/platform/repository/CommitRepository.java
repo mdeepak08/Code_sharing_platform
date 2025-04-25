@@ -1,6 +1,7 @@
 package com.codeshare.platform.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,7 @@ import com.codeshare.platform.model.Commit;
 public interface CommitRepository extends JpaRepository<Commit, Long> {
     List<Commit> findByBranchOrderByCreatedAtDesc(Branch branch);
 
-    public List<Commit> findByBranch(Branch branch);
 
+    public List<Commit> findByBranch(Branch branch);
+    Optional<Commit> findFirstByBranchOrderByCreatedAtDesc(Branch branch);
 }
