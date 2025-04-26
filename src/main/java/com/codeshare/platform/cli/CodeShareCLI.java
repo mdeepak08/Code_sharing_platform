@@ -66,6 +66,9 @@ public class CodeShareCLI {
                 case "branch":
                     manageBranches(args);
                     break;
+                case "status":
+                    showStatus(args);
+                    break;
                 case "login":
                     login(args);
                     break;
@@ -896,7 +899,7 @@ private static void pullChanges(String[] args) throws IOException, NoSuchAlgorit
     }
 }
 
-private static void manageBranches(String[] args) throws IOException {
+private static void manageBranches(String[] args) throws IOException, NoSuchAlgorithmException {
     // Check if token exists
     if (authToken == null) {
         System.out.println("Please login first: codeshare login");
@@ -921,19 +924,136 @@ private static void manageBranches(String[] args) throws IOException {
         return;
     }
     
-    // Determine operation: list or create
+    // Determine operation: list, create, or switch
     if (args.length == 1) {
         // List branches
         listBranches(projectId);
-    } else {
-        // Create branch
+    } else if (args.length == 2) {
+        // Create or switch branch
         String branchName = args[1];
-        createBranch(projectId, branchName);
+        
+        // Get current branch from config
+        String currentBranch = config.get("branch");
+        if (currentBranch != null && currentBranch.equals(branchName)) {
+            System.out.println("Already on branch '" + branchName + "'");
+            return;
+        }
+        
+        // Ask if the user wants to create or switch to the branch
+        Console console = System.console();
+        if (console == null) {
+            System.out.println("No console available");
+            return;
+        }
+        
+        String action = console.readLine("Do you want to (c)reate a new branch or (s)witch to an existing branch? (c/s): ");
+        if (action.equalsIgnoreCase("c")) {
+            createBranch(projectId, branchName);
+        } else if (action.equalsIgnoreCase("s")) {
+            switchBranch(projectId, branchName);
+        } else {
+            System.out.println("Invalid choice");
+        }
+    } else if (args.length == 3) {
+        // Check for specific branch commands
+        if (args[1].equals("switch") || args[1].equals("checkout")) {
+            String branchName = args[2];
+            switchBranch(projectId, branchName);
+        } else if (args[1].equals("create") || args[1].equals("new")) {
+            String branchName = args[2];
+            createBranch(projectId, branchName);
+        } else {
+            System.out.println("Unknown branch command: " + args[1]);
+            System.out.println("Usage: codeshare branch [switch|create] <branch-name>");
+        }
+    } else {
+        System.out.println("Usage: codeshare branch [switch|create] <branch-name>");
+    }
+}
+
+/**
+ * Displays the status of the current repository, including branch information
+ */
+private static void showStatus(String[] args) throws IOException {
+    // Get current directory
+    File currentDir = new File(System.getProperty("user.dir"));
+    
+    // Check if this is a CodeShare repository
+    File configDir = ConfigManager.getRepoConfigDir(currentDir);
+    if (!configDir.exists()) {
+        System.out.println("Not a CodeShare repository");
+        return;
+    }
+    
+    // Load repository config
+    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+    String projectId = config.get("projectId");
+    String projectName = config.get("projectName");
+    
+    if (projectId == null) {
+        System.out.println("Invalid repository configuration");
+        return;
+    }
+    
+    System.out.println("On branch: " + (config.get("branch") != null ? config.get("branch") : "default"));
+    System.out.println("Project: " + (projectName != null ? projectName : "unnamed") + " (ID: " + projectId + ")");
+    System.out.println("Remote: " + config.getOrDefault("remoteUrl", API_BASE_URL));
+    
+    // Detect local changes
+    try {
+        List<String> changedFiles = FileSync.detectLocalChanges(currentDir);
+        
+        if (changedFiles.isEmpty()) {
+            System.out.println("\nWorking tree clean. No changes to commit.");
+        } else {
+            System.out.println("\nChanges not staged for commit:");
+            System.out.println("  (use \"codeshare commit -m <message>\" to commit the changes)");
+            System.out.println("  (use \"codeshare push\" to upload your commits to the server)");
+            System.out.println();
+            
+            // Group files by directory for easier viewing
+            Map<String, List<String>> filesByDirectory = new HashMap<>();
+            for (String filePath : changedFiles) {
+                String directory = "./";
+                if (filePath.contains("/")) {
+                    directory = filePath.substring(0, filePath.lastIndexOf('/'));
+                }
+                
+                if (!filesByDirectory.containsKey(directory)) {
+                    filesByDirectory.put(directory, new ArrayList<>());
+                }
+                filesByDirectory.get(directory).add(filePath);
+            }
+            
+            // Print files by directory
+            for (Map.Entry<String, List<String>> entry : filesByDirectory.entrySet()) {
+                System.out.println("  " + entry.getKey() + "/");
+                for (String file : entry.getValue()) {
+                    String fileName = file;
+                    if (file.contains("/")) {
+                        fileName = file.substring(file.lastIndexOf('/') + 1);
+                    }
+                    System.out.println("    modified:   " + fileName);
+                }
+            }
+        }
+    } catch (NoSuchAlgorithmException e) {
+        System.out.println("\nError detecting file changes: " + e.getMessage());
     }
 }
 
 private static void listBranches(String projectId) throws IOException {
     System.out.println("Fetching branches...");
+    
+    // Get current branch from config
+    File currentDir = new File(System.getProperty("user.dir"));
+    String currentBranch = null;
+    try {
+        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+        currentBranch = config.get("branch");
+    } catch (Exception e) {
+        // Ignore error, just won't mark current branch
+    }
     
     // Create API request
     URL url = new URL(API_BASE_URL + "/cli/branches?projectId=" + projectId);
@@ -943,6 +1063,7 @@ private static void listBranches(String projectId) throws IOException {
     conn.setRequestProperty("Authorization", "Bearer " + authToken);
     System.out.println("DEBUG: Using token: " + (authToken != null ? 
     authToken.substring(0, Math.min(10, authToken.length())) + "..." : "null"));
+    
     // Check response
     int responseCode = conn.getResponseCode();
     if (responseCode >= 200 && responseCode < 300) {
@@ -962,6 +1083,11 @@ private static void listBranches(String projectId) throws IOException {
             if (dataStart > 7 && dataEnd > dataStart) {
                 String branchesJson = responseStr.substring(dataStart, dataEnd + 1);
                 
+                // First show current branch
+                if (currentBranch != null && !currentBranch.isEmpty()) {
+                    System.out.println("Current branch: " + currentBranch);
+                }
+                
                 // Very simple parsing of branches array
                 // In a real app, use a JSON parser library
                 String[] branches = branchesJson.split("\\},\\{");
@@ -971,19 +1097,23 @@ private static void listBranches(String projectId) throws IOException {
                     // Extract branch name and default status
                     int nameStart = branch.indexOf("\"name\":\"") + 8;
                     int nameEnd = branch.indexOf("\"", nameStart);
-                    int defaultStart = branch.indexOf("\"default\":") + 10;
-                    int defaultEnd = defaultStart + 5; // true or false
                     
-                    if (nameStart > 8 && nameEnd > nameStart) {
+                    // Fix: Safely check for default status with bounds checking
+                    boolean isDefault = false;
+                    int defaultStart = branch.indexOf("\"default\":");
+                    if (defaultStart > 0) {
+                        int defaultEnd = Math.min(defaultStart + 10, branch.length());
+                        String defaultStr = branch.substring(defaultStart, defaultEnd);
+                        isDefault = defaultStr.contains("true");
+                    }
+                    
+                    if (nameStart > 8 && nameEnd > nameStart && nameEnd <= branch.length()) {
                         String name = branch.substring(nameStart, nameEnd);
-                        
-                        boolean isDefault = false;
-                        if (defaultStart > 10 && defaultEnd > defaultStart) {
-                            String defaultStr = branch.substring(defaultStart, defaultEnd);
-                            isDefault = defaultStr.contains("true");
-                        }
-                        
-                        System.out.println("  " + name + (isDefault ? " (default)" : ""));
+                        // Show if this is the current branch
+                        boolean isCurrent = currentBranch != null && currentBranch.equals(name);
+                        System.out.println("  " + name + 
+                                          (isDefault ? " (default)" : "") + 
+                                          (isCurrent ? " *" : ""));
                     }
                 }
             } else {
@@ -991,29 +1121,96 @@ private static void listBranches(String projectId) throws IOException {
             }
         }
     } else { // Handle non-200 responses
-            System.out.println("Failed to fetch branches: " + responseCode);
-             // --- ADD NULL CHECK HERE ---
-            try {
-            InputStream errorStream = conn.getErrorStream(); // Get the stream first
-             if (errorStream != null) { // Check if the stream is NOT null
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-            System.out.println(line); // Print server error details
-            }
-            }
+        System.out.println("Failed to fetch branches: " + responseCode);
+        try {
+            InputStream errorStream = conn.getErrorStream();
+            if (errorStream != null) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                }
             } else {
-             // Handle case where getErrorStream is null
-            System.out.println("No detailed error message body received from server.");
+                System.out.println("No detailed error message body received from server.");
             }
-            } catch (IOException e) {
-             // Catch potential IO errors during stream reading itself
+        } catch (IOException e) {
             System.out.println("Error reading error stream: " + e.getMessage());
-            }
-            return;
+        }
+        return;
     }
 }
-
+private static void switchBranch(String projectId, String branchName) throws IOException, NoSuchAlgorithmException {
+    System.out.println("Switching to branch: " + branchName);
+    
+    // Get current directory
+    File currentDir = new File(System.getProperty("user.dir"));
+    
+    // Check if this is a CodeShare repository
+    File configDir = ConfigManager.getRepoConfigDir(currentDir);
+    if (!configDir.exists()) {
+        System.out.println("Not a CodeShare repository");
+        return;
+    }
+    
+    // Load repository config
+    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+    
+    // Check if branchName exists
+    boolean branchExists = false;
+    try {
+        URL url = new URL(API_BASE_URL + "/cli/branches?projectId=" + projectId);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Authorization", "Bearer " + authToken);
+        
+        int responseCode = conn.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                
+                String responseStr = response.toString();
+                branchExists = responseStr.contains("\"name\":\"" + branchName + "\"");
+            }
+        } else {
+            System.out.println("Failed to check branches: " + responseCode);
+            return;
+        }
+    } catch (Exception e) {
+        System.out.println("Error checking branches: " + e.getMessage());
+        return;
+    }
+    
+    if (!branchExists) {
+        System.out.println("Branch '" + branchName + "' does not exist. Available branches:");
+        listBranches(projectId);
+        
+        Console console = System.console();
+        String confirm = console.readLine("Create branch '" + branchName + "'? (y/n): ");
+        if (confirm.equalsIgnoreCase("y")) {
+            createBranch(projectId, branchName);
+        } else {
+            return;
+        }
+    }
+    
+    // Update the branch in config
+    config.put("branch", branchName);
+    ConfigManager.saveRepoConfig(currentDir, config);
+    
+    System.out.println("Switched to branch: " + branchName);
+    
+    // Optionally pull changes from the branch
+    Console console = System.console();
+    String confirm = console.readLine("Pull latest changes from branch '" + branchName + "'? (y/n): ");
+    if (confirm.equalsIgnoreCase("y")) {
+        pullChanges(new String[]{"pull", branchName});
+    }
+}
 private static void createBranch(String projectId, String branchName) throws IOException {
     System.out.println("Creating branch: " + branchName);
     
@@ -1055,13 +1252,17 @@ private static void createBranch(String projectId, String branchName) throws IOE
         System.out.println("CodeShare CLI - Git-like commands for CodeShare Platform");
         System.out.println("Usage: codeshare <command> [options]");
         System.out.println("Commands:");
-        System.out.println("  init              Initialize a new repository");
-        System.out.println("  clone <url>       Clone a repository");
-        System.out.println("  commit -m <msg>   Commit changes");
-        System.out.println("  push              Push changes");
-        System.out.println("  pull              Pull changes");
-        System.out.println("  branch [name]     List or create branches");
-        System.out.println("  login             Login to CodeShare Platform");
+        System.out.println("  init <project-name>        Initialize a new repository");
+        System.out.println("  clone <project-id>         Clone a repository");
+        System.out.println("  commit -m <msg>            Commit changes");
+        System.out.println("  push                       Push changes to remote");
+        System.out.println("  pull [branch-name]         Pull changes from remote");
+        System.out.println("  branch                     List branches");
+        System.out.println("  branch <name>              Create or switch branch");
+        System.out.println("  branch switch <name>       Switch to a branch");
+        System.out.println("  branch create <name>       Create a new branch");
+        System.out.println("  status                     Show working tree status");
+        System.out.println("  login                      Login to CodeShare Platform");
     }
 }
 
