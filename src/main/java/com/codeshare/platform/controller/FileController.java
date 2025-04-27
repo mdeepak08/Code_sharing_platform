@@ -35,6 +35,7 @@ import com.codeshare.platform.service.FileLockManager;
 import com.codeshare.platform.service.FileService;
 import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
+import com.codeshare.platform.service.VersionControlService;
 
 @RestController
 @RequestMapping("/api/files")
@@ -47,6 +48,8 @@ public class FileController {
     private final FileLockManager fileLockManager;
     @Autowired
     private BranchService branchService;
+    @Autowired
+    private VersionControlService versionControlService;
 
     @Autowired
     public FileController(
@@ -54,12 +57,13 @@ public class FileController {
             ProjectService projectService,
             UserService userService,
             ConcurrencyService concurrencyService,
-            FileLockManager fileLockManager) {
+            FileLockManager fileLockManager,VersionControlService versionControlService) {
         this.fileService = fileService;
         this.projectService = projectService;
         this.userService = userService;
         this.concurrencyService = concurrencyService;
         this.fileLockManager = fileLockManager;
+        this.versionControlService = versionControlService;
     }
 
     // Get current authenticated user
@@ -88,17 +92,46 @@ public class FileController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<FileDto>> getFileById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<FileDto>> getFileById(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long branchId) {
+        
         Optional<File> fileOpt = fileService.getFileById(id);
-        if (fileOpt.isPresent()) {
-            File file = fileOpt.get();
-            return concurrencyService.executeWithReadLock(file.getProject().getId(), () -> {
-                FileDto fileDto = new FileDto(file);
-                return new ResponseEntity<>(ApiResponse.success(fileDto), HttpStatus.OK);
-            });
-        } else {
+        if (fileOpt.isEmpty()) {
             return new ResponseEntity<>(ApiResponse.error("File not found"), HttpStatus.NOT_FOUND);
         }
+        
+        File file = fileOpt.get();
+        
+        // If branchId is provided, get the branch-specific content
+        if (branchId != null) {
+            Optional<Branch> branchOpt = branchService.getBranchById(branchId);
+            if (branchOpt.isPresent()) {
+                // Get the file content for this specific branch
+                String branchSpecificContent = versionControlService.getFileContent(file, branchOpt.get());
+                if (branchSpecificContent != null) {
+                    // Create a copy with the branch-specific content
+                    File branchFile = new File();
+                    branchFile.setId(file.getId());
+                    branchFile.setName(file.getName());
+                    branchFile.setPath(file.getPath());
+                    branchFile.setProject(file.getProject());
+                    branchFile.setCreatedAt(file.getCreatedAt());
+                    branchFile.setUpdatedAt(file.getUpdatedAt());
+                    branchFile.setContent(branchSpecificContent);
+                    
+                    FileDto fileDto = new FileDto(branchFile);
+                    fileDto.setBranchId(branchId);
+                    return new ResponseEntity<>(ApiResponse.success(fileDto), HttpStatus.OK);
+                }
+            }
+        }
+        
+        // If no branch specified or content not found, return the standard file
+        return concurrencyService.executeWithReadLock(file.getProject().getId(), () -> {
+            FileDto fileDto = new FileDto(file);
+            return new ResponseEntity<>(ApiResponse.success(fileDto), HttpStatus.OK);
+        });
     }
 
 @GetMapping("/project/{projectId}")
@@ -122,35 +155,24 @@ public ResponseEntity<ApiResponse<List<FileDto>>> getFilesByProjectAndBranch(
         @PathVariable Long projectId,
         @PathVariable Long branchId) {
     
-    return concurrencyService.executeWithReadLock(projectId, () -> {
-        Optional<Project> projectOpt = projectService.getProjectById(projectId);
-        Optional<Branch> branchOpt = branchService.getBranchById(branchId);
-        
-        if (projectOpt.isEmpty()) {
-            return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
-        }
-        
-        if (branchOpt.isEmpty()) {
-            return new ResponseEntity<>(ApiResponse.error("Branch not found"), HttpStatus.NOT_FOUND);
-        }
-        
-        Project project = projectOpt.get();
-        Branch branch = branchOpt.get();
-        
-        // Get files for this specific branch using our version control service
-        List<File> files = fileService.getFilesByProjectAndBranch(project, branch);
-        
-        List<FileDto> fileDtos = files.stream()
+    Optional<Project> projectOpt = projectService.getProjectById(projectId);
+    Optional<Branch> branchOpt = branchService.getBranchById(branchId);
+    
+    if (projectOpt.isEmpty() || branchOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Project or branch not found"));
+    }
+    
+    List<File> files = fileService.getFilesByProjectAndBranch(projectOpt.get(), branchOpt.get());
+    List<FileDto> fileDtos = files.stream()
             .map(file -> {
                 FileDto dto = new FileDto(file);
-                // Manually add branch ID to the DTO
                 dto.setBranchId(branchId);
                 return dto;
             })
             .collect(Collectors.toList());
             
-        return new ResponseEntity<>(ApiResponse.success(fileDtos), HttpStatus.OK);
-    });
+    return ResponseEntity.ok(ApiResponse.success(fileDtos));
 }
 
 

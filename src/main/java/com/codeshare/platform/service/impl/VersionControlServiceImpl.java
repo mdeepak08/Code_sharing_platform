@@ -21,6 +21,7 @@ import com.codeshare.platform.repository.FileRepository;
 import com.codeshare.platform.service.ConcurrencyService;
 import com.codeshare.platform.service.VersionControlService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -68,25 +69,21 @@ public class VersionControlServiceImpl implements VersionControlService {
                 throw new RuntimeException("Failed to serialize file changes", e);
             }
     
-            // Update file contents as well
+            // IMPORTANT FIX: Don't update file entities directly here
+            // Instead, just ensure the file entries exist in the database
             for (Map.Entry<String, String> entry : fileChanges.entrySet()) {
                 String filePath = entry.getKey();
-                String content = entry.getValue();
                 
+                // Check if file exists, create it if it doesn't
                 Optional<File> fileOpt = fileRepository.findByProjectAndPath(branch.getProject(), filePath);
-                if (fileOpt.isPresent()) {
-                    File file = fileOpt.get();
-                    file.setContent(content);
-                    file.setUpdatedAt(LocalDateTime.now());
-                    fileRepository.save(file);
-                } else {
-                    // Create new file if it doesn't exist
+                if (!fileOpt.isPresent()) {
+                    // Create a file record but don't set content
                     File newFile = new File();
                     newFile.setName(filePath.substring(filePath.lastIndexOf('/') + 1));
                     newFile.setPath(filePath);
                     newFile.setProject(branch.getProject());
-                    newFile.setContent(content);
                     newFile.setCreatedAt(LocalDateTime.now());
+                    // Don't set content here - just store a reference to the file
                     fileRepository.save(newFile);
                 }
             }
@@ -122,24 +119,34 @@ public class VersionControlServiceImpl implements VersionControlService {
     @Override
     public void mergeBranches(Branch sourceBranch, Branch targetBranch, User merger) {
         concurrencyService.executeWithWriteLock(sourceBranch.getProject().getId(), () -> {
-            // This would involve complex merge logic, handling conflicts, etc.
-            // For now, we'll implement a simple version
-
-            // Get latest commits from both branches
+            // Get latest commits from source branch
             List<Commit> sourceCommits = commitRepository.findByBranchOrderByCreatedAtDesc(sourceBranch);
             if (sourceCommits.isEmpty()) {
                 throw new RuntimeException("Source branch has no commits to merge");
             }
 
-            // Create a merge commit
+            // Get the latest source branch state
+            Map<String, String> sourceSnapshot = getSnapshotFromBranch(sourceBranch);
+            
+            // Create a merge commit on the target branch
             Commit mergeCommit = new Commit();
             mergeCommit.setBranch(targetBranch);
             mergeCommit.setAuthor(merger);
             mergeCommit.setMessage("Merge branch '" + sourceBranch.getName() + "' into " + targetBranch.getName());
             mergeCommit.setCreatedAt(LocalDateTime.now());
+            
+            // Get parent commit from target branch
+            Optional<Commit> latestTargetCommit = commitRepository.findFirstByBranchOrderByCreatedAtDesc(targetBranch);
+            if (latestTargetCommit.isPresent()) {
+                mergeCommit.setParentCommit(latestTargetCommit.get());
+            }
 
-            // In a real implementation, you'd need to handle conflicts
-            // and apply changes from the source branch
+            try {
+                // Store the source branch snapshot as the merge commit's file changes
+                mergeCommit.setFileChanges(objectMapper.writeValueAsString(sourceSnapshot));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to serialize file changes for merge", e);
+            }
 
             commitRepository.save(mergeCommit);
             return null;
@@ -149,36 +156,75 @@ public class VersionControlServiceImpl implements VersionControlService {
     @Override
     public String getFileContent(File file, Branch branch) {
         return concurrencyService.executeWithReadLock(file.getProject().getId(), () -> {
-            List<Commit> commits = commitRepository.findByBranchOrderByCreatedAtDesc(branch);
-            
-            // Use the commits variable by checking if there are any commits
-            if (commits.isEmpty()) {
-                return file.getContent(); // Default to current content if no commits
+            // Get the latest commit for this branch
+            Optional<Commit> latestCommit = commitRepository.findFirstByBranchOrderByCreatedAtDesc(branch);
+            if (!latestCommit.isPresent()) {
+                return file.getContent(); // Return base content if no commits
             }
             
-            // Here you could use the commits to get historical content
-            // For example, looking for the file in the most recent commit:
-            Commit latestCommit = commits.get(0);
-            Map<String, String> changes = parseFileChanges(latestCommit.getFileChanges());
-            if (changes.containsKey(file.getPath())) {
-                return changes.get(file.getPath());
-            }
-            
-            return file.getContent();
+            // Traverse commit history to find the latest version of this file
+            return findLatestFileContent(file.getPath(), latestCommit.get());
         });
+    }
+    
+    /**
+     * Helper method to find the latest content of a file by traversing commit history
+     */
+    private String findLatestFileContent(String filePath, Commit commit) {
+        Map<String, String> changes = parseFileChanges(commit.getFileChanges());
+        
+        // Check if this commit contains the file
+        if (changes.containsKey(filePath)) {
+            return changes.get(filePath);
+        }
+        
+        // Check parent commit if this commit doesn't have the file
+        if (commit.getParentCommit() != null) {
+            return findLatestFileContent(filePath, commit.getParentCommit());
+        }
+        
+        // File not found in commit history
+        return null;
     }
 
     @Override
     public Map<String, String> getProjectSnapshot(Project project, Branch branch) {
         return concurrencyService.executeWithReadLock(project.getId(), () -> {
-            List<File> files = fileRepository.findByProject(project);
-            Map<String, String> snapshot = new HashMap<>();
-
-            for (File file : files) {
-                snapshot.put(file.getPath(), getFileContent(file, branch));
-            }
-            return snapshot;
+            return getSnapshotFromBranch(branch);
         });
+    }
+    
+    /**
+     * Helper method to get the complete snapshot of all files in a branch
+     */
+    private Map<String, String> getSnapshotFromBranch(Branch branch) {
+        // Start with an empty snapshot
+        Map<String, String> snapshot = new HashMap<>();
+        
+        // Find the latest commit for this branch
+        Optional<Commit> latestCommitOpt = commitRepository.findFirstByBranchOrderByCreatedAtDesc(branch);
+        if (!latestCommitOpt.isPresent()) {
+            return snapshot; // Empty snapshot if no commits
+        }
+        
+        // Traverse the commit history to build the snapshot
+        buildSnapshotFromCommitHistory(snapshot, latestCommitOpt.get());
+        
+        return snapshot;
+    }
+    
+    /**
+     * Recursively build a snapshot by traversing commit history
+     */
+    private void buildSnapshotFromCommitHistory(Map<String, String> snapshot, Commit commit) {
+        // First apply parent commit changes (older changes first)
+        if (commit.getParentCommit() != null) {
+            buildSnapshotFromCommitHistory(snapshot, commit.getParentCommit());
+        }
+        
+        // Then apply this commit's changes (newer changes override older ones)
+        Map<String, String> commitChanges = parseFileChanges(commit.getFileChanges());
+        snapshot.putAll(commitChanges);
     }
 
     @Override
@@ -219,9 +265,13 @@ public class VersionControlServiceImpl implements VersionControlService {
     }
 
     private Map<String, String> parseFileChanges(String fileChangesJson) {
+        if (fileChangesJson == null || fileChangesJson.isEmpty()) {
+            return new HashMap<>();
+        }
+        
         try {
-            return objectMapper.readValue(fileChangesJson, Map.class);
-        } catch (JsonProcessingException e) {
+            return objectMapper.readValue(fileChangesJson, new TypeReference<HashMap<String, String>>() {});
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse file changes", e);
         }
     }

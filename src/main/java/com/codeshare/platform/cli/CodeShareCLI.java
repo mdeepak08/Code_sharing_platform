@@ -34,7 +34,6 @@ public class CodeShareCLI {
     private static String authToken;
     private static final Logger logger = LoggerFactory.getLogger(CodeShareCLI.class);
 
-    
     public static void main(String[] args) {
         if (args.length == 0) {
             printHelp();

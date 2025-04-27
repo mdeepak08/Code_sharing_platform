@@ -1556,10 +1556,10 @@ function displayFiles(root) {
         listItem.className = 'file-item';
 
         // Determine file icon
-        let fileIconClass = 'fa-file';
+        let fileIconClass = 'fa-file'; // Define fileIconClass here
         const ext = entry.name.split('.').pop().toLowerCase();
-        // (Keep your existing icon logic here)
-         if (['java', 'js', 'ts', 'py', 'rb', 'php', 'c', 'cpp', 'h', 'cs'].includes(ext)) {
+        
+        if (['java', 'js', 'ts', 'py', 'rb', 'php', 'c', 'cpp', 'h', 'cs'].includes(ext)) {
             fileIconClass = 'fa-file-code';
         } else if (['md', 'txt', 'log'].includes(ext)) {
             fileIconClass = 'fa-file-alt';
@@ -1569,33 +1569,33 @@ function displayFiles(root) {
             fileIconClass = 'fa-file-pdf';
         } else if (['zip', 'rar', 'tar', 'gz'].includes(ext)) {
             fileIconClass = 'fa-file-archive';
-        } // Add more else if blocks for other icons
+        }
 
         listItem.innerHTML = `
             <i class="fa ${fileIconClass} file-icon me-2"></i>
-            <a href="#${entry.path}" class="file-name" data-file-id="${entry.id}">${escapeHtml(entry.name)}</a>
+            <a href="#${entry.path}" class="file-name" data-file-id="${entry.id}" data-branch="${currentBranch}">${escapeHtml(entry.name)}</a>
             <span class="commit-msg text-muted ms-auto">Updated recently</span> `;
 
         listItem.querySelector('a').addEventListener('click', function(e) {
             e.preventDefault();
-            loadFile(entry.id); // Load file by its unique ID
+            loadFile(this.dataset.fileId); // Load file by its unique ID
         });
         fileListElement.appendChild(listItem);
     });
 
-     // Handle empty directory
-     if (dirEntries.length === 0 && fileEntries.length === 0 && currentPath === '') { // Only show "empty repo" at root
-         if (fileListElement.children.length === 0) { // Check if only '..' link is present
-             fileListElement.innerHTML = '<li class="file-item text-muted p-3">This repository is empty.</li>';
-         }
-     } else if (dirEntries.length === 0 && fileEntries.length === 0 && currentPath !== '') {
-          if (fileListElement.children.length <= 1) { // Check if only '..' link is present
-             const emptyMsg = document.createElement('li');
-             emptyMsg.className = 'file-item text-muted p-3';
-             emptyMsg.textContent = 'This directory is empty.';
-             fileListElement.appendChild(emptyMsg);
-         }
-     }
+    // Handle empty directory
+    if (dirEntries.length === 0 && fileEntries.length === 0 && currentPath === '') {
+        if (fileListElement.children.length === 0) {
+            fileListElement.innerHTML = '<li class="file-item text-muted p-3">This repository is empty.</li>';
+        }
+    } else if (dirEntries.length === 0 && fileEntries.length === 0 && currentPath !== '') {
+        if (fileListElement.children.length <= 1) {
+            const emptyMsg = document.createElement('li');
+            emptyMsg.className = 'file-item text-muted p-3';
+            emptyMsg.textContent = 'This directory is empty.';
+            fileListElement.appendChild(emptyMsg);
+        }
+    }
 
     // Update breadcrumb display
     updateBreadcrumbPath(currentPath);
@@ -1674,18 +1674,25 @@ function navigateToPath(path) {
 
 // Load specific file content by ID
 async function loadFile(fileId) {
-    console.log(`Loading file ID: ${fileId}`);
-    const codeTableBody = document.querySelector('#codeTable tbody'); // Target tbody
+    console.log(`Loading file ID: ${fileId} for branch: ${currentBranch}`);
+    const codeTableBody = document.querySelector('#codeTable tbody'); 
     const currentFileNameElement = document.getElementById('currentFileName');
     const codeContainerElement = document.getElementById('codeContainer');
 
     // Show loading state in code view
     currentFileNameElement.textContent = 'Loading file...';
     if (codeTableBody) codeTableBody.innerHTML = '<tr><td colspan="2" class="text-center p-3 text-muted">Loading...</td></tr>';
-    codeContainerElement.style.display = 'block'; // Show the container
+    codeContainerElement.style.display = 'block'; 
 
     try {
-        const response = await fetch(`/api/files/${fileId}`, { // Assuming API endpoint takes file ID
+        // Find the branch ID by name
+        const branch = projectBranches.find(b => b.name === currentBranch);
+        if (!branch || !branch.id) {
+            throw new Error(`Could not find branch ID for branch: ${currentBranch}`);
+        }
+
+        // Use branch-specific endpoint
+        const response = await fetch(`/api/files/${fileId}?branchId=${branch.id}`, { 
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -1693,7 +1700,7 @@ async function loadFile(fileId) {
             const result = await response.json();
             if (result.success && result.data) {
                 const file = result.data;
-                displayFileContent(file); // Call function to render content
+                displayFileContent(file); 
             } else {
                 throw new Error(result.message || 'Failed to load file content from API');
             }
@@ -2032,16 +2039,18 @@ function setupEventListeners() {
 
      // --- New Pull Request Button ---
      const newPRButton = document.getElementById('newPRButton');
-     if (newPRButton) {
-         newPRButton.addEventListener('click', function() {
-             if (projectId) {
-                  window.location.href = `/pull-request.html?projectId=${projectId}`;
-             } else {
-                 console.error("Project ID not found for New PR button");
-                 alert("Could not determine the project ID.");
-             }
-         });
-     }
+    if (newPRButton) {
+        newPRButton.addEventListener('click', function() {
+            if (projectId) {
+                // Changed to navigate to new-pull-request.html with projectId parameter
+                // This avoids the need for a pull request ID when creating a new one
+                window.location.href = `/new-pull-request.html?projectId=${projectId}`;
+            } else {
+                console.error("Project ID not found for New PR button");
+                alert("Could not determine the project ID.");
+            }
+        });
+    }
 
      console.log("Event listeners setup complete.");
 }

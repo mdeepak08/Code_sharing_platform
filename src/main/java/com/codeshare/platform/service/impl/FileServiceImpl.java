@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,87 +71,62 @@ public class FileServiceImpl implements FileService {
     }
     @Override
     public List<File> getFilesByProjectAndBranch(Project project, Branch branch) {
-        // Get the latest commit on this branch
-        Optional<Commit> latestCommitOpt = commitRepository.findFirstByBranchOrderByCreatedAtDesc(branch);
-        
-        if (latestCommitOpt.isEmpty()) {
-            // No commits yet - return the base project files
-            return fileRepository.findByProject(project);
-        }
-        
-        Commit latestCommit = latestCommitOpt.get();
-        
-        // Get the file state at this commit
-        Map<String, String> fileSnapshot = new HashMap<>();
-        try {
-            // Parse the file changes stored in the commit
-            if (latestCommit.getFileChanges() != null && !latestCommit.getFileChanges().isEmpty()) {
-                // Fixed TypeReference usage
-                fileSnapshot = objectMapper.readValue(
-                    latestCommit.getFileChanges(), 
-                    new TypeReference<HashMap<String, String>>() {}
-                );
-            }
-        } catch (Exception e) {
-            logger.error("Error parsing file changes for commit {}: {}", latestCommit.getId(), e.getMessage());
-            // Fallback to current files in database
-            return fileRepository.findByProject(project);
-        }
-        
-        // Now we need to create or update the in-memory representation of the files
+        List<File> existingFiles = fileRepository.findByProject(project);
         List<File> result = new ArrayList<>();
         
-        // First, get all existing files for the project
-        List<File> existingFiles = fileRepository.findByProject(project);
-        Map<String, File> filesByPath = existingFiles.stream()
-                .collect(Collectors.toMap(File::getPath, f -> f));
+        // Get the latest commit for this branch
+        Optional<Commit> latestCommit = commitRepository.findFirstByBranchOrderByCreatedAtDesc(branch);
         
-        // Create a final copy of the fileSnapshot for use in the lambda
-        final Map<String, String> finalFileSnapshot = fileSnapshot;
+        if (!latestCommit.isPresent()) {
+            // If no commits for this branch, return the base files
+            return existingFiles;
+        }
         
-        // Now update/create files based on the commit snapshot
-        for (Map.Entry<String, String> entry : fileSnapshot.entrySet()) {
-            String filePath = entry.getKey();
-            String fileContent = entry.getValue();
+        // Get the file snapshot for this branch
+        Map<String, String> fileSnapshot = new HashMap<>();
+        buildSnapshotFromCommitHistory(fileSnapshot, latestCommit.get());
+        
+        // Create copies of the files with content from the branch
+        for (File file : existingFiles) {
+            String content = fileSnapshot.get(file.getPath());
             
-            if (filesByPath.containsKey(filePath)) {
-                // File exists, update content in memory (not in DB)
-                File existingFile = filesByPath.get(filePath);
-                // Create a copy to avoid modifying the persisted entity
+            // Only include files that exist in this branch's snapshot
+            if (content != null) {
                 File fileCopy = new File();
-                fileCopy.setId(existingFile.getId());
-                fileCopy.setName(existingFile.getName());
-                fileCopy.setPath(existingFile.getPath());
-                fileCopy.setProject(existingFile.getProject());
-                fileCopy.setCreatedAt(existingFile.getCreatedAt());
-                fileCopy.setUpdatedAt(latestCommit.getCreatedAt());
-                fileCopy.setContent(fileContent); // Use content from commit
+                fileCopy.setId(file.getId());
+                fileCopy.setName(file.getName());
+                fileCopy.setPath(file.getPath());
+                fileCopy.setProject(file.getProject());
+                fileCopy.setCreatedAt(file.getCreatedAt());
+                fileCopy.setContent(content);
                 result.add(fileCopy);
-            } else {
-                // File doesn't exist in DB yet (new in this branch)
-                File newFile = new File();
-                
-                // Extract filename from path
-                String fileName = filePath;
-                if (filePath.contains("/")) {
-                    fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-                }
-                
-                newFile.setName(fileName);
-                newFile.setPath(filePath);
-                newFile.setProject(project);
-                newFile.setContent(fileContent);
-                newFile.setCreatedAt(latestCommit.getCreatedAt());
-                newFile.setUpdatedAt(latestCommit.getCreatedAt());
-                result.add(newFile);
             }
         }
         
-        // Fixed lambda to use the final reference
-        result = result.stream()
-                .filter(file -> finalFileSnapshot.containsKey(file.getPath()))
-                .collect(Collectors.toList());
-        
         return result;
+    }
+    
+    /**
+     * Helper method to build a snapshot by traversing commit history
+     */
+    private void buildSnapshotFromCommitHistory(Map<String, String> snapshot, Commit commit) {
+        // First apply parent commit changes
+        if (commit.getParentCommit() != null) {
+            buildSnapshotFromCommitHistory(snapshot, commit.getParentCommit());
+        }
+        
+        // Then apply this commit's changes
+        try {
+            if (commit.getFileChanges() != null && !commit.getFileChanges().isEmpty()) {
+                Map<String, String> commitChanges = objectMapper.readValue(
+                    commit.getFileChanges(), 
+                    new TypeReference<HashMap<String, String>>() {}
+                );
+                snapshot.putAll(commitChanges);
+            }
+        } catch (Exception e) {
+            // Log error but continue
+            System.err.println("Error parsing file changes: " + e.getMessage());
+        }
     }
 }
