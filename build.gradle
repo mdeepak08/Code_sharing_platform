@@ -69,13 +69,14 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1' // Use the latest version
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
 
-// Create a separate task for the CLI executable
+// Create a separate task for the CLI executable with signature fix
 task cliJar(type: Jar) {
     manifest {
         attributes 'Main-Class': 'com.codeshare.platform.cli.CodeShareCLI'
@@ -86,7 +87,22 @@ task cliJar(type: Jar) {
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    
+    // Fix for JAR signature verification error
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/MANIFEST.MF'
+}
+
+// Add the same signature fixes to the main jar task
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/MANIFEST.MF'
 }
 
 // Task to create CLI executable scripts
@@ -137,3 +153,32 @@ tasks.register('runServer', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass.set('com.codeshare.platform.CodeSharingPlatformApplication')
 }
+
+// Create a direct CLI executable bat file for Windows
+task createBat {
+    doLast {
+        def batFile = new File("${project.buildDir}/codeshare.bat")
+        batFile.text = """@echo off
+java -jar \"${project.buildDir}/libs/codeshare-cli-${project.version}.jar\" %*
+"""
+        batFile.setExecutable(true)
+    }
+}
+
+// Create a direct CLI executable shell script for Linux/Mac
+task createSh {
+    doLast {
+        def shFile = new File("${project.buildDir}/codeshare")
+        shFile.text = """#!/bin/bash
+java -jar \"${project.buildDir}/libs/codeshare-cli-${project.version}.jar\" \"\$@\"
+"""
+        shFile.setExecutable(true)
+    }
+}
+
+// Make sure these tasks run after the cliJar task
+createBat.dependsOn(cliJar)
+createSh.dependsOn(cliJar)
+
+// Make the buildAll task also create the executables
+buildAll.dependsOn(createBat, createSh)
