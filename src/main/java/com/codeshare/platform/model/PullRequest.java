@@ -2,7 +2,9 @@ package com.codeshare.platform.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -18,6 +20,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -66,6 +70,32 @@ public class PullRequest {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PullRequestStatus status = PullRequestStatus.OPEN;
+
+    @ManyToMany
+    @JoinTable(
+        name = "pull_request_reviewers",
+        joinColumns = @JoinColumn(name = "pull_request_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> reviewers = new HashSet<>();
+
+    // Add getters and setters
+    public Set<User> getReviewers() {
+        return reviewers;
+    }
+
+    public void setReviewers(Set<User> reviewers) {
+        this.reviewers = reviewers;
+    }
+
+    // Utility methods for managing reviewers
+    public void addReviewer(User user) {
+        this.reviewers.add(user);
+    }
+
+    public void removeReviewer(User user) {
+        this.reviewers.remove(user);
+    }
     
     @OneToMany(mappedBy = "pullRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("pullRequest")

@@ -23,4 +23,7 @@ public interface PullRequestService {
     Map<String, Object> getDiffStats(PullRequest pullRequest);
     List<String> getChangedFiles(PullRequest pullRequest);
     List<PullRequest> getAllOpenPullRequests();
+    List<PullRequest> getPullRequestsAssignedToUser(User user);
+    List<PullRequest> getPullRequestsMentioningUser(User user);
+    List<PullRequest> getPullRequestsWithUserParticipation(User user);
 }

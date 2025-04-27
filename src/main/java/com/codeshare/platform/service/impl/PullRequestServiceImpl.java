@@ -3,6 +3,7 @@ package com.codeshare.platform.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,14 +12,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.codeshare.platform.model.Comment;
 import com.codeshare.platform.model.Commit;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.PullRequest;
 import com.codeshare.platform.model.PullRequestStatus;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.repository.CommentRepository;
 import com.codeshare.platform.repository.PullRequestRepository;
 import com.codeshare.platform.service.PullRequestService;
 import com.codeshare.platform.service.VersionControlService;
@@ -27,14 +32,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class PullRequestServiceImpl implements PullRequestService {
 
+    private static final Logger logger = LoggerFactory.getLogger(PullRequestServiceImpl.class);
     private final PullRequestRepository pullRequestRepository;
     private final VersionControlService versionControlService;
+    private final CommentRepository commentRepository;
 
     @Autowired
     public PullRequestServiceImpl(PullRequestRepository pullRequestRepository, 
-                                 VersionControlService versionControlService) {
+                                 VersionControlService versionControlService,CommentRepository commentRepository) {
         this.pullRequestRepository = pullRequestRepository;
         this.versionControlService = versionControlService;
+        this.commentRepository = commentRepository;
     }
 
     @Override
@@ -83,9 +91,60 @@ public class PullRequestServiceImpl implements PullRequestService {
     public List<PullRequest> getAllOpenPullRequests() {
         return pullRequestRepository.findByStatus(PullRequestStatus.OPEN);
     }
+
+    @Override
+    public List<PullRequest> getPullRequestsAssignedToUser(User user) {
+        return pullRequestRepository.findByReviewer(user);
+    }
+
+    @Override
+    public List<PullRequest> getPullRequestsMentioningUser(User user) {
+        String mentionPattern = "@" + user.getUsername();
+        
+        // Get PRs mentioning user in description
+        List<PullRequest> mentioningPRs = pullRequestRepository.findByDescriptionContaining(mentionPattern);
+        Set<Long> existingPrIds = mentioningPRs.stream()
+            .map(PullRequest::getId)
+            .collect(Collectors.toSet());
+        
+        // Find comments mentioning the user
+        List<Comment> mentioningComments = commentRepository.findAll().stream()
+            .filter(comment -> comment.getContent().contains(mentionPattern))
+            .collect(Collectors.toList());
+        
+        // Add PRs from comments to the result if not already included
+        for (Comment comment : mentioningComments) {
+            PullRequest pr = comment.getPullRequest();
+            if (!existingPrIds.contains(pr.getId())) {
+                mentioningPRs.add(pr);
+                existingPrIds.add(pr.getId());
+            }
+        }
+        
+        return mentioningPRs;
+    }
+
+    @Override
+    public List<PullRequest> getPullRequestsWithUserParticipation(User user) {
+        // Get PRs authored by the user
+        List<PullRequest> authoredPRs = getPullRequestsByAuthor(user);
+        
+        // Get PRs where the user has commented
+        List<PullRequest> commentedPRs = pullRequestRepository.findByCommentAuthor(user);
+        
+        // Combine the lists, avoiding duplicates
+        Set<PullRequest> participatedPRs = new HashSet<>(authoredPRs);
+        participatedPRs.addAll(commentedPRs);
+        
+        // Convert back to list and sort by creation date (newest first)
+        return participatedPRs.stream()
+            .sorted(Comparator.comparing(PullRequest::getCreatedAt).reversed())
+            .collect(Collectors.toList());
+    }
     
 @Override
 public boolean checkMergeable(PullRequest pullRequest) {
+    logger.debug("Checking mergeability for PR ID: {}", pullRequest.getId());
     try {
         // Get latest commits from source and target branches
         List<Commit> sourceCommits = versionControlService.getCommitHistory(pullRequest.getSourceBranch());
@@ -114,7 +173,9 @@ public boolean checkMergeable(PullRequest pullRequest) {
         
         // Check for conflicts by comparing changes from ancestor to each branch
         return checkThreeWayMergeConflicts(ancestorFiles, sourceFiles, targetFiles);
-    } catch (Exception e) {
+    } 
+    
+    catch (Exception e) {
         // Log the error
         System.err.println("Error checking if PR is mergeable: " + e.getMessage());
         e.printStackTrace();
@@ -171,6 +232,7 @@ private boolean checkDirectFileConflicts(Map<String, String> sourceFiles, Map<St
             
             // If the files have different line counts, they're conflicting
             if (sourceLines.size() != targetLines.size()) {
+                logger.warn("Direct conflict detected in file: {}", filePath);
                 return false; // Not mergeable
             }
             
@@ -228,7 +290,9 @@ private boolean checkThreeWayMergeConflicts(
         
         // Find line-level conflicts using a simple algorithm
         if (hasLineConflicts(ancestorLines, sourceLines, targetLines)) {
+            logger.warn("Three-way conflict detected in file: {}", filePath);
             return false; // Not mergeable
+
         }
     }
     
@@ -253,6 +317,7 @@ private boolean hasLineConflicts(
             !targetLines.get(k).equals(ancestorLines.get(i)) &&
             !sourceLines.get(j).equals(targetLines.get(k))) {
             // Both branches changed the same line differently
+            logger.warn("Line conflict detected at ancestor line index: {}", i);
             return true; // Conflict detected
         }
         
@@ -265,6 +330,7 @@ private boolean hasLineConflicts(
         targetLines.size() != ancestorLines.size() &&
         sourceLines.size() != targetLines.size()) {
         // Both branches changed the file structure differently
+        logger.warn("File length conflict detected.");
         return true; // Conflict detected
     }
     
