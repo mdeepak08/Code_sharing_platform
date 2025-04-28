@@ -1680,98 +1680,51 @@
                     alert('Error submitting review: ' + error.message);
                 }
             });
-                        // --- Close Pull Request Button Logic ---
-                        const closePrButton = document.getElementById('closePrButton');
-            if (closePrButton) {
-                 // Initially disable the button until we know the PR is open
-                 closePrButton.disabled = true;
-
-                 closePrButton.addEventListener('click', async function() {
-                     // Check if pullRequest object is loaded and has an ID
-                     if (!pullRequest || !prId || !token) {
-                         console.error("PR data or token missing for close action.");
-                         showToast("Error: Cannot close pull request. Missing data or token.", 'error');
-                         return;
-                     }
-
-                     // Only allow closing if the PR is currently OPEN
-                     if (pullRequest.status !== 'OPEN') {
-                         showToast("Pull request is already closed or merged.", 'info');
-                         return;
-                     }
-
-                     // Confirmation dialog
-                     if (!confirm("Are you sure you want to close this pull request without merging?")) {
-                         return;
-                     }
-
-                     // Define showLoadingState or integrate with existing loading logic
-                     const showLoadingState = (isLoading) => {
-                         if(mergeButton) mergeButton.disabled = isLoading;
-                         closePrButton.disabled = isLoading;
-                         // Add spinner visibility logic if needed
-                     };
-
-                     try {
-                         showLoadingState(true);
-
-                         const response = await fetch(`/api/pull-requests/${prId}/close`, {
-                             method: 'POST',
-                             headers: {
-                                 'Authorization': `Bearer ${token}`,
-                                 'Content-Type': 'application/json' // Good practice even if no body
-                             }
-                         });
-
-                         // Check if response is ok, even if body is empty or not JSON
-                         if (response.ok) {
-                             try {
-                                 // Try parsing JSON, but handle cases where it might be empty
-                                 const result = await response.json();
-                                 if (!result.success) {
-                                     // Handle potential {success: false, message: '...'} from backend
-                                     throw new Error(result.message || `Server responded with ${response.status}`);
-                                 }
-                             } catch (e) {
-                                 // If response body is empty or not JSON, but status is OK, assume success
-                                 console.log("Close request successful, response body might be empty or non-JSON.");
-                             }
-
-                             // --- Update UI on Success ---
-                             showToast('Pull request closed successfully.', 'success');
-
-                             // Update global pullRequest state
-                             pullRequest.status = 'CLOSED';
-
-                             // Re-render UI elements based on the new state
-                             updatePullRequestUI(); // This should update the status badge
-                             updateMergeStatus(); // This should hide the merge section or disable buttons
-
-                             // Explicitly disable buttons again just in case
-                             if(mergeButton) mergeButton.disabled = true;
-                             closePrButton.disabled = true;
-
-                         } else {
-                            // Handle non-OK responses (e.g., 400, 403, 404, 500)
-                            let errorMessage = `Failed to close pull request. Server responded with ${response.status}`;
-                            try {
-                                const errorResult = await response.json();
-                                errorMessage = errorResult.message || errorMessage;
-                            } catch (e) {
-                                // Ignore if error body is not JSON
-                            }
-                            throw new Error(errorMessage);
-                         }
-
-                     } catch (error) {
-                         console.error('Error closing pull request:', error);
-                         showToast(`${error.message}`, 'error');
-                     } finally {
-                         showLoadingState(false);
-                     }
-                 });
-             }
+            // --- Close Pull Request Button Logic ---
+            const closePrButton = document.getElementById('closePrButton');
+if (closePrButton) {
+    closePrButton.addEventListener('click', async function() {
+        // Confirm before closing
+        if (!confirm("Are you sure you want to close this pull request without merging?")) {
+            return;
         }
+
+        // Disable button during processing
+        closePrButton.disabled = true;
+        if (mergeButton) mergeButton.disabled = true;
+        
+        try {
+            const response = await fetch(`/api/pull-requests/${prId}/close`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                // Update the UI to reflect the closed state
+                pullRequest.status = 'CLOSED';
+                updatePullRequestUI();
+                updateMergeStatus();
+                
+                // Show success message
+                alert('Pull request closed successfully');
+            } else {
+                // Handle error response
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Failed to close pull request: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error closing pull request:', error);
+            alert('Error: ' + error.message);
+        } finally {
+            // Re-enable button after processing
+            closePrButton.disabled = false;
+            if (mergeButton) mergeButton.disabled = pullRequest.status !== 'OPEN';
+        }
+    });
+}}
         
         // Helper function: Format time ago
         function timeAgo(date) {
