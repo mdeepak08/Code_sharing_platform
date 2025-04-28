@@ -85,7 +85,6 @@ src/main/resources/static/favicon.ico
 src/main/resources/static/index.html
 src/main/resources/static/js/main.js
 src/main/resources/static/login.html
-src/main/resources/static/new-pull-request.html
 src/main/resources/static/project.html
 src/main/resources/static/pull-request.html
 src/main/resources/static/pull-requests.html

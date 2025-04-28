@@ -1,8 +1,3 @@
-/**
- * theme-switcher.js
- * Handles theme switching functionality across all pages of the CodeShare Platform
- */
-
 // Function to set a theme
 function setTheme(themeName) {
     document.documentElement.setAttribute('data-theme', themeName);

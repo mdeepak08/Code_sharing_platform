@@ -1,177 +1,510 @@
+/* static/css/dark-theme.css */
+
 :root {
-    /* Dark theme colors */
-    --dark-bg: #0d1117;
-    --dark-header: #161b22;
-    --dark-border: #30363d;
-    --dark-text: #c9d1d9;
-    --dark-secondary-text: #8b949e;
-    --dark-link: #58a6ff;
-    --dark-button-bg: #21262d;
-    --dark-button-hover: #30363d;
-    --dark-card-bg: #161b22;
-    --dark-highlight: #3c1e1d;
-    --dark-diff-add: #2ea04320;
-    --dark-diff-del: #f8514920;
-    --dark-code-bg: #111926;
-  }
-  
-  /* Apply dark theme to the entire application */
+  /* GitHub Dark Theme Inspired Variables */
+  --gh-dark-bg: #0d1117;           /* Deep dark background */
+  --gh-dark-header-bg: #161b22;   /* Slightly lighter header/card background */
+  --gh-dark-border: #30363d;       /* Subtle borders */
+  --gh-dark-text: #c9d1d9;         /* Primary light text */
+  --gh-dark-secondary-text: #8b949e;/* Muted text for metadata */
+  --gh-dark-link: #58a6ff;         /* Link color */
+  --gh-dark-button-bg: #21262d;    /* Default button background */
+  --gh-dark-button-hover-bg: #30363d;/* Default button hover background */
+  --gh-dark-button-text: #c9d1d9;  /* Default button text */
+  --gh-dark-green-btn-bg: #238636; /* Green button background */
+  --gh-dark-green-btn-hover-bg: #2ea043; /* Green button hover */
+  --gh-dark-green-btn-text: #ffffff; /* Green button text */
+  --gh-dark-code-bg: #161b22;       /* Code block background (same as header/card) */
+  --gh-dark-diff-add-bg: rgba(46, 160, 67, 0.15); /* Added lines background */
+  --gh-dark-diff-del-bg: rgba(248, 81, 73, 0.15); /* Deleted lines background */
+  --gh-dark-icon-color: #8b949e;    /* Default icon color */
+}
+
+/* --- Apply these variables --- */
+
+/* Add this prefix to all selectors below if your theme-switcher.js
+   uses data-theme attribute. If it adds a class like '.dark-theme',
+   use that class instead (e.g., .dark-theme body { ... }) */
+html[data-theme="dark"] {
+
   body {
-    background-color: var(--dark-bg);
-    color: var(--dark-text);
+    background-color: var(--gh-dark-bg);
+    color: var(--gh-dark-text);
   }
-  
+
   /* Navbar styling */
   .navbar {
-    background-color: var(--dark-header) !important;
-    border-bottom: 1px solid var(--dark-border);
+    background-color: var(--gh-dark-header-bg) !important; /* Override bootstrap */
+    border-bottom: 1px solid var(--gh-dark-border);
   }
-  
-  /* Card and container styling */
-  .card, .container-card, .pr-header, .commit-header, .file-explorer, 
-  .code-container, .diff-section, .branch-dropdown-content {
-    background-color: var(--dark-card-bg) !important;
-    border-color: var(--dark-border) !important;
+  .navbar .navbar-brand,
+  .navbar .nav-link,
+  .navbar .navbar-text {
+    color: var(--gh-dark-text);
   }
-  
+  .navbar .nav-link:hover {
+    color: #ffffff;
+  }
+  .navbar .navbar-toggler {
+     border-color: var(--gh-dark-border);
+  }
+   .navbar .navbar-toggler-icon {
+       background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(201, 209, 217, 0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+   }
+
+
+  /* General Containers and Cards */
+  .card, .container-card, .pr-header, .commit-header, .file-explorer,
+  .code-container, .diff-section, .branch-dropdown-content,
+  .modal-content, .list-group-item /* Apply to list group items too */ {
+    background-color: var(--gh-dark-header-bg) !important;
+    border: 1px solid var(--gh-dark-border) !important;
+    color: var(--gh-dark-text); /* Ensure text inside cards is correct */
+  }
+  .modal-header, .modal-footer {
+     border-color: var(--gh-dark-border) !important;
+  }
+   .list-group-item:hover {
+       background-color: var(--gh-dark-button-hover-bg) !important; /* Darker hover for list items */
+   }
+   .list-group-item a {
+       color: var(--gh-dark-link); /* Style links within list items */
+   }
+
+  /* Headers within containers */
+  .file-explorer-header, .diff-header, .code-header, .card-header,
+  .commit-item .commit-header /* Style commit headers */ {
+    background-color: var(--gh-dark-header-bg); /* Match card background */
+    border-bottom: 1px solid var(--gh-dark-border);
+    color: var(--gh-dark-secondary-text);
+  }
+
   /* Breadcrumb styling */
   .breadcrumb-item a {
-    color: var(--dark-link) !important;
+    color: var(--gh-dark-link) !important;
   }
-  
+  .breadcrumb-item + .breadcrumb-item::before {
+     color: var(--gh-dark-secondary-text); /* Darker separator */
+  }
   .breadcrumb-item.active {
-    color: var(--dark-secondary-text) !important;
+    color: var(--gh-dark-secondary-text) !important;
   }
-  
+
   /* Buttons styling */
-  .gh-btn, .btn-outline-secondary, .branch-selector {
-    background-color: var(--dark-button-bg) !important;
-    border-color: var(--dark-border) !important;
-    color: var(--dark-text) !important;
+  .gh-btn, .btn-outline-secondary, .branch-selector, .btn-secondary,
+  .dropdown-toggle /* Style dropdown toggles */ {
+    background-color: var(--gh-dark-button-bg);
+    border-color: var(--gh-dark-border); /* Use a slightly lighter border */
+    color: var(--gh-dark-button-text);
+    box-shadow: none; /* Remove default Bootstrap shadows if needed */
   }
-  
-  .gh-btn:hover, .btn-outline-secondary:hover {
-    background-color: var(--dark-button-hover) !important;
+  .gh-btn:hover, .btn-outline-secondary:hover, .branch-selector:hover, .btn-secondary:hover,
+  .dropdown-toggle:hover {
+    background-color: var(--gh-dark-button-hover-bg);
+    border-color: var(--gh-dark-secondary-text); /* Lighter border on hover */
+    color: var(--gh-dark-text);
   }
-  
-  .btn-primary, .btn-success {
-    /* Keep primary and success buttons with their colors but darken them */
-    filter: brightness(0.85);
+
+  /* Specific Button Types (Green/Primary) */
+  .btn-primary, .btn-success, .pr-submit-btn {
+    background-color: var(--gh-dark-green-btn-bg);
+    border-color: var(--gh-dark-green-btn-bg);
+    color: var(--gh-dark-green-btn-text);
+    filter: none; /* Remove potential brightness filter */
   }
-  
+  .btn-primary:hover, .btn-success:hover, .pr-submit-btn:hover {
+    background-color: var(--gh-dark-green-btn-hover-bg);
+    border-color: var(--gh-dark-green-btn-hover-bg);
+    color: var(--gh-dark-green-btn-text);
+  }
+   /* Add styles for danger buttons if needed */
+   .btn-danger {
+       background-color: #da3633; /* GitHub's dark danger red */
+       border-color: #da3633;
+       color: #ffffff;
+   }
+   .btn-danger:hover {
+       background-color: #b62324;
+       border-color: #b62324;
+       color: #ffffff;
+   }
+
+
   /* File explorer and tree styling */
-  .file-explorer-header, .diff-header {
-    background-color: var(--dark-header) !important;
-    border-color: var(--dark-border) !important;
+  .file-item, .dir-item, .branch-item /* Style branch items too */ {
+    border-bottom: 1px solid var(--gh-dark-border) !important;
+    color: var(--gh-dark-text);
   }
-  
-  .file-item, .dir-item {
-    border-color: var(--dark-border) !important;
+  .file-item:last-child, .dir-item:last-child, .branch-item:last-child {
+     border-bottom: none !important;
   }
-  
-  .file-item:hover, .dir-item:hover {
-    background-color: var(--dark-button-hover) !important;
+  .file-item:hover, .dir-item:hover, .branch-item:hover {
+    background-color: var(--gh-dark-button-hover-bg) !important;
   }
-  
-  .file-name, .dir-name {
-    color: var(--dark-link) !important;
+  .file-name, .dir-name a, .branch-name {
+    color: var(--gh-dark-link) !important;
+    text-decoration: none;
   }
-  
+   .file-name:hover, .dir-name a:hover, .branch-name:hover {
+       text-decoration: underline;
+   }
+   .file-item.active, .dir-item.active, .branch-item.active {
+       background-color: rgba(88, 166, 255, 0.1); /* Subtle blue highlight for active items */
+   }
+
+
+   .repo-item {
+    background-color: var(--gh-dark-header-bg) !important; /* Use the darker card background */
+    border: 1px solid var(--gh-dark-border) !important; /* Use the standard dark border */
+    color: var(--gh-dark-text); /* Ensure text inside is light */
+}
+
+  /* Style the repository name link within the dark item */
+  .repo-item .repo-name a {
+      color: var(--gh-dark-link); /* Use the standard link color */
+      text-decoration: none;
+  }
+  .repo-item .repo-name a:hover {
+      text-decoration: underline;
+  }
+
+  /* Style the description and other info text within the dark item */
+  .repo-item .repo-description,
+  .repo-item .repo-info,
+  .repo-item .repo-info-item {
+      color: var(--gh-dark-secondary-text); /* Use the muted text color */
+  }
+  .repo-item .repo-info-item i {
+      color: var(--gh-dark-secondary-text); /* Ensure icons inherit the color */
+  }
+
+  /* Adjust hover effect for dark mode */
+  .repo-item:hover {
+      background-color: var(--gh-dark-button-hover-bg) !important; /* Use a slightly lighter dark background on hover */
+      border-color: var(--gh-dark-secondary-text) !important; /* Slightly lighter border on hover */
+      transform: none; /* Optional: Remove transform effect if it looks odd in dark mode */
+  }
+
+
+  /* --- Fix for Edit Profile Button Contrast --- */
+  /* Target the specific button, likely using .btn-outline-dark based on HTML structure */
+  /* Make it specific to being inside a card to avoid affecting other outline buttons */
+  .card .btn-outline-dark {
+      color: var(--gh-dark-text) !important; /* Use primary light text color */
+      border-color: var(--gh-dark-secondary-text) !important; /* Use a visible border color */
+  }
+
+  .card .btn-outline-dark:hover {
+      background-color: var(--gh-dark-button-hover-bg); /* Use standard dark hover background */
+      color: #ffffff !important; /* Make text brighter on hover */
+      border-color: var(--gh-dark-text) !important; /* Use brighter border on hover */
+  }
+
+  /* --- General Fix for list-group-item if used elsewhere --- */
+  /* This ensures other list items (like in the sidebar) also get themed */
+  .list-group-item {
+      background-color: var(--gh-dark-header-bg) !important;
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text);
+  }
+  .list-group-item a,
+  .list-group-item .fa { /* Target links and icons inside list items */
+      color: var(--gh-dark-text);
+      text-decoration: none;
+  }
+  .list-group-item:hover {
+      background-color: var(--gh-dark-button-hover-bg) !important;
+  }
+  .list-group-item.active { /* Style for active sidebar item if needed */
+      background-color: var(--gh-dark-link) !important;
+      border-color: var(--gh-dark-link) !important;
+      color: #ffffff !important;
+  }
+  .list-group-item.active .fa {
+      color: #ffffff !important;
+  }
+
   /* Code styling */
-  .code-content, pre, code {
-    background-color: var(--dark-code-bg) !important;
-    color: var(--dark-text) !important;
+  .code-content, pre, code, .code-blob, /* Target the table */
+  .github-modal-body /* Target modal body */ {
+    background-color: var(--gh-dark-bg) !important; /* Use main dark bg for code */
+    color: var(--gh-dark-text) !important;
+    border: none; /* Remove border if code-content has one */
   }
-  
-  .code-header {
-    background-color: var(--dark-header) !important;
-  }
-  
+   .code-blob .line-number {
+       background-color: var(--gh-dark-header-bg); /* Line numbers slightly different background */
+       color: var(--gh-dark-secondary-text);
+       border-right: 1px solid var(--gh-dark-border);
+   }
+   .code-blob tr:hover .line-number,
+   .code-blob tr:hover .line-content {
+        background-color: rgba(88, 166, 255, 0.05); /* Subtle hover for code lines */
+   }
+
+
   /* Diff styling */
+  .diff-table {
+      background-color: var(--gh-dark-header-bg); /* Base background for table */
+  }
   .diff-line-num {
-    color: var(--dark-secondary-text) !important;
-    border-color: var(--dark-border) !important;
+    background-color: var(--gh-dark-header-bg); /* Match header bg */
+    color: var(--gh-dark-secondary-text) !important;
+    border-color: var(--gh-dark-border) !important;
   }
-  
   .diff-line.added {
-    background-color: var(--dark-diff-add) !important;
+    background-color: var(--gh-dark-diff-add-bg) !important;
   }
-  
+   .diff-line.added .diff-line-num {
+      background-color: rgba(46, 160, 67, 0.1);
+      border-color: rgba(46, 160, 67, 0.3);
+   }
   .diff-line.removed {
-    background-color: var(--dark-diff-del) !important;
+    background-color: var(--gh-dark-diff-del-bg) !important;
   }
-  
+   .diff-line.removed .diff-line-num {
+       background-color: rgba(248, 81, 73, 0.1);
+       border-color: rgba(248, 81, 73, 0.3);
+   }
+   .diff-line.diff-hunk-header {
+        background-color: rgba(88, 166, 255, 0.1); /* Hunk header blue */
+        color: var(--gh-dark-secondary-text);
+   }
+    .diff-line.diff-hunk-header .diff-line-num {
+         background-color: rgba(88, 166, 255, 0.15);
+         border-color: rgba(88, 166, 255, 0.3);
+    }
+
+
   /* Tables */
   .table {
-    color: var(--dark-text) !important;
-    border-color: var(--dark-border) !important;
+    color: var(--gh-dark-text) !important;
+    border-color: var(--gh-dark-border) !important;
   }
-  
+   .table th, .table td {
+       border-color: var(--gh-dark-border) !important;
+   }
+   .table-striped > tbody > tr:nth-of-type(odd) > * {
+       --bs-table-accent-bg: rgba(255, 255, 255, 0.03); /* Very subtle striping */
+       color: var(--gh-dark-text);
+   }
+
+
   /* Form controls */
-  input, select, textarea {
-    background-color: var(--dark-button-bg) !important;
-    border-color: var(--dark-border) !important;
-    color: var(--dark-text) !important;
+  input, select, textarea, .form-control, .form-select {
+    background-color: var(--gh-dark-bg) !important; /* Darker background for forms */
+    border: 1px solid var(--gh-dark-border) !important;
+    color: var(--gh-dark-text) !important;
   }
-  
+   input::placeholder, textarea::placeholder {
+       color: var(--gh-dark-secondary-text);
+       opacity: 0.7;
+   }
+   input:focus, select:focus, textarea:focus, .form-control:focus, .form-select:focus {
+       background-color: var(--gh-dark-bg) !important;
+       color: var(--gh-dark-text) !important;
+       border-color: var(--gh-dark-link) !important; /* Blue border on focus */
+       box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
+   }
+
+
   /* Tabs styling */
   .nav-tabs {
-    border-color: var(--dark-border) !important;
+    border-color: var(--gh-dark-border) !important;
   }
-  
-  .nav-tabs .nav-link.active {
-    background-color: var(--dark-card-bg) !important;
-    border-color: var(--dark-border) !important;
-    color: var(--dark-text) !important;
-  }
-  
   .nav-tabs .nav-link {
-    color: var(--dark-secondary-text) !important;
+    color: var(--gh-dark-secondary-text) !important;
+    border: 1px solid transparent;
+    border-bottom: none; /* Remove default bottom border */
   }
-  
+  .nav-tabs .nav-link:hover {
+      border-color: var(--gh-dark-border);
+      border-bottom-color: transparent;
+      color: var(--gh-dark-text);
+  }
+  .nav-tabs .nav-link.active {
+    background-color: var(--gh-dark-header-bg) !important; /* Match card bg */
+    border-color: var(--gh-dark-border) !important;
+    border-bottom-color: transparent !important; /* Hide bottom border for active tab */
+    color: var(--gh-dark-text) !important;
+    font-weight: 600;
+  }
+
+
+  #commitsList .list-group-item.commit-item,
+  #commitsList .list-group-item.list-group-item-action {
+      background-color: var(--gh-dark-header-bg) !important; /* Use the dark card/item background */
+      border: 1px solid var(--gh-dark-border) !important; /* Use the standard dark border */
+      color: var(--gh-dark-text); /* Ensure base text is light */
+      margin-bottom: 10px; /* Add some spacing between commit items */
+      border-radius: 6px !important; /* Ensure rounded corners */
+      box-shadow: none; /* Remove potential base box-shadow if needed */
+  }
+
+  /* Override hover/focus state specifically for these action items */
+  #commitsList .list-group-item.commit-item:hover,
+  #commitsList .list-group-item.list-group-item-action:hover,
+  #commitsList .list-group-item.commit-item:focus,
+  #commitsList .list-group-item.list-group-item-action:focus {
+      background-color: var(--gh-dark-button-hover-bg) !important; /* Use a slightly lighter dark background on hover */
+      color: var(--gh-dark-text); /* Ensure text stays light on hover */
+      border-color: var(--gh-dark-secondary-text) !important; /* Optional: Slightly lighter border on hover */
+      box-shadow: none;
+      transform: none; /* Override transform from base style.css if necessary */
+  }
+
+  /* --- Styles for elements *inside* the commit item --- */
+
+  /* Style the commit title link */
+  #commitsList .commit-item .commit-title-link {
+      color: var(--gh-dark-link) !important;
+      text-decoration: none;
+      font-weight: 600; /* Make title slightly bolder */
+  }
+  #commitsList .commit-item .commit-title-link:hover {
+      text-decoration: underline;
+  }
+
+  /* Style the commit metadata text (author, date) */
+  #commitsList .commit-item .commit-meta,
+  #commitsList .commit-item .commit-meta strong {
+      color: var(--gh-dark-secondary-text) !important;
+      font-size: 12px; /* Match GitHub's smaller meta text */
+  }
+
+  /* Style the commit hash button */
+  #commitsList .commit-item .view-details-btn {
+      background-color: var(--gh-dark-button-bg);
+      border-color: var(--gh-dark-border);
+      color: var(--gh-dark-text);
+      font-size: 12px; /* Smaller font for hash */
+      padding: 2px 6px; /* Adjust padding */
+  }
+  #commitsList .commit-item .view-details-btn:hover {
+      background-color: var(--gh-dark-button-hover-bg);
+      border-color: var(--gh-dark-secondary-text);
+      color: var(--gh-dark-text);
+  }
+
+  /* Make general list group items dark, EXCEPT the commit list ones */
+  .list-group:not(.commits-list) .list-group-item {
+      background-color: var(--gh-dark-header-bg) !important;
+      border-color: var(--gh-dark-border) !important;
+      color: var(--gh-dark-text);
+      box-shadow: none; /* Remove base shadow if it exists */
+  }
+  .list-group:not(.commits-list) .list-group-item:hover {
+      background-color: var(--gh-dark-button-hover-bg) !important;
+      transform: none;
+  }
+  .list-group:not(.commits-list) .list-group-item.active {
+      background-color: var(--gh-dark-link) !important;
+      border-color: var(--gh-dark-link) !important;
+      color: #ffffff !important;
+  }
+  .list-group:not(.commits-list) .list-group-item.active .fa {
+      color: #ffffff !important;
+  }
+
+  /* --- Fix for Languages Block --- */
+  .languages-container {
+      background-color: var(--gh-dark-header-bg) !important; /* Dark card background */
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text); /* Default text color for the container */
+  }
+
+  /* Style the "Languages" title */
+  .languages-container .section-title { /* Or target h3 directly if needed */
+      color: var(--gh-dark-text);
+  }
+
+  /* Style the language list items */
+  .languages-container .language-item {
+      color: var(--gh-dark-text); /* Ensure list item text is light */
+  }
+
+  /* Style the language name (make it slightly bolder or use link color) */
+  .languages-container .language-name {
+      color: var(--gh-dark-text); /* Or use --gh-dark-link if you want them blue */
+      font-weight: 500; /* Optional: make it slightly bolder */
+  }
+
+  /* Style the percentage text */
+  .languages-container .language-percentage {
+      color: var(--gh-dark-secondary-text); /* Muted text color */
+  }
+
+  /* Style the language progress bars (color is set inline, just ensure container is styled) */
+  .languages-container .language-bar-container {
+      background-color: var(--gh-dark-button-bg); /* Dark background for the bar track */
+      border: 1px solid var(--gh-dark-border);
+  }
+
+  /* Style the loading state for the language bar */
+  .languages-container .language-bar-loading {
+      background: linear-gradient(90deg, var(--gh-dark-button-bg), var(--gh-dark-button-hover-bg), var(--gh-dark-button-bg));
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+  }
+
+  /* Keyframes for loading animation (if not already defined) */
+  @keyframes loading {
+      0% { background-position: 200% 0 }
+      100% { background-position: -200% 0 }
+  }
+
   /* Dropdown menus */
   .dropdown-menu {
-    background-color: var(--dark-card-bg) !important;
-    border-color: var(--dark-border) !important;
+    background-color: var(--gh-dark-header-bg) !important;
+    border-color: var(--gh-dark-border) !important;
+    color: var(--gh-dark-text);
   }
-  
   .dropdown-item {
-    color: var(--dark-text) !important;
+    color: var(--gh-dark-text) !important;
   }
-  
-  .dropdown-item:hover {
-    background-color: var(--dark-button-hover) !important;
+  .dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--gh-dark-button-hover-bg) !important;
+    color: var(--gh-dark-text) !important;
   }
-  
+   .dropdown-divider {
+       border-top: 1px solid var(--gh-dark-border);
+   }
+   .dropdown-header {
+        color: var(--gh-dark-secondary-text);
+   }
+
   /* Icons */
-  .fa, .fas {
-    color: var(--dark-secondary-text);
+  .fa, .fas, .far, .fab { /* Add other font-awesome prefixes if used */
+    color: var(--gh-dark-icon-color);
   }
-  
-  /* File icons specific colors */
-  .file-dir-icon {
-    color: #8b949e !important;
+  /* Specific Icon Colors */
+  .file-icon { color: var(--gh-dark-icon-color); }
+  .file-dir-icon { color: var(--gh-dark-link); } /* Blue for folders */
+  .text-success, .additions, .fa-check-circle { color: var(--gh-dark-green-btn-hover-bg) !important; }
+  .text-danger, .deletions, .fa-times-circle { color: #f85149 !important; } /* GitHub's danger red */
+  .fa-code-branch, .fa-star, .fa-code-fork, .fa-history, .fa-calendar, .fa-eye, .fa-lock, .fa-globe, .fa-search, .fa-plus, .fa-bell, .fa-users, .fa-book, .fa-code-pull-request, .fa-clock {
+     color: var(--gh-dark-icon-color);
   }
-  
-  .text-success, .additions {
-    color: #56d364 !important;
-  }
-  
-  .text-danger, .deletions {
-    color: #f85149 !important;
-  }
-  
-  /* Syntax highlighting - adjust this based on your preferred code highlighting theme */
+   a:hover .fa, button:hover .fa { /* Icons inside hovered links/buttons */
+       color: var(--gh-dark-text);
+   }
+
+  /* Syntax highlighting (Placeholder - requires specific selectors for your highlighter) */
   .hljs {
-    background-color: var(--dark-code-bg) !important;
+    background-color: var(--gh-dark-code-bg) !important; /* Adjust if different from code-content */
+    color: var(--gh-dark-text);
   }
-  
-  /* Modal styling */
-  .modal-content {
-    background-color: var(--dark-card-bg) !important;
-    border-color: var(--dark-border) !important;
-  }
-  
-  .modal-header, .modal-footer {
-    border-color: var(--dark-border) !important;
-  }
+  .hljs-keyword { color: #ff7b72; } /* Example keyword color */
+  .hljs-string { color: #a5d6ff; } /* Example string color */
+  .hljs-comment { color: #8b949e; font-style: italic; } /* Example comment color */
+  /* Add more .hljs-* rules based on the GitHub dark theme */
+
+
+  /* Ensure specific overrides for Bootstrap text/bg colors */
+  .text-muted { color: var(--gh-dark-secondary-text) !important; }
+  .text-primary { color: var(--gh-dark-link) !important; }
+  .text-success { color: var(--gh-dark-green-btn-hover-bg) !important; }
+  .text-danger { color: #f85149 !important; }
+  .bg-light { background-color: var(--gh-dark-header-bg) !important; } /* Remap light backgrounds */
+  .bg-white { background-color: var(--gh-dark-header-bg) !important; }/* Remap white backgrounds */
+
+} /* End of html[data-theme="dark"] */

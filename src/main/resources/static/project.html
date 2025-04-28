@@ -6,10 +6,8 @@
     <title>Project View - Code Sharing Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Add Highlight.js for syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <!-- Add these lines in the head section of your project.html file -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/java.min.js"></script>
@@ -17,6 +15,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dark-theme.css">
+    <script src="/js/theme-switcher.js" defer></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
@@ -344,798 +345,801 @@
 </body>
 </html>
 <style>
-    :root {
-        --gh-border-color: #e1e4e8;
-        --gh-bg-color: #f6f8fa;
-        --gh-text-color: #24292e;
-        --gh-link-color: #0366d6;
-        --gh-secondary-text: #586069;
-        --gh-file-line-active: #fffbdd;
-    }
-    
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-        color: var(--gh-text-color);
-        line-height: 1.5;
-    }
-    
-    .navbar {
-        background-color: #24292e;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-        padding: 0.5rem 1rem;
-    }
-    
-    .gh-header {
-        padding: 24px 0;
-        border-bottom: 1px solid var(--gh-border-color);
-        margin-bottom: 16px;
-    }
-    
-    .gh-header h1 {
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 0;
-    }
-    
-    .gh-header .description {
-        font-size: 14px;
-        color: var(--gh-secondary-text);
-        margin-top: 8px;
-    }
-    
-    .repo-stats {
-        display: flex;
-        gap: 16px;
-        margin-top: 16px;
-        flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    }
-    
-    .repo-stat {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 14px;
-        color: var(--gh-secondary-text);
-    }
-    
-    .branch-selector {
-        background-color: var(--gh-bg-color);
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
-        padding: 5px 12px;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--gh-text-color);
-        cursor: pointer;
-    }
-    
-    .file-explorer {
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
-        overflow: hidden;
-    }
-    
-    .file-explorer-header {
-        background-color: var(--gh-bg-color);
-        padding: 16px;
-        border-bottom: 1px solid var(--gh-border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .commit-info {
-        display: flex;
-        align-items: center;
-        font-size: 14px;
-        color: var(--gh-secondary-text);
-    }
-    
-    .commit-avatar {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        margin-right: 4px;
-    }
-    
-    .file-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .file-item, .dir-item {
-        padding: 8px 16px;
-        border-bottom: 1px solid var(--gh-border-color);
-        display: flex;
-        align-items: center;
-    }
-    
-    .file-item:hover, .dir-item:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .file-item:last-child, .dir-item:last-child {
-        border-bottom: none;
-    }
-    
-    .file-icon {
-        margin-right: 8px;
-        color: var(--gh-secondary-text);
-    }
-    
-    .file-dir-icon {
-        color: #79b8ff;
-    }
-    
-    .file-name {
-        flex-grow: 1;
-        font-size: 14px;
-        color: var(--gh-link-color);
-        text-decoration: none;
-    }
-    
-    .dir-name {
-        flex-grow: 1;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--gh-link-color);
-        text-decoration: none;
-    }
-    
-    .commit-msg {
-        font-size: 12px;
-        color: var(--gh-secondary-text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 400px; /* Adjust as needed */
-        margin-left: auto;
-        padding-left: 20px;
-    }
-    
-    .code-container {
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
-        overflow: hidden;
-        /* margin-bottom removed here, added mb-4 in HTML */
-    }
-    
-    .code-header {
-        padding: 10px 16px;
-        background-color: var(--gh-bg-color);
-        border-bottom: 1px solid var(--gh-border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .code-header-filename {
-        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-        font-size: 14px;
-        font-weight: 600;
-    }
-    
-    .code-header-actions a {
-        font-size: 14px;
-        color: var(--gh-secondary-text);
-        text-decoration: none;
-        margin-left: 16px;
-    }
-    
-    .code-content {
-    overflow-x: auto; /* Keep this to allow horizontal scrolling */
-    background-color: white; /* Consistent background */
-    font-size: 12px; /* Consistent font size */
+
+
+:root {
+    --gh-border-color: #e1e4e8;
+    --gh-bg-color: #f6f8fa;
+    --gh-text-color: #24292e;
+    --gh-link-color: #0366d6;
+    --gh-secondary-text: #586069;
+    --gh-file-line-active: #fffbdd;
 }
-    
-    .code-content pre {
-        margin: 0;
-        padding: 16px;
-        overflow-y: hidden; /* Keep this if you don't want vertical scroll inside pre */
-        background-color: white;
-    }
-    .github-modal-body pre {
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--gh-text-color);
+    line-height: 1.5;
+}
+
+.navbar {
+    background-color: #24292e;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    padding: 0.5rem 1rem;
+}
+
+.gh-header {
+    padding: 24px 0;
+    border-bottom: 1px solid var(--gh-border-color);
+    margin-bottom: 16px;
+}
+
+.gh-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.gh-header .description {
+    font-size: 14px;
+    color: var(--gh-secondary-text);
+    margin-top: 8px;
+}
+
+.repo-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.repo-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: var(--gh-secondary-text);
+}
+
+.branch-selector {
+    background-color: var(--gh-bg-color);
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gh-text-color);
+    cursor: pointer;
+}
+
+.file-explorer {
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.file-explorer-header {
+    background-color: var(--gh-bg-color);
+    padding: 16px;
+    border-bottom: 1px solid var(--gh-border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.commit-info {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--gh-secondary-text);
+}
+
+.commit-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.file-item, .dir-item {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--gh-border-color);
+    display: flex;
+    align-items: center;
+}
+
+.file-item:hover, .dir-item:hover {
+    background-color: #f8f9fa;
+}
+
+.file-item:last-child, .dir-item:last-child {
+    border-bottom: none;
+}
+
+.file-icon {
+    margin-right: 8px;
+    color: var(--gh-secondary-text);
+}
+
+.file-dir-icon {
+    color: #79b8ff;
+}
+
+.file-name {
+    flex-grow: 1;
+    font-size: 14px;
+    color: var(--gh-link-color);
+    text-decoration: none;
+}
+
+.dir-name {
+    flex-grow: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gh-link-color);
+    text-decoration: none;
+}
+
+.commit-msg {
+    font-size: 12px;
+    color: var(--gh-secondary-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px; /* Adjust as needed */
+    margin-left: auto;
+    padding-left: 20px;
+}
+
+.code-container {
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    /* margin-bottom removed here, added mb-4 in HTML */
+}
+
+.code-header {
+    padding: 10px 16px;
+    background-color: var(--gh-bg-color);
+    border-bottom: 1px solid var(--gh-border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.code-header-filename {
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.code-header-actions a {
+    font-size: 14px;
+    color: var(--gh-secondary-text);
+    text-decoration: none;
+    margin-left: 16px;
+}
+
+.code-content {
+overflow-x: auto; /* Keep this to allow horizontal scrolling */
+background-color: white; /* Consistent background */
+font-size: 12px; /* Consistent font size */
+}
+
+.code-content pre {
     margin: 0;
     padding: 16px;
+    overflow-y: hidden; /* Keep this if you don't want vertical scroll inside pre */
     background-color: white;
-    overflow-x: auto;
+}
+.github-modal-body pre {
+margin: 0;
+padding: 16px;
+background-color: white;
+overflow-x: auto;
 }
 
 .github-modal-body code {
+font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+font-size: 12px;
+line-height: 1.5;
+tab-size: 4;
+}
+
+.code-content code {
     font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
     font-size: 12px;
     line-height: 1.5;
     tab-size: 4;
 }
-    
-    .code-content code {
-        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-        font-size: 12px;
-        line-height: 1.5;
-        tab-size: 4;
-    }
-    
-    /* Removed .code-line-numbers as the table structure handles this */
-    
-    .breadcrumb-item a {
-        color: var(--gh-link-color);
-        text-decoration: none;
-    }
-    
-    .breadcrumb-item.active {
-        color: var(--gh-text-color);
-    }
-    
-    /* Styles for directory tree (if used elsewhere, keep) */
-    .directory-structure {
-        list-style-type: none;
-        padding-left: 0;
-    }
-    
-    .directory-structure li {
-        padding: 4px 0;
-    }
-    
-    .directory-structure ul {
-        list-style-type: none;
-        padding-left: 20px;
-    }
-    
-    .directory-toggle {
-        cursor: pointer;
-        user-select: none;
-    }
-    
-    .directory-toggle::before {
-        content: "▶";
-        display: inline-block;
-        width: 12px;
-        transition: transform 0.2s;
-    }
-    
-    .directory-toggle.open::before {
-        transform: rotate(90deg);
-    }
-    
-    .file-content {
-        display: none; /* If used elsewhere */
-    }
-    
-    /* GitHub-like UI elements */
-    .gh-btn {
-        display: inline-flex;
-        align-items: center;
-        background-color: var(--gh-bg-color);
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
-        padding: 5px 12px;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--gh-text-color);
-        cursor: pointer;
-        text-decoration: none;
-        line-height: 20px;
-    }
-    
-    .gh-btn:hover {
-        background-color: #f3f4f6;
-        text-decoration: none;
-    }
-    
-    .gh-btn i {
-        margin-right: 4px;
-    }
-    
-    .gh-btn-primary {
-        background-color: #2ea44f;
-        border-color: rgba(27,31,35,0.15);
-        color: white;
-    }
-    
-    .gh-btn-primary:hover {
-        background-color: #2c974b;
-        color: white;
-    }
-    
-    /* Branch dropdown */
-    .branch-dropdown {
-        position: relative;
-        display: inline-block;
-    }
-    
-    .branch-dropdown-content {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        z-index: 1000;
-        width: 300px;
-        background-color: white;
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
-        box-shadow: 0 8px 24px rgba(149,157,165,0.2);
-        margin-top: 4px;
-    }
-    
-    .branch-dropdown-header {
-        padding: 8px 16px;
-        border-bottom: 1px solid var(--gh-border-color);
-        font-size: 12px;
-        font-weight: 600;
-    }
-    
-    .branch-list {
-        max-height: 400px;
-        overflow-y: auto;
-        padding: 8px 0;
-    }
-    
-    .branch-item {
-        padding: 8px 16px;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-    }
-    
-    .branch-item:hover {
-        background-color: var(--gh-bg-color);
-    }
-    
-    .branch-item.active {
-        background-color: #0366d611;
-    }
-    
-    .branch-item i {
-        margin-right: 8px;
-        color: var(--gh-secondary-text);
-    }
-    
-    .branch-name {
-        flex-grow: 1;
-        font-size: 14px;
-    }
-    
-    .dropdown-toggle::after {
-        display: inline-block;
-        margin-left: 6px;
-        vertical-align: middle;
-        content: "";
-        border-top: 4px solid;
-        border-right: 4px solid transparent;
-        border-bottom: 0;
-        border-left: 4px solid transparent;
-    }
-    
-    .branch-search {
-        padding: 8px 16px;
-        border-bottom: 1px solid var(--gh-border-color);
-    }
-    
-    .branch-search input {
-        width: 100%;
-        padding: 5px 12px;
-        font-size: 14px;
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
-    }
-    
-    /* GitHub code blob table */
-    .code-blob {
-    width: 100%;
-    border-spacing: 0;
-    border-collapse: collapse; /* Ensure cells are tightly packed */
-    tab-size: 4; /* Proper tab size */
+
+/* Removed .code-line-numbers as the table structure handles this */
+
+.breadcrumb-item a {
+    color: var(--gh-link-color);
+    text-decoration: none;
 }
-    
-    .code-blob tr:hover {
-        background-color: var(--gh-bg-color);
-    }
-    
-    .code-blob .line-number {
-        width: 1%;
-        min-width: 50px;
-        padding-right: 10px;
-        padding-left: 10px;
-        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-        font-size: 12px;
-        line-height: 20px;
-        color: var(--gh-secondary-text);
-        text-align: right;
-        white-space: nowrap;
-        vertical-align: top;
-        cursor: pointer;
-        user-select: none;
-        border-right: 1px solid var(--gh-border-color); /* Added border */
-    }
-    
-    .code-blob .line-content {
-    padding-left: 10px;
+
+.breadcrumb-item.active {
+    color: var(--gh-text-color);
+}
+
+/* Styles for directory tree (if used elsewhere, keep) */
+.directory-structure {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.directory-structure li {
+    padding: 4px 0;
+}
+
+.directory-structure ul {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+.directory-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+
+.directory-toggle::before {
+    content: "▶";
+    display: inline-block;
+    width: 12px;
+    transition: transform 0.2s;
+}
+
+.directory-toggle.open::before {
+    transform: rotate(90deg);
+}
+
+.file-content {
+    display: none; /* If used elsewhere */
+}
+
+/* GitHub-like UI elements */
+.gh-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--gh-bg-color);
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gh-text-color);
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 20px;
+}
+
+.gh-btn:hover {
+    background-color: #f3f4f6;
+    text-decoration: none;
+}
+
+.gh-btn i {
+    margin-right: 4px;
+}
+
+.gh-btn-primary {
+    background-color: #2ea44f;
+    border-color: rgba(27,31,35,0.15);
+    color: white;
+}
+
+.gh-btn-primary:hover {
+    background-color: #2c974b;
+    color: white;
+}
+
+/* Branch dropdown */
+.branch-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.branch-dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    width: 300px;
+    background-color: white;
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(149,157,165,0.2);
+    margin-top: 4px;
+}
+
+.branch-dropdown-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--gh-border-color);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.branch-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.branch-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.branch-item:hover {
+    background-color: var(--gh-bg-color);
+}
+
+.branch-item.active {
+    background-color: #0366d611;
+}
+
+.branch-item i {
+    margin-right: 8px;
+    color: var(--gh-secondary-text);
+}
+
+.branch-name {
+    flex-grow: 1;
+    font-size: 14px;
+}
+
+.dropdown-toggle::after {
+    display: inline-block;
+    margin-left: 6px;
+    vertical-align: middle;
+    content: "";
+    border-top: 4px solid;
+    border-right: 4px solid transparent;
+    border-bottom: 0;
+    border-left: 4px solid transparent;
+}
+
+.branch-search {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--gh-border-color);
+}
+
+.branch-search input {
+    width: 100%;
+    padding: 5px 12px;
+    font-size: 14px;
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+}
+
+/* GitHub code blob table */
+.code-blob {
+width: 100%;
+border-spacing: 0;
+border-collapse: collapse; /* Ensure cells are tightly packed */
+tab-size: 4; /* Proper tab size */
+}
+
+.code-blob tr:hover {
+    background-color: var(--gh-bg-color);
+}
+
+.code-blob .line-number {
+    width: 1%;
+    min-width: 50px;
     padding-right: 10px;
+    padding-left: 10px;
     font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
     font-size: 12px;
     line-height: 20px;
-    white-space: pre; /* This is crucial - keeps spaces intact */
+    color: var(--gh-secondary-text);
+    text-align: right;
+    white-space: nowrap;
     vertical-align: top;
-    width: 99%; /* Ensure content takes remaining space */
-    overflow-x: visible; /* Allow overflow to be visible */
+    cursor: pointer;
+    user-select: none;
+    border-right: 1px solid var(--gh-border-color); /* Added border */
 }
-    
-    /* Utility classes */
-    .text-small {
-        font-size: 12px !important;
-    }
-    
-    .text-gray {
-        color: var(--gh-secondary-text) !important;
-    }
-    
-    /* d-flex and align-items-center are Bootstrap classes, no need to redefine */
-    
-    /* Modal */
-    .github-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 1000;
-    }
-    
-    .github-modal-content {
-        position: relative;
-        margin: 5% auto;
-        width: 80%;
-        max-width: 900px;
-        background-color: #fff;
-        border-radius: 6px;
-        box-shadow: 0 8px 24px rgba(149,157,165,0.2);
-    }
-    
-    .github-modal-header {
-        padding: 16px;
-        border-bottom: 1px solid var(--gh-border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .github-modal-title {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0;
-    }
-    
-    .github-modal-close {
-        background: transparent;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-    }
-    
-    .github-modal-body {
-        padding: 16px;
-        max-height: 70vh;
-        overflow-y: auto;
-    }
 
-    #currentPath a {
-        color: var(--gh-link-color);
-        text-decoration: none;
-    }
+.code-blob .line-content {
+padding-left: 10px;
+padding-right: 10px;
+font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+font-size: 12px;
+line-height: 20px;
+white-space: pre; /* This is crucial - keeps spaces intact */
+vertical-align: top;
+width: 99%; /* Ensure content takes remaining space */
+overflow-x: visible; /* Allow overflow to be visible */
+}
 
-    #currentPath a:hover {
-        text-decoration: underline;
-    }
+/* Utility classes */
+.text-small {
+    font-size: 12px !important;
+}
 
-    #currentPath span {
-        color: var(--gh-text-color);
-    }
-    
-    /* Commit item styles */
-    .commit-item {
-        transition: all 0.2s ease;
-    }
+.text-gray {
+    color: var(--gh-secondary-text) !important;
+}
 
-    .commit-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+/* d-flex and align-items-center are Bootstrap classes, no need to redefine */
 
-    .commit-header {
-        border-radius: 6px;
-        /* background-color: var(--gh-bg); /* Use gh-bg-color */
-        background-color: var(--gh-bg-color);
-        /* border: 1px solid var(--gh-border); /* Use gh-border-color */
-        border: 1px solid var(--gh-border-color);
-    }
+/* Modal */
+.github-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
 
-    .commit-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--gh-text-color);
-        margin-bottom: 4px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        /* max-width: 80%; /* Let flexbox handle width */
-    }
+.github-modal-content {
+    position: relative;
+    margin: 5% auto;
+    width: 80%;
+    max-width: 900px;
+    background-color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(149,157,165,0.2);
+}
 
-    .commit-meta {
-        font-size: 13px;
-        /* color: var(--gh-gray); /* Use gh-secondary-text */
-        color: var(--gh-secondary-text);
-    }
+.github-modal-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--gh-border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-    .view-details-btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
+.github-modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
 
-    /* Commits container styles */
-    #commitsList {
-        /* padding: 16px; /* Padding handled by container */
-        background-color: #fff;
-        border-radius: 0 0 6px 6px; /* Keep if needed */
-    }
+.github-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
 
-    /* Commit details section (for future expansion) */
-    .commit-details {
-        margin-top: 16px;
-        padding: 16px;
-        background-color: #fff;
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
-    }
+.github-modal-body {
+    padding: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
 
-    .commit-file-changes {
-        margin-top: 16px;
-    }
+#currentPath a {
+    color: var(--gh-link-color);
+    text-decoration: none;
+}
 
-    .file-change-item {
-        padding: 8px 12px;
-        border: 1px solid var(--gh-border-color);
-        border-radius: 4px;
-        margin-bottom: 8px;
-        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-        font-size: 13px;
-    }
+#currentPath a:hover {
+    text-decoration: underline;
+}
 
-    .file-change-added {
-        background-color: #e6ffec;
-        border-color: #b4e2c0;
-    }
+#currentPath span {
+    color: var(--gh-text-color);
+}
 
-    .file-change-modified {
-        background-color: #f1f8ff;
-        border-color: #c8e1ff;
-    }
+/* Commit item styles */
+.commit-item {
+    transition: all 0.2s ease;
+}
 
-    .file-change-deleted {
-        background-color: #ffebe9;
-        border-color: #e9aeaa;
-    }
+.commit-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
 
-    /* Language Stats Styles (Now Global) */
+.commit-header {
+    border-radius: 6px;
+    /* background-color: var(--gh-bg); /* Use gh-bg-color */
+    background-color: var(--gh-bg-color);
+    /* border: 1px solid var(--gh-border); /* Use gh-border-color */
+    border: 1px solid var(--gh-border-color);
+}
+
+.commit-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gh-text-color);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* max-width: 80%; /* Let flexbox handle width */
+}
+
+.commit-meta {
+    font-size: 13px;
+    /* color: var(--gh-gray); /* Use gh-secondary-text */
+    color: var(--gh-secondary-text);
+}
+
+.view-details-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Commits container styles */
+#commitsList {
+    /* padding: 16px; /* Padding handled by container */
+    background-color: #fff;
+    border-radius: 0 0 6px 6px; /* Keep if needed */
+}
+
+/* Commit details section (for future expansion) */
+.commit-details {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: #fff;
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+}
+
+.commit-file-changes {
+    margin-top: 16px;
+}
+
+.file-change-item {
+    padding: 8px 12px;
+    border: 1px solid var(--gh-border-color);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px;
+}
+
+.file-change-added {
+    background-color: #e6ffec;
+    border-color: #b4e2c0;
+}
+
+.file-change-modified {
+    background-color: #f1f8ff;
+    border-color: #c8e1ff;
+}
+
+.file-change-deleted {
+    background-color: #ffebe9;
+    border-color: #e9aeaa;
+}
+
+/* Language Stats Styles (Now Global) */
+.languages-container {
+    /* margin-top: 24px; /* Removed, spacing handled by column */
+    /* margin-bottom: 24px; /* Removed, spacing handled by column */
+    padding: 16px;
+    background-color: white;
+    border: 1px solid var(--gh-border-color);
+    border-radius: 6px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--gh-text-color);
+}
+
+.language-bar-container {
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.language-bars {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.language-bar {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.language-bar-loading {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 5px; /* Added */
+}
+
+.language-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px; /* Consistent gap */
+}
+
+.language-item {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    /* margin-right: 16px; /* Replaced by gap */
+}
+
+.language-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.language-name {
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.language-percentage {
+    color: var(--gh-secondary-text);
+}
+
+/* Styles previously inside @media (min-width: 992px) for languages */
+.languages-section { /* This class might not be used anymore, but keeping styles */
+    background-color: #0d1117; /* Example dark theme color */
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #c9d1d9;
+}
+
+.languages-section h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+/* Language bar container (duplicate, check which one is used) */
+/* .language-bar-container { ... } */
+
+/* Individual language bars */
+.lang-bar { /* This class might not be used anymore */
+    height: 100%;
+    display: inline-block;
+}
+
+/* Language list styling (duplicate, check which one is used) */
+/* .language-list { ... } */
+
+.lang-item { /* This class might not be used anymore */
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+}
+
+/* Colored dot for each language */
+.lang-color { /* This class might not be used anymore */
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.lang-name { /* This class might not be used anymore */
+    margin-right: 5px;
+}
+
+.lang-percent { /* This class might not be used anymore */
+    color: #8b949e;
+}
+
+.loading-placeholder { /* This class might not be used anymore */
+    height: 8px;
+    width: 100%;
+    background: linear-gradient(90deg, #1f2937, #374151, #1f2937);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+/* Keyframes for loading animation */
+@keyframes loading {
+    0% { background-position: 200% 0 }
+    100% { background-position: -200% 0 }
+}
+
+/* Toast Notifications */
+#toast-container {
+    z-index: 1050; /* Ensure it's above other elements */
+    position: fixed; /* Keep fixed positioning */
+    bottom: 1rem;   /* Adjust positioning */
+    right: 1rem;    /* Adjust positioning */
+}
+
+.toast {
+    min-width: 250px;
+    margin-bottom: 10px;
+    /* Bootstrap handles base styling */
+}
+
+.toast-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724; /* Text color for body */
+}
+
+.toast-success .toast-header {
+    background-color: #c3e6cb;
+    color: #155724;
+    border-bottom: 1px solid #b1dfbb; /* Optional header border */
+}
+ .toast-success .btn-close {
+    filter: invert(40%) sepia(50%) saturate(600%) hue-rotate(80deg); /* Greenish close button */
+}
+
+.toast-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24; /* Text color for body */
+}
+
+.toast-error .toast-header {
+    background-color: #f5c6cb;
+    color: #721c24;
+    border-bottom: 1px solid #f1b0b7; /* Optional header border */
+}
+ .toast-error .btn-close {
+    filter: invert(25%) sepia(30%) saturate(1000%) hue-rotate(320deg); /* Reddish close button */
+}
+
+/* Mobile Responsiveness Adjustments */
+@media (max-width: 991.98px) { /* Below Bootstrap lg breakpoint */
     .languages-container {
-        /* margin-top: 24px; /* Removed, spacing handled by column */
-        /* margin-bottom: 24px; /* Removed, spacing handled by column */
-        padding: 16px;
-        background-color: white;
-        border: 1px solid var(--gh-border-color);
-        border-radius: 6px;
+        margin-top: 1.5rem; /* Add some space when stacked */
     }
+}
 
-    .section-title {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 16px;
-        color: var(--gh-text-color);
+@media (max-width: 767.98px) { /* Below Bootstrap md breakpoint */
+    .commit-msg {
+        display: none; /* Hide commit message on smaller screens */
     }
-
-    .language-bar-container {
+    
+    .code-header-actions {
+        display: none; /* Hide code actions on smaller screens */
+    }
+    
+    .repo-stats {
+         gap: 10px; /* Reduce gap */
+         justify-content: start; /* Align stats to start */
+    }
+    .gh-header .d-flex.gap-2 { /* Target Star/Fork buttons container */
         width: 100%;
-        height: 10px;
-        border-radius: 5px;
-        overflow: hidden;
-        margin-bottom: 16px;
+        margin-top: 1rem;
+        justify-content: start;
     }
+     .gh-header > .d-flex.gap-2.align-items-center { /* Target Visibility/Star/Fork container */
+         width: 100%;
+         margin-top: 1rem;
+         justify-content: start;
+     }
+}
 
-    .language-bars {
-        display: flex;
-        height: 100%;
-        width: 100%;
-    }
-
-    .language-bar {
-        height: 100%;
-        transition: width 0.3s ease;
-    }
-
-    .language-bar-loading {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-        border-radius: 5px; /* Added */
-    }
-
-    .language-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px; /* Consistent gap */
-    }
-
-    .language-item {
-        display: flex;
-        align-items: center;
-        font-size: 12px;
-        /* margin-right: 16px; /* Replaced by gap */
-    }
-
-    .language-color {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 6px;
-    }
-
-    .language-name {
-        font-weight: 600;
-        margin-right: 4px;
-    }
-
-    .language-percentage {
-        color: var(--gh-secondary-text);
-    }
-
-    /* Styles previously inside @media (min-width: 992px) for languages */
-    .languages-section { /* This class might not be used anymore, but keeping styles */
-        background-color: #0d1117; /* Example dark theme color */
-        border-radius: 6px;
-        padding: 15px;
-        margin-bottom: 20px;
-        color: #c9d1d9;
-    }
-
-    .languages-section h4 {
-        font-size: 16px;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
-
-    /* Language bar container (duplicate, check which one is used) */
-    /* .language-bar-container { ... } */
-
-    /* Individual language bars */
-    .lang-bar { /* This class might not be used anymore */
-        height: 100%;
-        display: inline-block;
-    }
-
-    /* Language list styling (duplicate, check which one is used) */
-    /* .language-list { ... } */
-
-    .lang-item { /* This class might not be used anymore */
-        display: flex;
-        align-items: center;
-        font-size: 12px;
-    }
-
-    /* Colored dot for each language */
-    .lang-color { /* This class might not be used anymore */
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 5px;
-    }
-
-    .lang-name { /* This class might not be used anymore */
-        margin-right: 5px;
-    }
-
-    .lang-percent { /* This class might not be used anymore */
-        color: #8b949e;
-    }
-
-    .loading-placeholder { /* This class might not be used anymore */
-        height: 8px;
-        width: 100%;
-        background: linear-gradient(90deg, #1f2937, #374151, #1f2937);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-        border-radius: 4px;
-    }
-
-    /* Keyframes for loading animation */
-    @keyframes loading {
-        0% { background-position: 200% 0 }
-        100% { background-position: -200% 0 }
-    }
-
-    /* Toast Notifications */
-    #toast-container {
-        z-index: 1050; /* Ensure it's above other elements */
-        position: fixed; /* Keep fixed positioning */
-        bottom: 1rem;   /* Adjust positioning */
-        right: 1rem;    /* Adjust positioning */
-    }
-    
-    .toast {
-        min-width: 250px;
-        margin-bottom: 10px;
-        /* Bootstrap handles base styling */
-    }
-    
-    .toast-success {
-        background-color: #d4edda;
-        border-color: #c3e6cb;
-        color: #155724; /* Text color for body */
-    }
-    
-    .toast-success .toast-header {
-        background-color: #c3e6cb;
-        color: #155724;
-        border-bottom: 1px solid #b1dfbb; /* Optional header border */
-    }
-     .toast-success .btn-close {
-        filter: invert(40%) sepia(50%) saturate(600%) hue-rotate(80deg); /* Greenish close button */
-    }
-    
-    .toast-error {
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-        color: #721c24; /* Text color for body */
-    }
-    
-    .toast-error .toast-header {
-        background-color: #f5c6cb;
-        color: #721c24;
-        border-bottom: 1px solid #f1b0b7; /* Optional header border */
-    }
-     .toast-error .btn-close {
-        filter: invert(25%) sepia(30%) saturate(1000%) hue-rotate(320deg); /* Reddish close button */
-    }
-
-    /* Mobile Responsiveness Adjustments */
-    @media (max-width: 991.98px) { /* Below Bootstrap lg breakpoint */
-        .languages-container {
-            margin-top: 1.5rem; /* Add some space when stacked */
-        }
-    }
-
-    @media (max-width: 767.98px) { /* Below Bootstrap md breakpoint */
-        .commit-msg {
-            display: none; /* Hide commit message on smaller screens */
-        }
-        
-        .code-header-actions {
-            display: none; /* Hide code actions on smaller screens */
-        }
-        
-        .repo-stats {
-             gap: 10px; /* Reduce gap */
-             justify-content: start; /* Align stats to start */
-        }
-        .gh-header .d-flex.gap-2 { /* Target Star/Fork buttons container */
-            width: 100%;
-            margin-top: 1rem;
-            justify-content: start;
-        }
-         .gh-header > .d-flex.gap-2.align-items-center { /* Target Visibility/Star/Fork container */
-             width: 100%;
-             margin-top: 1rem;
-             justify-content: start;
-         }
-    }
 </style>
 <script>
 function hashString(str) {
