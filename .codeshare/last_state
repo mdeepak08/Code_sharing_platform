@@ -2,7 +2,7 @@ src/main/resources/static/error.html:klGL739iDf5XV9oEwRbX5KCRQGpiGCflaCRgVkodkr8
 src/main/java/com/codeshare/platform/service/VersionControlService.java:Cytca3eP8j9yA1IeuIc/bOzcJo2cJY4SNOgUelauI8g=
 src/main/java/com/codeshare/platform/repository/BranchRepository.java:Ix7qY+FGbQp5unM9XVwj9z9dU6uIN8cuJ7VBc54KgEQ=
 src/main/java/com/codeshare/platform/ui/controller/ProjectViewController.java:3GpQtMBHI0TDEiafwwKiCJvUQU7r0dsKkeywVW965KA=
-src/main/resources/static/pull-request.html:xCuo+xDRkp3j1oB8ObR/zsKpMVusi5vBV9oksSYSeJA=
+src/main/resources/static/pull-request.html:762maVqw33iP+ibaITbhf7TuuCBGuyBmIKqPoFfjsvI=
 src/main/java/com/codeshare/platform/dto/BranchDTO.java:BWSpT65FwxtN4v7HvB7LnTlE6mP8fT5lO1N7xBPb3zw=
 src/main/resources/static/css/tree-view.css:8jOkwnGFmLW0MfZRQXeDHTxzUqS98n9eiSTaK5ZPJoU=
 src/main/java/com/codeshare/platform/dto/JwtAuthResponse.java:o3HuiAJexBBz5v3JGzODzDy0qIKfnkX6jZDa2gqIHbg=
@@ -50,7 +50,7 @@ src/main/java/com/codeshare/platform/ui/controller/MainViewController.java:gx3au
 src/main/java/com/codeshare/platform/controller/FileController.java:PKpj6M8RMPG5r8dP3ezB4/PmxshcoA9MDFRa0dSXBBo=
 src/main/java/com/codeshare/platform/service/FileLockManager.java:k66o10yPVx6yT0ybNrB0+e+k02Wez2MkgDvqDa2hsVE=
 src/main/java/com/codeshare/platform/controller/UserController.java:qzziaSigmJMbpbVFUTX+AvkHFvX0jlG51h4MqbmKYAI=
-src/main/resources/static/new-pull-request.html:4FCpNqqZlzrvE4X06EFJn81BbRxXDk9ngozPbiQfQTM=
+src/main/resources/static/new-pull-request.html:OHeA4Jx5l+KCjhcgeopQrba5x1JsKWspoJgS/6CZObM=
 src/main/java/com/codeshare/platform/exception/ResourceNotFoundException.java:8SPBRcgl7kHzJDcuzeeHBaeJVrwJUagDmoRhgQsAfDU=
 src/main/java/com/codeshare/platform/ui/controller/LoginViewController.java:ao5pmNz6zW7jpMVg5IxzgnXQJQeeRpZj9/edj2v4AKQ=
 Areas for Potential Enhancement.txt:z9dJyNCIfZ9HI/u7ZuZ3IKRFxv6HUVBRqDWQOylvcdY=
@@ -79,7 +79,7 @@ src/main/resources/static/pull-requests.html:ZtAz4KpkeNxvlTLtgbbUmNYXJtm6zClu2DY
 src/main/java/com/codeshare/platform/security/CustomUserDetailsService.java:feyvYWKTRu15QGYhmpRNwcVZ84/FO1z2oDqwymy076g=
 gradlew:c0s4edNQHc5HHPBSLTvLr+doc9n8USk0W2f7Q70V6TM=
 src/main/resources/static/css/dark-theme.css:0lBp/gSnHpOau/MLf2qh7Yw0RDXPMPVGwfsFyfp06Pc=
-src/main/java/com/codeshare/platform/controller/VersionControlController.java:8ZwsXvI/rwQi+P3lHXcWBuFD9N/vYvbMMbLbRZLFyJ4=
+src/main/java/com/codeshare/platform/controller/VersionControlController.java:N42pDBWbb2YGnT996K6C8Em12WywxrVM8BYx0teMaMA=
 src/main/java/com/codeshare/platform/repository/FileRepository.java:MBcyIqLc4RN6tQGd1gxLmvvj2LA0RGQY1sM55ZmH3l0=
 src/main/java/com/codeshare/platform/model/Branch.java:V3rppNL0vMsj8qabkOyGUdzlfMkT4iNghs/jUFFy6xc=
 src/main/java/com/codeshare/platform/service/impl/CommitServiceImpl.java:+d4F21Ja7jK4sd6WdC0aSwrUoxOc+OoUjc0ISxdh2yE=
@@ -102,7 +102,7 @@ src/test/java/com/codeshare/platform/CodeSharingPlatformApplicationTests.java:8+
 src/main/java/com/codeshare/platform/ui/util/EditorTabManager.java:eYZEYf5i/k/9GTtgVzb3ivsMkkgKeFYqspIdPnU/AgM=
 command_setup.sh:QkbNPbgsrH0ALycLaIB8T6JBZNcwgyttkscz33gjLNI=
 src/main/java/com/codeshare/platform/security/JwtUtil.java:xj0uF7QH4iKMJhkvUN2bMW6doHCsNMAuSi+KYN/otjU=
-src/main/java/com/codeshare/platform/config/SecurityConfig.java:f55BAoDphEziEqWvU1JYVHot2zhSKJRF1Sj+TVqV9BA=
+src/main/java/com/codeshare/platform/config/SecurityConfig.java:kD+1A3w6seRaBDd+D/TYxWP3genF0vxYcKzGnh9XYzo=
 settings.gradle:/0f7fGd9gJ7k7fVSrOQPkA2V3pVIOA6YwtgiuuQzFIQ=
 src/main/java/com/codeshare/platform/controller/PullRequestController.java:GiUBWh3U4CSGo4biLDeC/s/Rhg5Ch1wY9hwJM6d14mI=
 src/main/java/com/codeshare/platform/repository/CommitRepository.java:/fp3x8W5YJxS7e0KMN2hGXcik3Dcpe0cgvU+HlAZksE=

@@ -336,6 +336,190 @@
                 projectDescription.textContent = 'Failed to load project information';
             }
         }
+
+        // Replace the static display with dynamic content that fetches real diff data
+        async function compareBranches() {
+            const sourceBranchId = document.getElementById('sourceBranch').value;
+            const targetBranchId = document.getElementById('targetBranch').value;
+            
+            if (!sourceBranchId || !targetBranchId) {
+                alert('Please select both source and target branches');
+                return;
+            }
+            
+            if (sourceBranchId === targetBranchId) {
+                alert('Source and target branches must be different');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('compareResult').innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Comparing branches...</p>
+                </div>
+            `;
+            document.getElementById('compareResult').style.display = 'block';
+            
+            try {
+                // Fetch actual diff data between the branches
+                const response = await fetch(`/api/version-control/branch-diff?sourceBranchId=${sourceBranchId}&targetBranchId=${targetBranchId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const diffData = result.data;
+                    const changedFiles = diffData.changedFiles || [];
+                    const additions = diffData.additions || 0;
+                    const deletions = diffData.deletions || 0;
+                    
+                    // Update the UI with real data
+                    const compareResultDiv = document.getElementById('compareResult');
+                    compareResultDiv.innerHTML = `
+                        <div class="compare-summary mb-4">
+                            <div id="diffSummary">
+                                <h4>Creating pull request from <span id="fromBranch">${document.getElementById('sourceBranch').options[document.getElementById('sourceBranch').selectedIndex].text}</span> to <span id="toBranch">${document.getElementById('targetBranch').options[document.getElementById('targetBranch').selectedIndex].text}</span></h4>
+                                <div id="diffStats">
+                                    <span id="numFiles">${changedFiles.length}</span> files changed with
+                                    <span class="addition" id="numAdditions">${additions}</span> additions and
+                                    <span class="deletion" id="numDeletions">${deletions}</span> deletions
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form id="prForm">
+                            <div class="mb-3">
+                                <label for="prTitle" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="prTitle" value="Merge ${document.getElementById('sourceBranch').options[document.getElementById('sourceBranch').selectedIndex].text} into ${document.getElementById('targetBranch').options[document.getElementById('targetBranch').selectedIndex].text}" required>
+                                <div class="form-text">Summarize the purpose of this pull request in a clear, concise title.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="prDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="prDescription" rows="5"></textarea>
+                                <div class="form-text">Describe what changes were made and why they are needed.</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="button" id="cancelBtn" class="btn pr-cancel-btn me-2">Cancel</button>
+                                <button type="submit" id="createPrBtn" class="btn pr-submit-btn">Create pull request</button>
+                            </div>
+                        </form>
+                    `;
+                    
+                    // If we have file details, display them
+                    if (changedFiles.length > 0 && Array.isArray(changedFiles)) {
+                        const fileListHTML = `
+                            <div class="mt-4">
+                                <h5>Changed Files:</h5>
+                                <ul class="list-group">
+                                    ${changedFiles.map(file => `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            ${file.path || file}
+                                            <span>
+                                                ${file.additions ? `<span class="badge bg-success">+${file.additions}</span>` : ''}
+                                                ${file.deletions ? `<span class="badge bg-danger ms-1">-${file.deletions}</span>` : ''}
+                                            </span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                        
+                        // Append file list to the form
+                        document.getElementById('prForm').insertAdjacentHTML('beforeend', fileListHTML);
+                    }
+                    
+                    // Scroll to the form
+                    compareResultDiv.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Re-attach event listeners
+                    document.getElementById('cancelBtn').addEventListener('click', () => {
+                        window.location.href = `/pull-requests.html?projectId=${projectId}`;
+                    });
+                    
+                    document.getElementById('prForm').addEventListener('submit', createPullRequest);
+                    
+                } else {
+                    throw new Error(result.message || 'Failed to compare branches');
+                }
+            } catch (error) {
+                console.error('Error comparing branches:', error);
+                document.getElementById('compareResult').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-triangle me-2"></i>
+                        Error comparing branches: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function createPullRequest(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('prTitle').value;
+            const description = document.getElementById('prDescription').value;
+            const sourceBranchId = document.getElementById('sourceBranch').value;
+            const targetBranchId = document.getElementById('targetBranch').value;
+            
+            if (!title) {
+                alert('Title is required');
+                return;
+            }
+            
+            try {
+                // Disable the submit button to prevent multiple submissions
+                const submitButton = document.getElementById('createPrBtn');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating...';
+                
+                const response = await fetch('/api/pull-requests', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        projectId: projectId,
+                        sourceBranchId: sourceBranchId,
+                        targetBranchId: targetBranchId,
+                        title: title,
+                        description: description
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        // Redirect to the pull request page
+                        window.location.href = `/pull-request.html?id=${result.data.id}&projectId=${projectId}`;
+                    } else {
+                        throw new Error(result.message || 'Failed to create pull request');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error creating pull request:', error);
+                alert('Failed to create pull request: ' + error.message);
+                
+                // Re-enable the submit button
+                const submitButton = document.getElementById('createPrBtn');
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Create pull request';
+            }
+        }
         
         // Load branches
         async function loadBranches() {
@@ -400,98 +584,13 @@
         
         // Setup event listeners
         function setupEventListeners() {
-            // Compare button
-            compareButton.addEventListener('click', async () => {
-                const sourceBranchId = sourceBranchSelect.value;
-                const targetBranchId = targetBranchSelect.value;
-                
-                if (sourceBranchId === targetBranchId) {
-                    alert('Source and target branches must be different');
-                    return;
-                }
-                
-                if (!sourceBranchId || !targetBranchId) {
-                    alert('Please select both source and target branches');
-                    return;
-                }
-                
-                try {
-                    // In a real implementation, we would fetch the actual diff here
-                    // For this example, we'll simulate a successful comparison
-                    fromBranchSpan.textContent = sourceBranchSelect.options[sourceBranchSelect.selectedIndex].text;
-                    toBranchSpan.textContent = targetBranchSelect.options[targetBranchSelect.selectedIndex].text;
-                    
-                    // Show comparison result and form
-                    compareResult.style.display = 'block';
-                    
-                    // Add estimated changes (this would normally come from the API)
-                    document.getElementById('numFiles').textContent = '3';
-                    document.getElementById('numAdditions').textContent = '25';
-                    document.getElementById('numDeletions').textContent = '10';
-                    
-                    // Suggest a title based on branches
-                    document.getElementById('prTitle').value = `Merge ${fromBranchSpan.textContent} into ${toBranchSpan.textContent}`;
-                    
-                    // Scroll to form
-                    compareResult.scrollIntoView({ behavior: 'smooth' });
-                } catch (error) {
-                    console.error('Error comparing branches:', error);
-                    alert('Failed to compare branches: ' + error.message);
-                }
-            });
+        compareButton.addEventListener('click', compareBranches);
             
             // Cancel button
             cancelBtn.addEventListener('click', () => {
                 window.location.href = `/pull-requests.html?projectId=${projectId}`;
             });
             
-            // Pull request form submission
-            prForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const title = document.getElementById('prTitle').value;
-                const description = document.getElementById('prDescription').value;
-                const sourceBranchId = sourceBranchSelect.value;
-                const targetBranchId = targetBranchSelect.value;
-                
-                if (!title) {
-                    alert('Title is required');
-                    return;
-                }
-                
-                try {
-                    const response = await fetch('/api/pull-requests', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            projectId: projectId,
-                            sourceBranchId: sourceBranchId,
-                            targetBranchId: targetBranchId,
-                            title: title,
-                            description: description
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.success && result.data) {
-                            // Redirect to the pull request page
-                            window.location.href = `/pull-request.html?id=${result.data.id}&projectId=${projectId}`;
-                        } else {
-                            throw new Error(result.message || 'Failed to create pull request');
-                        }
-                    } else {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || `Server error: ${response.status}`);
-                    }
-                } catch (error) {
-                    console.error('Error creating pull request:', error);
-                    alert('Failed to create pull request: ' + error.message);
-                }
-            });
         }
         
         // Helper function: Logout

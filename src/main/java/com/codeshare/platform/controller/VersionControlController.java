@@ -2,9 +2,11 @@ package com.codeshare.platform.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -239,6 +241,95 @@ public class VersionControlController {
             if (!newCommitOpt.isPresent()) error += "New commit ";
             
             return new ResponseEntity<>(ApiResponse.error(error.trim()), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/branch-diff")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getBranchDiff(
+            @RequestParam Long sourceBranchId,
+            @RequestParam Long targetBranchId) {
+        try {
+            Optional<Branch> sourceBranchOpt = branchService.getBranchById(sourceBranchId);
+            Optional<Branch> targetBranchOpt = branchService.getBranchById(targetBranchId);
+            
+            if (sourceBranchOpt.isEmpty() || targetBranchOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Source or target branch not found"), 
+                                        HttpStatus.NOT_FOUND);
+            }
+            
+            Branch sourceBranch = sourceBranchOpt.get();
+            Branch targetBranch = targetBranchOpt.get();
+            
+            // Get snapshots of both branches
+            Map<String, String> sourceSnapshot = versionControlService.getProjectSnapshot(
+                sourceBranch.getProject(), sourceBranch);
+            Map<String, String> targetSnapshot = versionControlService.getProjectSnapshot(
+                sourceBranch.getProject(), targetBranch);
+            
+            // Compare the snapshots to find differences
+            Map<String, Object> diffInfo = new HashMap<>();
+            List<Map<String, Object>> changedFiles = new ArrayList<>();
+            int totalAdditions = 0;
+            int totalDeletions = 0;
+            
+            // Find all file paths from both snapshots
+            Set<String> allFilePaths = new HashSet<>();
+            allFilePaths.addAll(sourceSnapshot.keySet());
+            allFilePaths.addAll(targetSnapshot.keySet());
+            
+            for (String filePath : allFilePaths) {
+                String sourceContent = sourceSnapshot.getOrDefault(filePath, "");
+                String targetContent = targetSnapshot.getOrDefault(filePath, "");
+                
+                if (!sourceContent.equals(targetContent)) {
+                    // Calculate additions and deletions (simple line-based diff)
+                    String[] sourceLines = sourceContent.split("\n");
+                    String[] targetLines = targetContent.split("\n");
+                    
+                    int additions = 0;
+                    int deletions = 0;
+                    
+                    // Very simple diff - just count line differences
+                    if (sourceContent.isEmpty()) {
+                        // New file in target
+                        additions = targetLines.length;
+                    } else if (targetContent.isEmpty()) {
+                        // Deleted file in target
+                        deletions = sourceLines.length;
+                    } else {
+                        // Calculate additions/deletions based on line count difference
+                        // This is a simple approximation
+                        if (targetLines.length > sourceLines.length) {
+                            additions = targetLines.length - sourceLines.length;
+                        } else {
+                            deletions = sourceLines.length - targetLines.length;
+                        }
+                    }
+                    
+                    // Add file change information
+                    Map<String, Object> fileChange = new HashMap<>();
+                    fileChange.put("path", filePath);
+                    fileChange.put("additions", additions);
+                    fileChange.put("deletions", deletions);
+                    
+                    changedFiles.add(fileChange);
+                    
+                    // Update totals
+                    totalAdditions += additions;
+                    totalDeletions += deletions;
+                }
+            }
+            
+            // Put everything in the response
+            diffInfo.put("changedFiles", changedFiles);
+            diffInfo.put("additions", totalAdditions);
+            diffInfo.put("deletions", totalDeletions);
+            diffInfo.put("totalChanges", changedFiles.size());
+            
+            return new ResponseEntity<>(ApiResponse.success(diffInfo), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ApiResponse.error("Error calculating branch diff: " + e.getMessage()),
+                                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
