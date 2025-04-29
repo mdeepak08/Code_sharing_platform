@@ -318,24 +318,32 @@
         
         /* Toggle sidebar button styling */
         #toggleFilesBtn {
-            position: absolute;
-            top: 50%;
-            right: -15px;
-            transform: translateY(-50%);
+            position: fixed; /* Always fixed relative to viewport */
+            top: 50%;        /* Vertically centered */
+            left: 10px;      /* Positioned slightly from the left edge */
+            transform: translateY(-50%); /* Adjust for vertical centering */
             width: 30px;
             height: 30px;
-            background-color: #444;
-            color: white;
-            border: none;
+            background-color: #f8f9fa; /* Light theme background */
+            color: #343a40;       /* Light theme text */
+            border: 1px solid #dee2e6; /* Light theme border */
             border-radius: 50%;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 100;
-        }
+            z-index: 1050; /* Ensure it's above other content, Bootstrap modal z-index starts around 1050 */
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; /* Smooth transition */
+            }
 
+            /* Add a hover effect for light theme */
+            #toggleFilesBtn:hover {
+                background-color: #e9ecef;
+                border-color: #adb5bd;
+            }
+            body { padding-left: 50px; }
+            
         html[data-theme="dark"] #toggleFilesBtn {
             background-color: #1f2937;
             color: #e6edf3;

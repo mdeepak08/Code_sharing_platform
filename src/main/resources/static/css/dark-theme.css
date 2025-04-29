@@ -1,653 +1,642 @@
+/* dark-theme.css */
+
 :root {
-  /* GitHub Dark Theme Inspired Variables */
-  --gh-dark-bg: #0d1117;           /* Deep dark background */
-  --gh-dark-header-bg: #161b22;   /* Slightly lighter header/card background */
-  --gh-dark-border: #30363d;       /* Subtle borders */
-  --gh-dark-text: #c9d1d9;         /* Primary light text */
-  --gh-dark-secondary-text: #8b949e;/* Muted text for metadata */
-  --gh-dark-link: #58a6ff;         /* Link color */
-  --gh-dark-button-bg: #21262d;    /* Default button background */
-  --gh-dark-button-hover-bg: #30363d;/* Default button hover background */
-  --gh-dark-button-text: #c9d1d9;  /* Default button text */
-  --gh-dark-green-btn-bg: #238636; /* Green button background */
-  --gh-dark-green-btn-hover-bg: #2ea043; /* Green button hover */
-  --gh-dark-green-btn-text: #ffffff; /* Green button text */
-  --gh-dark-code-bg: #161b22;       /* Code block background (same as header/card) */
-  --gh-dark-diff-add-bg: rgba(46, 160, 67, 0.15); /* Added lines background */
-  --gh-dark-diff-del-bg: rgba(248, 81, 73, 0.15); /* Deleted lines background */
-  --gh-dark-icon-color: #8b949e;    /* Default icon color */
-}
-html[data-theme="dark"] {
-
-  body {
-    background-color: var(--gh-dark-bg);
-    color: var(--gh-dark-text);
+    /* GitHub Dark Theme Inspired Variables */
+    --gh-dark-bg: #0d1117;         /* Deep dark background */
+    --gh-dark-header-bg: #161b22;  /* Slightly lighter header/card background */
+    --gh-dark-border: #30363d;      /* Subtle borders */
+    --gh-dark-text: #c9d1d9;        /* Primary light text */
+    --gh-dark-secondary-text: #8b949e;/* Muted text for metadata */
+    --gh-dark-link: #58a6ff;        /* Link color */
+    --gh-dark-button-bg: #21262d;    /* Default button background */
+    --gh-dark-button-hover-bg: #30363d;/* Default button hover background */
+    --gh-dark-button-text: #c9d1d9;   /* Default button text */
+    --gh-dark-green-btn-bg: #238636; /* Green button background */
+    --gh-dark-green-btn-hover-bg: #2ea043; /* Green button hover */
+    --gh-dark-green-btn-text: #ffffff; /* Green button text */
+    --gh-dark-code-bg: #161b22;      /* Code block background (same as header/card) */
+    --gh-dark-diff-add-bg: rgba(46, 160, 67, 0.15); /* Added lines background */
+    --gh-dark-diff-del-bg: rgba(248, 81, 73, 0.15); /* Deleted lines background */
+    --gh-dark-icon-color: #8b949e;     /* Default icon color */
+    --gh-dark-active-item-bg: rgba(88, 166, 255, 0.15); /* Slightly more visible active state */
   }
-
-  /* Navbar styling */
-  .navbar {
-    background-color: var(--gh-dark-header-bg) !important; /* Override bootstrap */
-    border-bottom: 1px solid var(--gh-dark-border);
-  }
-  .navbar .navbar-brand,
-  .navbar .nav-link,
-  .navbar .navbar-text {
-    color: var(--gh-dark-text);
-  }
-  .navbar .nav-link:hover {
-    color: #ffffff;
-  }
-  .navbar .navbar-toggler {
-     border-color: var(--gh-dark-border);
-  }
-   .navbar .navbar-toggler-icon {
-       background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(201, 209, 217, 0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-   }
-
-
-  /* General Containers and Cards */
-  .card, .container-card, .pr-header, .commit-header, .file-explorer,
-  .code-container, .diff-section, .branch-dropdown-content,
-  .modal-content, .list-group-item /* Apply to list group items too */ {
-    background-color: var(--gh-dark-header-bg) !important;
-    border: 1px solid var(--gh-dark-border) !important;
-    color: var(--gh-dark-text); /* Ensure text inside cards is correct */
-  }
-  .modal-header, .modal-footer {
-     border-color: var(--gh-dark-border) !important;
-  }
-   .list-group-item:hover {
-       background-color: var(--gh-dark-button-hover-bg) !important; /* Darker hover for list items */
-   }
-   .list-group-item a {
-       color: var(--gh-dark-link); /* Style links within list items */
-   }
-
-  /* Headers within containers */
-  .file-explorer-header, .diff-header, .code-header, .card-header,
-  .commit-item .commit-header /* Style commit headers */ {
-    background-color: var(--gh-dark-header-bg); /* Match card background */
-    border-bottom: 1px solid var(--gh-dark-border);
-    color: var(--gh-dark-secondary-text);
-  }
-
-  /* Breadcrumb styling */
-  .breadcrumb-item a {
-    color: var(--gh-dark-link) !important;
-  }
-  .breadcrumb-item + .breadcrumb-item::before {
-     color: var(--gh-dark-secondary-text); /* Darker separator */
-  }
-  .breadcrumb-item.active {
-    color: var(--gh-dark-secondary-text) !important;
-  }
-
-  /* Buttons styling */
-  .gh-btn, .btn-outline-secondary, .branch-selector, .btn-secondary,
-  .dropdown-toggle /* Style dropdown toggles */ {
-    background-color: var(--gh-dark-button-bg);
-    border-color: var(--gh-dark-border); /* Use a slightly lighter border */
-    color: var(--gh-dark-button-text);
-    box-shadow: none; /* Remove default Bootstrap shadows if needed */
-  }
-  .gh-btn:hover, .btn-outline-secondary:hover, .branch-selector:hover, .btn-secondary:hover,
-  .dropdown-toggle:hover {
-    background-color: var(--gh-dark-button-hover-bg);
-    border-color: var(--gh-dark-secondary-text); /* Lighter border on hover */
-    color: var(--gh-dark-text);
-  }
-
-  /* Specific Button Types (Green/Primary) */
-  .btn-primary, .btn-success, .pr-submit-btn {
-    background-color: var(--gh-dark-green-btn-bg);
-    border-color: var(--gh-dark-green-btn-bg);
-    color: var(--gh-dark-green-btn-text);
-    filter: none; /* Remove potential brightness filter */
-  }
-  .btn-primary:hover, .btn-success:hover, .pr-submit-btn:hover {
-    background-color: var(--gh-dark-green-btn-hover-bg);
-    border-color: var(--gh-dark-green-btn-hover-bg);
-    color: var(--gh-dark-green-btn-text);
-  }
-   /* Add styles for danger buttons if needed */
-   .btn-danger {
-       background-color: #da3633; /* GitHub's dark danger red */
-       border-color: #da3633;
-       color: #ffffff;
-   }
-   .btn-danger:hover {
-       background-color: #b62324;
-       border-color: #b62324;
-       color: #ffffff;
-   }
-
-
-  /* File explorer and tree styling */
-  .file-item, .dir-item, .branch-item /* Style branch items too */ {
-    border-bottom: 1px solid var(--gh-dark-border) !important;
-    color: var(--gh-dark-text);
-  }
-  .file-item:last-child, .dir-item:last-child, .branch-item:last-child {
-     border-bottom: none !important;
-  }
-  .file-item:hover, .dir-item:hover, .branch-item:hover {
-    background-color: var(--gh-dark-button-hover-bg) !important;
-  }
-  .file-name, .dir-name a, .branch-name {
-    color: var(--gh-dark-link) !important;
-    text-decoration: none;
-  }
-   .file-name:hover, .dir-name a:hover, .branch-name:hover {
-       text-decoration: underline;
-   }
-   .file-item.active, .dir-item.active, .branch-item.active {
-       background-color: rgba(88, 166, 255, 0.1); /* Subtle blue highlight for active items */
-   }
-
-
-   .repo-item {
-    background-color: var(--gh-dark-header-bg) !important; /* Use the darker card background */
-    border: 1px solid var(--gh-dark-border) !important; /* Use the standard dark border */
-    color: var(--gh-dark-text); /* Ensure text inside is light */
-}
-
-  /* Style the repository name link within the dark item */
-  .repo-item .repo-name a {
-      color: var(--gh-dark-link); /* Use the standard link color */
-      text-decoration: none;
-  }
-  .repo-item .repo-name a:hover {
-      text-decoration: underline;
-  }
-
-  /* Style the description and other info text within the dark item */
-  .repo-item .repo-description,
-  .repo-item .repo-info,
-  .repo-item .repo-info-item {
-      color: var(--gh-dark-secondary-text); /* Use the muted text color */
-  }
-  .repo-item .repo-info-item i {
-      color: var(--gh-dark-secondary-text); /* Ensure icons inherit the color */
-  }
-
-  /* Adjust hover effect for dark mode */
-  .repo-item:hover {
-      background-color: var(--gh-dark-button-hover-bg) !important; /* Use a slightly lighter dark background on hover */
-      border-color: var(--gh-dark-secondary-text) !important; /* Slightly lighter border on hover */
-      transform: none; /* Optional: Remove transform effect if it looks odd in dark mode */
-  }
-
-
-  /* --- Fix for Edit Profile Button Contrast --- */
-  /* Target the specific button, likely using .btn-outline-dark based on HTML structure */
-  /* Make it specific to being inside a card to avoid affecting other outline buttons */
-  .card .btn-outline-dark {
-      color: var(--gh-dark-text) !important; /* Use primary light text color */
-      border-color: var(--gh-dark-secondary-text) !important; /* Use a visible border color */
-  }
-
-  .card .btn-outline-dark:hover {
-      background-color: var(--gh-dark-button-hover-bg); /* Use standard dark hover background */
-      color: #ffffff !important; /* Make text brighter on hover */
-      border-color: var(--gh-dark-text) !important; /* Use brighter border on hover */
-  }
-
-  /* --- General Fix for list-group-item if used elsewhere --- */
-  /* This ensures other list items (like in the sidebar) also get themed */
-  .list-group-item {
+  
+  html[data-theme="dark"] {
+  
+    body {
+      background-color: var(--gh-dark-bg);
+      color: var(--gh-dark-text);
+    }
+  
+    /* Navbar styling */
+    .navbar {
+      background-color: var(--gh-dark-header-bg) !important; /* Override bootstrap */
+      border-bottom: 1px solid var(--gh-dark-border);
+    }
+    .navbar .navbar-brand,
+    .navbar .nav-link,
+    .navbar .navbar-text {
+      color: var(--gh-dark-text);
+    }
+    .navbar #userInfo { /* Welcome message color */
+       color: var(--gh-dark-secondary-text);
+    }
+    .navbar .nav-link:hover {
+      color: #ffffff;
+    }
+    .navbar .navbar-toggler {
+        border-color: var(--gh-dark-border);
+    }
+    .navbar .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(201, 209, 217, 0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+    .navbar .btn-outline-light { /* Logout button */
+        color: var(--gh-dark-text);
+        border-color: var(--gh-dark-border);
+    }
+    .navbar .btn-outline-light:hover {
+        color: var(--gh-dark-text);
+        background-color: var(--gh-dark-button-hover-bg);
+        border-color: var(--gh-dark-secondary-text);
+    }
+  
+  
+    /* General Containers and Cards */
+    .card, .container-card, .pr-header, .commit-header, .file-explorer,
+    .code-container, .diff-section, .branch-dropdown-content,
+    .modal-content, .list-group-item {
       background-color: var(--gh-dark-header-bg) !important;
       border: 1px solid var(--gh-dark-border) !important;
       color: var(--gh-dark-text);
-  }
-  .list-group-item a,
-  .list-group-item .fa { /* Target links and icons inside list items */
-      color: var(--gh-dark-text);
-      text-decoration: none;
-  }
-  .list-group-item:hover {
-      background-color: var(--gh-dark-button-hover-bg) !important;
-  }
-  .list-group-item.active { /* Style for active sidebar item if needed */
-      background-color: var(--gh-dark-link) !important;
-      border-color: var(--gh-dark-link) !important;
-      color: #ffffff !important;
-  }
-  .list-group-item.active .fa {
-      color: #ffffff !important;
-  }
-
-  /* Code styling */
-  .code-content, pre, code, .code-blob, /* Target the table */
-  .github-modal-body /* Target modal body */ {
-    background-color: var(--gh-dark-bg) !important; /* Use main dark bg for code */
-    color: var(--gh-dark-text) !important;
-    border: none; /* Remove border if code-content has one */
-  }
-   .code-blob .line-number {
-       background-color: var(--gh-dark-header-bg); /* Line numbers slightly different background */
-       color: var(--gh-dark-secondary-text);
-       border-right: 1px solid var(--gh-dark-border);
-   }
-   .code-blob tr:hover .line-number,
-   .code-blob tr:hover .line-content {
-        background-color: rgba(88, 166, 255, 0.05); /* Subtle hover for code lines */
-   }
-
-
-  /* Diff styling */
-  .diff-table {
-      background-color: var(--gh-dark-header-bg); /* Base background for table */
-  }
-  .diff-line-num {
-    background-color: var(--gh-dark-header-bg); /* Match header bg */
-    color: var(--gh-dark-secondary-text) !important;
-    border-color: var(--gh-dark-border) !important;
-  }
-  .diff-line.added {
-    background-color: var(--gh-dark-diff-add-bg) !important;
-  }
-   .diff-line.added .diff-line-num {
-      background-color: rgba(46, 160, 67, 0.1);
-      border-color: rgba(46, 160, 67, 0.3);
-   }
-  .diff-line.removed {
-    background-color: var(--gh-dark-diff-del-bg) !important;
-  }
-   .diff-line.removed .diff-line-num {
-       background-color: rgba(248, 81, 73, 0.1);
-       border-color: rgba(248, 81, 73, 0.3);
-   }
-   .diff-line.diff-hunk-header {
-        background-color: rgba(88, 166, 255, 0.1); /* Hunk header blue */
-        color: var(--gh-dark-secondary-text);
-   }
-    .diff-line.diff-hunk-header .diff-line-num {
-         background-color: rgba(88, 166, 255, 0.15);
-         border-color: rgba(88, 166, 255, 0.3);
     }
-
-
-  /* Tables */
-  .table {
-    color: var(--gh-dark-text) !important;
-    border-color: var(--gh-dark-border) !important;
-  }
-   .table th, .table td {
+     .modal-header, .modal-footer {
        border-color: var(--gh-dark-border) !important;
-   }
-   .table-striped > tbody > tr:nth-of-type(odd) > * {
-       --bs-table-accent-bg: rgba(255, 255, 255, 0.03); /* Very subtle striping */
-       color: var(--gh-dark-text);
-   }
-
-
-  /* Form controls */
-  input, select, textarea, .form-control, .form-select {
-    background-color: var(--gh-dark-bg) !important; /* Darker background for forms */
-    border: 1px solid var(--gh-dark-border) !important;
-    color: var(--gh-dark-text) !important;
-  }
-   input::placeholder, textarea::placeholder {
+     }
+     .list-group-item:hover {
+         background-color: var(--gh-dark-button-hover-bg) !important;
+     }
+     .list-group-item a {
+         color: var(--gh-dark-link);
+     }
+  
+     /* Headers within containers */
+     .file-explorer-header, .diff-header, .code-header, .card-header,
+     .commit-item .commit-header /* Style commit headers if reused */ {
+       background-color: var(--gh-dark-header-bg); /* Match card background */
+       border-bottom: 1px solid var(--gh-dark-border);
        color: var(--gh-dark-secondary-text);
-       opacity: 0.7;
-   }
-   input:focus, select:focus, textarea:focus, .form-control:focus, .form-select:focus {
-       background-color: var(--gh-dark-bg) !important;
-       color: var(--gh-dark-text) !important;
-       border-color: var(--gh-dark-link) !important; /* Blue border on focus */
-       box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
-   }
-
-
-  /* Tabs styling */
-  .nav-tabs {
-    border-color: var(--gh-dark-border) !important;
-  }
-  .nav-tabs .nav-link {
-    color: var(--gh-dark-secondary-text) !important;
-    border: 1px solid transparent;
-    border-bottom: none; /* Remove default bottom border */
-  }
-  .nav-tabs .nav-link:hover {
-      border-color: var(--gh-dark-border);
-      border-bottom-color: transparent;
+     }
+  
+     /* Breadcrumb styling */
+     .breadcrumb { /* Ensure base ol/nav is themed if needed */
+        background-color: transparent; /* Assuming it sits on body bg */
+     }
+     .breadcrumb-item a {
+       color: var(--gh-dark-link) !important;
+     }
+     .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--gh-dark-secondary-text); /* Darker separator */
+     }
+     .breadcrumb-item.active {
+       color: var(--gh-dark-secondary-text) !important;
+     }
+  
+     /* --- Commit Header Fixes --- */
+     .commit-header .commit-title {
+       color: var(--gh-dark-text); /* Ensure title is bright */
+     }
+     .commit-header .commit-meta {
+       color: var(--gh-dark-secondary-text); /* Use secondary text for "committed on date" */
+     }
+     .commit-header .commit-meta .commit-user {
+       color: var(--gh-dark-text); /* Make username primary text color */
+       font-weight: 600;
+     }
+     .commit-header .commit-meta span#commitDate { /* Target the date span specifically */
+         color: var(--gh-dark-secondary-text);
+     }
+  
+     /* --- Commit List (Multiple Commits) Styling --- */
+     .commit-list { /* Container for multiple commits if shown */
+       background-color: var(--gh-dark-bg); /* Slightly darker than header */
+       border: 1px solid var(--gh-dark-border);
+       border-radius: 6px; /* Match other cards */
+       margin-top: 1rem; /* Add some space */
+     }
+     .commit-list-item { /* Individual commit row */
+        background-color: transparent; /* Inherit from .commit-list */
+        border-bottom: 1px solid var(--gh-dark-border) !important;
+        color: var(--gh-dark-text);
+        padding: 8px 12px;
+     }
+     .commit-list-item:last-child {
+         border-bottom: none !important;
+     }
+     .commit-list-item:hover {
+         background-color: var(--gh-dark-button-hover-bg) !important;
+     }
+     .commit-list-item .commit-hash .badge {
+        background-color: var(--gh-dark-button-bg) !important;
+        color: var(--gh-dark-text) !important;
+        border: 1px solid var(--gh-dark-border);
+        font-weight: normal; /* Override Bootstrap bold */
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        padding: 0.3em 0.6em;
+     }
+     .commit-list-item .commit-message {
+        color: var(--gh-dark-text);
+        font-size: 14px;
+     }
+     .commit-list-item .commit-date {
+        color: var(--gh-dark-secondary-text) !important; /* Ensure date is muted */
+        font-size: 12px;
+     }
+  
+  
+     /* --- Commit Stats Bar Fix --- */
+     .commit-stats {
+       background-color: var(--gh-dark-header-bg) !important; /* Use card background */
+       border: 1px solid var(--gh-dark-border) !important;
+       border-radius: 6px;
+       padding: 8px 16px;
+       margin-bottom: 16px;
+       display: flex;
+       gap: 16px;
+     }
+     .commit-stats .stat-item {
+         color: var(--gh-dark-text); /* Ensure text is light */
+         display: flex;
+         align-items: center;
+         gap: 4px;
+         font-size: 14px;
+     }
+     .commit-stats .stat-item i {
+         color: var(--gh-dark-icon-color); /* Use default icon color initially */
+         margin-right: 4px; /* Ensure spacing */
+     }
+     /* Specific icon colors are handled by .text-success/danger overrides below */
+  
+  
+     /* Buttons styling */
+     .gh-btn, .btn-outline-secondary, .branch-selector, .btn-secondary,
+     .dropdown-toggle {
+       background-color: var(--gh-dark-button-bg);
+       border-color: var(--gh-dark-border);
+       color: var(--gh-dark-button-text);
+       box-shadow: none;
+     }
+     .gh-btn:hover, .btn-outline-secondary:hover, .branch-selector:hover, .btn-secondary:hover,
+     .dropdown-toggle:hover {
+       background-color: var(--gh-dark-button-hover-bg);
+       border-color: var(--gh-dark-secondary-text);
+       color: var(--gh-dark-text);
+     }
+  
+     /* Specific Button Types (Green/Primary/Danger) */
+     .btn-primary, .btn-success, .pr-submit-btn {
+       background-color: var(--gh-dark-green-btn-bg);
+       border-color: var(--gh-dark-green-btn-bg);
+       color: var(--gh-dark-green-btn-text);
+       filter: none;
+     }
+     .btn-primary:hover, .btn-success:hover, .pr-submit-btn:hover {
+       background-color: var(--gh-dark-green-btn-hover-bg);
+       border-color: var(--gh-dark-green-btn-hover-bg);
+       color: var(--gh-dark-green-btn-text);
+     }
+      .btn-danger {
+         background-color: #da3633;
+         border-color: #da3633;
+         color: #ffffff;
+      }
+      .btn-danger:hover {
+         background-color: #b62324;
+         border-color: #b62324;
+         color: #ffffff;
+      }
+  
+  
+     /* --- File Sidebar Styling --- */
+     .files-sidebar {
+          background-color: var(--gh-dark-header-bg) !important;
+          border: 1px solid var(--gh-dark-border) !important;
+          border-radius: 6px;
+          /* height: calc(100vh - 220px); */ /* Adjust height as needed or make it dynamic */
+          display: flex;
+          flex-direction: column;
+          position: relative; /* Keep relative for potential future use, but button is fixed */
+          overflow: hidden; /* Contains header and list */
+     }
+     .files-header {
+          padding: 12px 16px;
+          border-bottom: 1px solid var(--gh-dark-border) !important;
+          font-weight: 600;
+          background-color: var(--gh-dark-header-bg) !important; /* Match sidebar bg */
+          color: var(--gh-dark-text) !important;
+          flex-shrink: 0; /* Prevent header from shrinking */
+     }
+     .files-list {
+          flex-grow: 1;
+          overflow-y: auto;
+          padding: 0;
+          background-color: var(--gh-dark-header-bg) !important; /* Match sidebar bg */
+     }
+     /* Individual file item in sidebar */
+     .file-item {
+       padding: 8px 16px 8px 16px; /* Ensure consistent padding */
+       border-bottom: 1px solid var(--gh-dark-border) !important;
+       color: var(--gh-dark-text);
+       cursor: pointer;
+       display: flex;
+       align-items: center;
+       justify-content: space-between;
+       gap: 8px; /* Add gap between elements */
+       background-color: transparent; /* Inherit from .files-list */
+     }
+     .file-item:last-child {
+        border-bottom: none !important;
+     }
+     .file-item:hover {
+       background-color: var(--gh-dark-button-hover-bg) !important;
+     }
+     .file-item.active {
+        background-color: var(--gh-dark-active-item-bg) !important;
+        /* border-left: 3px solid var(--gh-dark-link); */ /* Optional active indicator */
+     }
+     .file-item i.fa { /* Ensure icon has margin */
+         margin-right: 8px;
+         flex-shrink: 0;
+     }
+     .file-item .file-name {
+       color: var(--gh-dark-link) !important;
+       text-decoration: none;
+       flex-grow: 1; /* Allow name to take space */
+       white-space: nowrap;
+       overflow: hidden;
+       text-overflow: ellipsis;
+       display: inline-block;
+       vertical-align: middle;
+       max-width: calc(100% - 80px); /* Adjust based on icon/changes width */
+     }
+      .file-item .file-name:hover {
+         text-decoration: underline;
+      }
+      /* Tooltip on hover for long file names */
+      .file-item .file-name[title]:hover::after {
+        content: attr(title);
+        position: fixed; /* Use fixed to escape sidebar overflow */
+        /* position: absolute; */ /* Alternative if fixed causes issues */
+        /* left: 100%; margin-left: 10px; top: 0; */
+        transform: translate(10px, 10px); /* Position relative to cursor */
+        z-index: 1100; /* Above button */
+        background-color: #2d333b; /* Dark tooltip bg */
+        color: #c9d1d9; /* Light tooltip text */
+        padding: 5px 8px;
+        border-radius: 3px;
+        max-width: 350px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+        border: 1px solid #444c56;
+        pointer-events: none; /* Prevent tooltip from blocking clicks */
+      }
+  
+     .file-item .file-changes {
+        display: flex;
+        gap: 8px;
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 12px;
+        flex-shrink: 0; /* Prevent shrinking */
+        white-space: nowrap;
+     }
+     /* Colors for +Add/-Del set by .additions/.deletions below */
+  
+  
+    /* Repo item styling (Dashboard etc.) */
+    .repo-item {
+      background-color: var(--gh-dark-header-bg) !important;
+      border: 1px solid var(--gh-dark-border) !important;
       color: var(--gh-dark-text);
-  }
-  .nav-tabs .nav-link.active {
-    background-color: var(--gh-dark-header-bg) !important; /* Match card bg */
-    border-color: var(--gh-dark-border) !important;
-    border-bottom-color: transparent !important; /* Hide bottom border for active tab */
-    color: var(--gh-dark-text) !important;
-    font-weight: 600;
-  }
-
-
-  #commitsList .list-group-item.commit-item,
-  #commitsList .list-group-item.list-group-item-action {
-      background-color: var(--gh-dark-header-bg) !important; /* Use the dark card/item background */
-      border: 1px solid var(--gh-dark-border) !important; /* Use the standard dark border */
-      color: var(--gh-dark-text); /* Ensure base text is light */
-      margin-bottom: 10px; /* Add some spacing between commit items */
-      border-radius: 6px !important; /* Ensure rounded corners */
-      box-shadow: none; /* Remove potential base box-shadow if needed */
-  }
-
-  /* Override hover/focus state specifically for these action items */
-  #commitsList .list-group-item.commit-item:hover,
-  #commitsList .list-group-item.list-group-item-action:hover,
-  #commitsList .list-group-item.commit-item:focus,
-  #commitsList .list-group-item.list-group-item-action:focus {
-      background-color: var(--gh-dark-button-hover-bg) !important; /* Use a slightly lighter dark background on hover */
-      color: var(--gh-dark-text); /* Ensure text stays light on hover */
-      border-color: var(--gh-dark-secondary-text) !important; /* Optional: Slightly lighter border on hover */
-      box-shadow: none;
-      transform: none; /* Override transform from base style.css if necessary */
-  }
-/* Commit history section fixes */
-.commits-container, 
-.commits-list,
-.commit-item,
-.commits-list .list-group-item,
-.commits-list .list-group-item-action {
-    background-color: var(--gh-dark-header-bg) !important;
-    border-color: var(--gh-dark-border) !important;
-    color: var(--gh-dark-text) !important;
-}
-
-/* Fix for commit date headers */
-.commits-list .list-group-item.bg-light {
-    background-color: var(--gh-dark-bg) !important;
-    color: var(--gh-dark-secondary-text) !important;
-}
-
-/* Fix for commit items hover state */
-.commits-list .list-group-item:hover,
-.commit-item:hover {
-    background-color: var(--gh-dark-button-hover-bg) !important;
-}
-
-/* Fix commit meta info */
-.commit-meta, 
-.commit-header .text-muted {
-    color: var(--gh-dark-secondary-text) !important;
-}
-
-/* Fix commit hash badges */
-.commit-header .badge {
-    background-color: var(--gh-dark-button-bg) !important;
-    color: var(--gh-dark-text) !important;
-}
-
-/* Fix links inside commits */
-.commit-title-link {
-    color: var(--gh-dark-link) !important;
-}
-
-/* Fix commit date headers */
-#commitsList .list-group-item.py-1.px-3 {
-    background-color: var(--gh-dark-bg) !important;
-    color: var(--gh-dark-secondary-text) !important;
-}
-
-/* Date separators in commits list */
-html[data-theme="dark"] #commitsList .bg-light.py-1.px-3,
-html[data-theme="dark"] .list-group-item.bg-light.py-1.px-3 {
-    background-color: var(--gh-dark-bg) !important;
-    color: var(--gh-dark-secondary-text) !important;
-    border-color: var(--gh-dark-border) !important;
-}
-
-/* Target the Changed Files section in commit-details.html */
-html[data-theme="dark"] #Changed-Files,
-html[data-theme="dark"] .Changed-Files {
-    background-color: #161b22 !important;
-    color: #c9d1d9 !important;
-}
-
-/* Target the file items in the list */
-html[data-theme="dark"] #filesList .file-item {
-    background-color: #161b22 !important;
-    border-color: #30363d !important;
-}
-
-/* Target the changed files area */
-html[data-theme="dark"] .diff-file-changes,
-html[data-theme="dark"] .diff-file-header,
-html[data-theme="dark"] .diff-file-content {
-    background-color: #161b22 !important;
-    color: #c9d1d9 !important;
-    border-color: #30363d !important;
-}
-
-html[data-theme="dark"] .file-item .file-name[title]:hover::after {
-  background-color: #2d333b;
-  color: #c9d1d9;
-  border: 1px solid #444c56;
-}
-
-
-html[data-theme="dark"] .toggle-sidebar-btn,
-html[data-theme="dark"] #toggleFilesBtn,
-html[data-theme="dark"] button[id="toggleFilesBtn"] {
-    background-color: #444c56 !important;
-    color: #c9d1d9 !important;
-}
-
-/* Ensure sidebar has position relative for absolute positioning */
-.files-sidebar {
-    position: relative !important;
-}
-
-/* Ensure no padding issues */
-.file-item {
-    padding-right: 10px !important;
-}
-
-/* Direct targeting of the file stats section */
-html[data-theme="dark"] .files-changed,
-html[data-theme="dark"] .commit-stats {
-    background-color: #0d1117 !important;
-    color: #c9d1d9 !important;
-    border-color: #30363d !important;
-}
-
-/* Target any fixed backgrounds in commit-details */
-html[data-theme="dark"] [style*="background-color: white"],
-html[data-theme="dark"] [style*="background-color: #fff"],
-html[data-theme="dark"] [style*="background-color:#fff"] {
-    background-color: #161b22 !important;
-}
-
-/* Target the specific elements in your commit-details screenshot */
-html[data-theme="dark"] .files-sidebar,
-html[data-theme="dark"] .files-list {
-    background-color: #161b22 !important;
-    border-color: #30363d !important;
-}
-
-html[data-theme="dark"] #commitDetailsContent,
-html[data-theme="dark"] .commit-files-list,
-html[data-theme="dark"] .diff-container {
-    background-color: #0d1117 !important;
-    color: #c9d1d9 !important;
-}
-
-/* Make sure file paths are visible */
-html[data-theme="dark"] .file-path,
-html[data-theme="dark"] .diff-file-path {
-    color: #58a6ff !important;
-}
-
-/* Fix the "4 files changed" bar */
-html[data-theme="dark"] .commit-summary,
-html[data-theme="dark"] .file-changes-summary {
-    background-color: #161b22 !important;
-    color: #c9d1d9 !important;
-    border-color: #30363d !important;
-}
-
-/* Improve visibility of additions/deletions */
-html[data-theme="dark"] .additions {
-    color: #3fb950 !important;
-}
-
-html[data-theme="dark"] .deletions {
-    color: #f85149 !important;
-}
-
-  /* --- Styles for elements *inside* the commit item --- */
-
-  /* Style the commit title link */
-  #commitsList .commit-item .commit-title-link {
-      color: var(--gh-dark-link) !important;
-      text-decoration: none;
-      font-weight: 600; /* Make title slightly bolder */
-  }
-  #commitsList .commit-item .commit-title-link:hover {
-      text-decoration: underline;
-  }
-
-  /* Style the commit metadata text (author, date) */
-  #commitsList .commit-item .commit-meta,
-  #commitsList .commit-item .commit-meta strong {
+   }
+    .repo-item .repo-name a {
+       color: var(--gh-dark-link);
+       text-decoration: none;
+    }
+    .repo-item .repo-name a:hover {
+       text-decoration: underline;
+    }
+    .repo-item .repo-description,
+    .repo-item .repo-info,
+    .repo-item .repo-info-item {
+       color: var(--gh-dark-secondary-text);
+    }
+    .repo-item .repo-info-item i {
+       color: var(--gh-dark-secondary-text);
+    }
+    .repo-item:hover {
+       background-color: var(--gh-dark-button-hover-bg) !important;
+       border-color: var(--gh-dark-secondary-text) !important;
+       transform: none;
+    }
+  
+  
+    /* Code styling */
+    .code-content, pre, code, .code-blob,
+    .github-modal-body {
+      background-color: var(--gh-dark-bg) !important; /* Use main dark bg for code */
+      color: var(--gh-dark-text) !important;
+      border: none;
+    }
+     .code-blob .line-number {
+        background-color: var(--gh-dark-header-bg); /* Line numbers slightly different background */
+        color: var(--gh-dark-secondary-text);
+        border-right: 1px solid var(--gh-dark-border);
+     }
+     .code-blob tr:hover .line-number,
+     .code-blob tr:hover .line-content {
+         background-color: rgba(88, 166, 255, 0.05); /* Subtle hover for code lines */
+     }
+  
+  
+    /* --- Diff View Styling --- */
+    .diff-section { /* Container for each file's diff */
+         background-color: var(--gh-dark-header-bg) !important;
+         border: 1px solid var(--gh-dark-border) !important;
+         border-radius: 6px;
+         overflow: hidden;
+         margin-bottom: 16px;
+    }
+    .diff-header { /* Header within diff section showing filename */
+        padding: 8px 16px;
+        background-color: var(--gh-dark-header-bg) !important; /* Match section bg */
+        border-bottom: 1px solid var(--gh-dark-border) !important;
+        color: var(--gh-dark-text);
+    }
+     .diff-header .diff-file-header { /* Flex container */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+     }
+    .diff-header .diff-file-name {
+         font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+         font-weight: 600;
+         color: var(--gh-dark-text); /* Use primary text color */
+    }
+     .diff-header .diff-file-stats {
+         display: flex;
+         gap: 8px;
+         font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+         font-size: 12px;
+     }
+     /* +Add / -Del colors handled by .additions/.deletions */
+  
+     .diff-content { /* Container for the table */
+        overflow-x: auto;
+        background-color: var(--gh-dark-bg); /* Darker background for the diff lines themselves */
+     }
+    .diff-table {
+       width: 100%;
+       border-collapse: collapse;
+       font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+       font-size: 12px;
+       line-height: 1.5;
+       tab-size: 4;
+       background-color: var(--gh-dark-bg); /* Match content area */
+    }
+    .diff-line { /* Table row */
+       height: 20px;
+       color: var(--gh-dark-text); /* Default text color */
+    }
+    .diff-line:hover {
+         background-color: rgba(88, 166, 255, 0.05); /* Subtle hover for diff lines */
+    }
+    .diff-line td { /* Ensure table cells have correct border */
+        border: none; /* Remove default borders */
+        vertical-align: top;
+        padding: 0; /* Reset padding */
+    }
+    .diff-line-num { /* Line number cell */
+      min-width: 50px;
+      padding: 0 10px;
+      background-color: var(--gh-dark-header-bg); /* Lighter bg for numbers */
       color: var(--gh-dark-secondary-text) !important;
-      font-size: 12px; /* Match GitHub's smaller meta text */
-  }
-
-  /* Style the commit hash button */
-  #commitsList .commit-item .view-details-btn {
-      background-color: var(--gh-dark-button-bg);
-      border-color: var(--gh-dark-border);
-      color: var(--gh-dark-text);
-      font-size: 12px; /* Smaller font for hash */
-      padding: 2px 6px; /* Adjust padding */
-  }
-  #commitsList .commit-item .view-details-btn:hover {
-      background-color: var(--gh-dark-button-hover-bg);
-      border-color: var(--gh-dark-secondary-text);
-      color: var(--gh-dark-text);
-  }
-
-  /* Make general list group items dark, EXCEPT the commit list ones */
-  .list-group:not(.commits-list) .list-group-item {
+      text-align: right;
+      white-space: nowrap;
+      user-select: none;
+      cursor: pointer; /* Optional: for potential line linking */
+      border-right: 1px solid var(--gh-dark-border) !important;
+    }
+     .diff-line-num.new {
+        border-right: 1px solid var(--gh-dark-border) !important; /* Ensure right border */
+     }
+  
+    .diff-line-content { /* Code content cell */
+       padding: 0 10px;
+       white-space: pre;
+       overflow: visible;
+       color: var(--gh-dark-text);
+    }
+  
+    .diff-line.added {
+      background-color: var(--gh-dark-diff-add-bg) !important;
+      color: var(--gh-dark-text); /* Ensure text is readable */
+    }
+    .diff-line.added .diff-line-num {
+       background-color: rgba(46, 160, 67, 0.1);
+       border-color: rgba(46, 160, 67, 0.3) !important;
+       color: var(--gh-dark-secondary-text) !important; /* Keep number color muted */
+    }
+    .diff-line.removed {
+      background-color: var(--gh-dark-diff-del-bg) !important;
+      color: var(--gh-dark-text); /* Ensure text is readable */
+    }
+    .diff-line.removed .diff-line-num {
+       background-color: rgba(248, 81, 73, 0.1);
+       border-color: rgba(248, 81, 73, 0.3) !important;
+       color: var(--gh-dark-secondary-text) !important; /* Keep number color muted */
+    }
+    .diff-line.diff-hunk-header { /* Hunk header styling (@@ ... @@) */
+        background-color: rgba(88, 166, 255, 0.1) !important;
+        color: var(--gh-dark-secondary-text);
+        font-style: italic;
+    }
+     .diff-line.diff-hunk-header .diff-line-num {
+        background-color: rgba(88, 166, 255, 0.15) !important;
+        border-color: rgba(88, 166, 255, 0.3) !important;
+        color: var(--gh-dark-secondary-text) !important;
+        font-style: normal; /* Don't italicize numbers */
+     }
+     .diff-line.diff-hunk-header .diff-line-content {
+         color: var(--gh-dark-secondary-text);
+     }
+  
+  
+    /* Tables */
+    .table {
+      color: var(--gh-dark-text) !important;
+      border-color: var(--gh-dark-border) !important;
+      background-color: var(--gh-dark-header-bg); /* Use card background for tables */
+    }
+     .table th, .table td {
+        border-color: var(--gh-dark-border) !important;
+     }
+     .table thead th { /* Table header */
+         color: var(--gh-dark-text);
+         background-color: var(--gh-dark-bg); /* Darker header */
+         border-color: var(--gh-dark-border) !important;
+     }
+     .table-striped > tbody > tr:nth-of-type(odd) > * {
+        --bs-table-accent-bg: rgba(255, 255, 255, 0.03); /* Very subtle striping */
+        color: var(--gh-dark-text);
+     }
+     .table-hover > tbody > tr:hover > * {
+         --bs-table-accent-bg: rgba(255, 255, 255, 0.05);
+         color: var(--gh-dark-text);
+     }
+  
+  
+    /* Form controls */
+    input, select, textarea, .form-control, .form-select {
+      background-color: var(--gh-dark-bg) !important; /* Darker background for forms */
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text) !important;
+    }
+     input::placeholder, textarea::placeholder {
+        color: var(--gh-dark-secondary-text);
+        opacity: 0.7;
+     }
+     input:focus, select:focus, textarea:focus, .form-control:focus, .form-select:focus {
+        background-color: var(--gh-dark-bg) !important;
+        color: var(--gh-dark-text) !important;
+        border-color: var(--gh-dark-link) !important; /* Blue border on focus */
+        box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
+     }
+  
+  
+    /* Tabs styling */
+    .nav-tabs {
+      border-bottom-color: var(--gh-dark-border) !important;
+    }
+    .nav-tabs .nav-link {
+      color: var(--gh-dark-secondary-text) !important;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background-color: transparent; /* Ensure no background */
+    }
+    .nav-tabs .nav-link:hover {
+       border-color: var(--gh-dark-border) var(--gh-dark-border) transparent var(--gh-dark-border);
+       color: var(--gh-dark-text) !important;
+    }
+    .nav-tabs .nav-link.active {
+      background-color: var(--gh-dark-header-bg) !important; /* Match card bg */
+      border-color: var(--gh-dark-border) var(--gh-dark-border) transparent var(--gh-dark-border) !important;
+      color: var(--gh-dark-text) !important;
+      font-weight: 600;
+    }
+  
+  
+    /* --- Sidebar Toggle Button --- */
+    #toggleFilesBtn {
+        background-color: var(--gh-dark-button-bg) !important;
+        color: var(--gh-dark-button-text) !important;
+        border: 1px solid var(--gh-dark-border) !important;
+        /* Position is handled by base CSS now */
+    }
+     #toggleFilesBtn:hover {
+         background-color: var(--gh-dark-button-hover-bg) !important;
+         border-color: var(--gh-dark-secondary-text) !important;
+     }
+  
+  
+    /* Dropdown menus */
+    .dropdown-menu {
       background-color: var(--gh-dark-header-bg) !important;
       border-color: var(--gh-dark-border) !important;
       color: var(--gh-dark-text);
-      box-shadow: none; /* Remove base shadow if it exists */
-  }
-  .list-group:not(.commits-list) .list-group-item:hover {
+    }
+    .dropdown-item {
+      color: var(--gh-dark-text) !important;
+    }
+    .dropdown-item:hover, .dropdown-item:focus {
       background-color: var(--gh-dark-button-hover-bg) !important;
-      transform: none;
-  }
-  .list-group:not(.commits-list) .list-group-item.active {
-      background-color: var(--gh-dark-link) !important;
-      border-color: var(--gh-dark-link) !important;
-      color: #ffffff !important;
-  }
-  .list-group:not(.commits-list) .list-group-item.active .fa {
-      color: #ffffff !important;
-  }
-
-  /* --- Fix for Languages Block --- */
-  .languages-container {
-      background-color: var(--gh-dark-header-bg) !important; /* Dark card background */
-      border: 1px solid var(--gh-dark-border) !important;
-      color: var(--gh-dark-text); /* Default text color for the container */
-  }
-
-  /* Style the "Languages" title */
-  .languages-container .section-title { /* Or target h3 directly if needed */
-      color: var(--gh-dark-text);
-  }
-
-  /* Style the language list items */
-  .languages-container .language-item {
-      color: var(--gh-dark-text); /* Ensure list item text is light */
-  }
-
-  /* Style the language name (make it slightly bolder or use link color) */
-  .languages-container .language-name {
-      color: var(--gh-dark-text); /* Or use --gh-dark-link if you want them blue */
-      font-weight: 500; /* Optional: make it slightly bolder */
-  }
-
-  /* Style the percentage text */
-  .languages-container .language-percentage {
-      color: var(--gh-dark-secondary-text); /* Muted text color */
-  }
-
-  /* Style the language progress bars (color is set inline, just ensure container is styled) */
-  .languages-container .language-bar-container {
-      background-color: var(--gh-dark-button-bg); /* Dark background for the bar track */
-      border: 1px solid var(--gh-dark-border);
-  }
-
-  /* Style the loading state for the language bar */
-  .languages-container .language-bar-loading {
-      background: linear-gradient(90deg, var(--gh-dark-button-bg), var(--gh-dark-button-hover-bg), var(--gh-dark-button-bg));
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-  }
-
-  /* Keyframes for loading animation (if not already defined) */
-  @keyframes loading {
-      0% { background-position: 200% 0 }
-      100% { background-position: -200% 0 }
-  }
-
-  /* Dropdown menus */
-  .dropdown-menu {
-    background-color: var(--gh-dark-header-bg) !important;
-    border-color: var(--gh-dark-border) !important;
-    color: var(--gh-dark-text);
-  }
-  .dropdown-item {
-    color: var(--gh-dark-text) !important;
-  }
-  .dropdown-item:hover, .dropdown-item:focus {
-    background-color: var(--gh-dark-button-hover-bg) !important;
-    color: var(--gh-dark-text) !important;
-  }
-   .dropdown-divider {
-       border-top: 1px solid var(--gh-dark-border);
-   }
-   .dropdown-header {
-        color: var(--gh-dark-secondary-text);
-   }
-
-  /* Icons */
-  .fa, .fas, .far, .fab { /* Add other font-awesome prefixes if used */
-    color: var(--gh-dark-icon-color);
-  }
-  /* Specific Icon Colors */
-  .file-icon { color: var(--gh-dark-icon-color); }
-  .file-dir-icon { color: var(--gh-dark-link); } /* Blue for folders */
-  .text-success, .additions, .fa-check-circle { color: var(--gh-dark-green-btn-hover-bg) !important; }
-  .text-danger, .deletions, .fa-times-circle { color: #f85149 !important; } /* GitHub's danger red */
-  .fa-code-branch, .fa-star, .fa-code-fork, .fa-history, .fa-calendar, .fa-eye, .fa-lock, .fa-globe, .fa-search, .fa-plus, .fa-bell, .fa-users, .fa-book, .fa-code-pull-request, .fa-clock {
-     color: var(--gh-dark-icon-color);
-  }
-   a:hover .fa, button:hover .fa { /* Icons inside hovered links/buttons */
-       color: var(--gh-dark-text);
-   }
-
-  /* Syntax highlighting (Placeholder - requires specific selectors for your highlighter) */
-  .hljs {
-    background-color: var(--gh-dark-code-bg) !important; /* Adjust if different from code-content */
-    color: var(--gh-dark-text);
-  }
-  .hljs-keyword { color: #ff7b72; } /* Example keyword color */
-  .hljs-string { color: #a5d6ff; } /* Example string color */
-  .hljs-comment { color: #8b949e; font-style: italic; } /* Example comment color */
-  /* Add more .hljs-* rules based on the GitHub dark theme */
-
-
-  /* Ensure specific overrides for Bootstrap text/bg colors */
-  .text-muted { color: var(--gh-dark-secondary-text) !important; }
-  .text-primary { color: var(--gh-dark-link) !important; }
-  .text-success { color: var(--gh-dark-green-btn-hover-bg) !important; }
-  .text-danger { color: #f85149 !important; }
-  .bg-light { background-color: var(--gh-dark-header-bg) !important; } /* Remap light backgrounds */
-  .bg-white { background-color: var(--gh-dark-header-bg) !important; }/* Remap white backgrounds */
-
-} /* End of html[data-theme="dark"] */
+      color: var(--gh-dark-text) !important;
+    }
+     .dropdown-divider {
+        border-top: 1px solid var(--gh-dark-border);
+     }
+     .dropdown-header {
+         color: var(--gh-dark-secondary-text);
+     }
+  
+    /* --- Icon Overrides --- */
+    /* Default context icon color */
+    body .fa, body .fas, body .far, body .fab { /* Base color if not otherwise specified */
+        color: var(--gh-dark-icon-color);
+    }
+    /* Specific icon classes */
+    .file-icon { color: var(--gh-dark-icon-color); }
+    .dir-icon, .file-dir-icon { color: var(--gh-dark-link); } /* Blue for folders */
+  
+    /* Force important for text utilities often used on icons */
+    .text-success, .additions, .fa-plus { color: #3fb950 !important; }
+    .text-danger, .deletions, .fa-minus { color: #f85149 !important; }
+    .text-warning { color: #d29922 !important; } /* Adjusted yellow */
+    .text-primary { color: var(--gh-dark-link) !important; }
+    .text-info { color: #79c0ff !important; } /* Light blue */
+    .text-muted { color: var(--gh-dark-secondary-text) !important; }
+    .text-light { color: var(--gh-dark-text) !important; } /* Remap */
+  
+    /* Specific icons in components */
+    .stat-item i { color: var(--gh-dark-icon-color); }
+    .stat-item i.text-success { color: #3fb950 !important; } /* Override default if needed */
+    .stat-item i.text-danger { color: #f85149 !important; } /* Override default if needed */
+  
+    /* File icons in sidebar */
+    .file-item i { /* Default icon in file list */
+        color: var(--gh-dark-icon-color);
+    }
+    .file-item i.fa-file-code.text-warning { color: #d29922 !important; }
+    .file-item i.fa-file-code.text-danger { color: #f85149 !important; }
+    .file-item i.fa-file-code.text-primary { color: var(--gh-dark-link) !important; }
+    .file-item i.fa-file-code.text-success { color: #3fb950 !important; }
+    .file-item i.fa-file-alt { color: var(--gh-dark-secondary-text) !important; }
+    .file-item i.fa-file-image { color: #a5d6ff !important; } /* Example image icon color */
+  
+    /* Icons inside buttons/links */
+    a:hover .fa, button:hover .fa,
+    a:hover .fas, button:hover .fas,
+    a:hover .far, button:hover .far,
+    a:hover .fab, button:hover .fab {
+        color: var(--gh-dark-text); /* Ensure icon color changes with link/button hover */
+    }
+  
+  
+    /* Syntax highlighting (Placeholder - Adjust based on Highlight.js theme used) */
+    /* Example using a GitHub dark-like style */
+    pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}
+    .hljs{color:#c9d1d9;background:#0d1117} /* Base text and bg */
+    .hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72} /* Keywords, types */
+    .hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff} /* Function/Class names */
+    .hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-variable,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id{color:#79c0ff} /* Numbers, attributes, variables */
+    .hljs-regexp,.hljs-string,.hljs-symbol,.hljs-bullet,.hljs-link{color:#a5d6ff} /* Strings, regex */
+    .hljs-built_in,.hljs-code,.hljs-comment,.hljs-formula,.hljs-meta .hljs-string,.hljs-section{color:#8b949e} /* Comments, built-ins */
+    .hljs-meta,.hljs-name,.hljs-quote,.hljs-selector-tag,.hljs-selector-pseudo,.hljs-subst,.hljs-tag{color:#7ee787} /* Tags, names */
+    .hljs-emphasis{font-style:italic}
+    .hljs-strong{font-weight:bold}
+  
+  
+    /* General Text/BG Overrides */
+    .text-dark { color: var(--gh-dark-text) !important; } /* Remap text-dark */
+    .bg-light { background-color: var(--gh-dark-header-bg) !important; border-color: var(--gh-dark-border) !important; }
+    .bg-white { background-color: var(--gh-dark-header-bg) !important; border-color: var(--gh-dark-border) !important;}
+  
+    /* Ensure spinners are visible */
+    .spinner-border {
+        color: var(--gh-dark-link); /* Use link color for spinner */
+        border-color: var(--gh-dark-link);
+        border-right-color: transparent;
+    }
+  
+  
+  } /* End of html[data-theme="dark"] */

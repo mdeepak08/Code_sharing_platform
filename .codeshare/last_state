@@ -29,7 +29,7 @@ src/main/java/com/codeshare/platform/ui/util/SceneManager.java:Z7EHpTGYPFHi1ZIGL
 src/main/resources/fxml/MainView.fxml:TS21hiKHbV7AtN5QcjZhJ911y5g0pZioWgdPVeyZIoI=
 src/main/java/com/codeshare/platform/model/PullRequest.java:OIRBlpzgMXViYSHiEwhIk34Z+4wIdVtrqNPVtoV+oYw=
 src/main/resources/static/login.html:LHvH0z4MR8XtIzDAY60BEzXhXgZBz63ErNIWncbzCrw=
-src/main/resources/static/js/commit-batch.js:QWmfRQmwB7g8orzBeq9zRRSyEcz4GShJQlFyIkEqxoI=
+src/main/resources/static/js/commit-batch.js:C83uvsTGGHaCfr29CUUdtpERExXQM6aRcL24IJN3Rkg=
 src/main/java/com/codeshare/platform/controller/CommitController.java:GoNV4n+pqRTIEsACuhpW25H6U6OqOyQAJ8pzdW/hBmI=
 create_dirs_and_files.sh:8+NS4BltDZDYgGaVcSCcVtDNru0Alu3GiU1wHbfr3hw=
 src/main/java/com/codeshare/platform/controller/AuthController.java:r/3PjGXsqRpPgYgS1aU7rewbpiLjzYp9S/NDYT79xuQ=
@@ -58,7 +58,7 @@ src/main/java/com/codeshare/platform/model/ReviewStatus.java:aTtPS/kZ+3D6SmTtOK/
 src/main/java/com/codeshare/platform/config/JacksonConfig.java:uD0tiv6UWQOId24kBCj/GCNJG1hrUSK7Tj3ipAiVU/8=
 src/main/resources/static/js/main.js:MSQGfJt8vcjn83jyAXpWz67K8WTotSlvMCa/E5WxjbI=
 src/main/java/com/codeshare/platform/ui/JavaFxLauncher.java:53GZi2QyFSWnkp6ilbR5NZbBXBOYlvv1tA6doWFxj1k=
-src/main/resources/static/commit-details.html:1PJlaemK25SgK00dCqQAEm37YcngSaa7vJni8iYpvio=
+src/main/resources/static/commit-details.html:oTaSmWnqee5rTgSqnIuIj8cQYuRxqj5ZlnbbiBp5FDE=
 src/main/java/com/codeshare/platform/config/DatabaseConfig.java:oSQAxfdm2S6+JIjC8Q7ZSdkY/dCcpwalCRLLSnDakBo=
 src/main/java/com/codeshare/platform/controller/BranchController.java:kXlppKDtpDeM08g7PIsiAVoXDM9u63aoVF8PEOWRDSE=
 src/main/java/com/codeshare/platform/service/FileService.java:wfMhpoR09tkcaYHx0D6Q5DQ5sJPxj8B2xGcQcWhxVGU=
@@ -78,7 +78,7 @@ codeshare.bat:OfA3y5GRchEwSWkWhcJaDQ8Cz8M1FRlCCaivBorevaU=
 src/main/resources/static/pull-requests.html:bZNqxGXjuwwSdIk2Uow8folEHeLsG4KkUDuA2pzjvwg=
 src/main/java/com/codeshare/platform/security/CustomUserDetailsService.java:feyvYWKTRu15QGYhmpRNwcVZ84/FO1z2oDqwymy076g=
 gradlew:c0s4edNQHc5HHPBSLTvLr+doc9n8USk0W2f7Q70V6TM=
-src/main/resources/static/css/dark-theme.css:r2oCebAeX7njih0wlrQz9At4ir3iNN28UQ+y05uzm38=
+src/main/resources/static/css/dark-theme.css:smmZx2nBwRuvTjiuCwBFB8jjpwZCyKTYwG7A8qJEjAE=
 src/main/java/com/codeshare/platform/controller/VersionControlController.java:N42pDBWbb2YGnT996K6C8Em12WywxrVM8BYx0teMaMA=
 src/main/java/com/codeshare/platform/repository/FileRepository.java:MBcyIqLc4RN6tQGd1gxLmvvj2LA0RGQY1sM55ZmH3l0=
 src/main/java/com/codeshare/platform/model/Branch.java:V3rppNL0vMsj8qabkOyGUdzlfMkT4iNghs/jUFFy6xc=

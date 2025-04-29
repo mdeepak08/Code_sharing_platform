@@ -45,36 +45,44 @@ document.addEventListener('DOMContentLoaded', async function() {
 function setupToggleButton() {
     const toggleBtn = document.getElementById('toggleFilesBtn');
     const filesSidebar = document.getElementById('filesSidebar');
-    const mainContent = document.querySelector('.main-content');
-    
+    const mainContent = document.querySelector('.main-content'); // Ensure this class exists on the main content column
+
     if (toggleBtn && filesSidebar && mainContent) {
+
         toggleBtn.addEventListener('click', function() {
             if (filesSidebar.classList.contains('d-none')) {
-                // Show sidebar
+                // --- Show sidebar ---
                 filesSidebar.classList.remove('d-none');
                 mainContent.classList.remove('col-md-12');
                 mainContent.classList.add('col-md-9');
-                toggleBtn.innerHTML = '<i class="fa fa-chevron-left"></i>';
-                
-                // Update toggle button position (right side of sidebar)
-                toggleBtn.style.position = 'absolute';
-                toggleBtn.style.left = 'auto';
-                toggleBtn.style.right = '-15px';
+                toggleBtn.innerHTML = '<i class="fa fa-chevron-left"></i>'; // Icon to hide sidebar
+                toggleBtn.setAttribute('aria-label', 'Hide sidebar'); // Update accessibility label
+
             } else {
-                // Hide sidebar
+                // --- Hide sidebar ---
                 filesSidebar.classList.add('d-none');
                 mainContent.classList.remove('col-md-9');
                 mainContent.classList.add('col-md-12');
-                toggleBtn.innerHTML = '<i class="fa fa-chevron-right"></i>';
-                
-                // Update toggle button position (left side of screen)
-                toggleBtn.style.position = 'fixed';
-                toggleBtn.style.left = '15px';
-                toggleBtn.style.right = 'auto';
+                toggleBtn.innerHTML = '<i class="fa fa-chevron-right"></i>'; // Icon to show sidebar
+                toggleBtn.setAttribute('aria-label', 'Show sidebar'); // Update accessibility label
+
             }
         });
+
+        // Set initial icon based on sidebar visibility
+        if (filesSidebar.classList.contains('d-none')) {
+             toggleBtn.innerHTML = '<i class="fa fa-chevron-right"></i>';
+             toggleBtn.setAttribute('aria-label', 'Show sidebar');
+        } else {
+             toggleBtn.innerHTML = '<i class="fa fa-chevron-left"></i>';
+             toggleBtn.setAttribute('aria-label', 'Hide sidebar');
+        }
+
+    } else {
+        console.error("Could not find all elements for sidebar toggle:", { toggleBtn, filesSidebar, mainContent });
     }
 }
+
 
 // Load user info
 async function loadUserInfo() {
