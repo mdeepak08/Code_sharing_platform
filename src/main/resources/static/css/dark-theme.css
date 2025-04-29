@@ -116,8 +116,7 @@
          color: var(--gh-dark-secondary-text);
      }
   
-     /* --- Commit List (Multiple Commits) Styling --- */
-     .commit-list { /* Container for multiple commits if shown */
+     .commit-list { 
        background-color: var(--gh-dark-bg); /* Slightly darker than header */
        border: 1px solid var(--gh-dark-border);
        border-radius: 6px; /* Match other cards */
@@ -637,6 +636,277 @@
         border-color: var(--gh-dark-link);
         border-right-color: transparent;
     }
+  
+
+    #commitsList {
+      background-color: var(--gh-dark-header-bg); /* Match card backgrounds */
+      border-radius: 6px; /* Apply rounding if needed */
+      border: 1px solid var(--gh-dark-border);
+      color: var(--gh-dark-text);
+  }
+
+  /* Date Headers within commit list */
+  #commitsList .list-group-item.bg-light {
+      background-color: var(--gh-dark-bg) !important; /* Darker background for date separators */
+      color: var(--gh-dark-secondary-text) !important; /* Muted text for dates */
+      border-color: var(--gh-dark-border) !important; /* Ensure border matches */
+      font-weight: 600;
+  }
+
+  /* Individual commit items */
+  #commitsList .list-group-item.commit-item {
+      background-color: var(--gh-dark-header-bg); /* Ensure item background matches */
+      border-bottom: 1px solid var(--gh-dark-border) !important; /* Ensure separator */
+      color: var(--gh-dark-text);
+  }
+  #commitsList .list-group-item.commit-item:last-child {
+      border-bottom: none !important;
+  }
+  #commitsList .list-group-item.commit-item:hover {
+      background-color: var(--gh-dark-button-hover-bg) !important; /* Use button hover bg */
+  }
+
+  /* Commit title link */
+  #commitsList .commit-item .commit-title-link {
+      color: var(--gh-dark-link) !important;
+      font-weight: 600; /* Keep bold */
+  }
+   #commitsList .commit-item .commit-title-link:hover {
+      text-decoration: underline;
+  }
+
+
+  /* Commit meta text (author, time) */
+  #commitsList .commit-item .commit-meta {
+      color: var(--gh-dark-secondary-text) !important;
+  }
+  #commitsList .commit-item .commit-meta strong {
+      color: var(--gh-dark-text); /* Make author username brighter */
+      font-weight: 600;
+  }
+   #commitsList .commit-item .commit-meta .avatar-img-small {
+       filter: brightness(0.9); /* Slightly dim avatars */
+   }
+
+
+  /* Commit hash / view details button */
+  #commitsList .commit-item .view-details-btn {
+      background-color: var(--gh-dark-button-bg);
+      border-color: var(--gh-dark-border);
+      color: var(--gh-dark-secondary-text); /* Muted text for hash */
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.75rem;
+  }
+  #commitsList .commit-item .view-details-btn:hover {
+      background-color: var(--gh-dark-button-hover-bg);
+      border-color: var(--gh-dark-secondary-text);
+      color: var(--gh-dark-link); /* Link color on hover */
+  }
+   #commitsList .commit-item .view-details-btn i {
+       color: var(--gh-dark-icon-color); /* Ensure icon is themed */
+   }
+
+
+  /* --- Languages Section Styles --- */
+
+  .languages-container {
+      background-color: var(--gh-dark-header-bg) !important;
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text);
+  }
+
+  .languages-container .section-title {
+      color: var(--gh-dark-text); /* Ensure title is light */
+  }
+
+  .language-item .language-name {
+      color: var(--gh-dark-text); /* Ensure language name is light */
+  }
+
+  .language-item .language-percentage {
+      color: var(--gh-dark-secondary-text); /* Ensure percentage is muted */
+  }
+
+  /* Improve loading bar visibility in dark theme */
+  .language-bar-loading {
+      background: linear-gradient(90deg, #1a2027, #2a313a, #1a2027); /* Darker gradient */
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite; /* Reuse existing animation */
+  }
+
+  /* --- General Fixes --- */
+  /* Ensure list groups used elsewhere are also themed */
+   .list-group-item {
+       background-color: var(--gh-dark-header-bg);
+       border-color: var(--gh-dark-border);
+       color: var(--gh-dark-text);
+   }
+   .list-group-item a {
+        color: var(--gh-dark-link);
+    }
+   .list-group-item a:hover {
+        color: #79c0ff; /* Lighter blue on hover */
+    }
+   .list-group-item-action:hover, .list-group-item-action:focus {
+       background-color: var(--gh-dark-button-hover-bg);
+       color: var(--gh-dark-text);
+   }
+
+    /* Fix sticky date header background in dark mode */
+    #commitsList .list-group-item.sticky-top {
+         background-color: var(--gh-dark-bg) !important; /* Match darker background */
+         z-index: 10; /* Ensure it stays above items when scrolling */
+     }
+
+     #projectName {
+      color: var(--gh-dark-text);
+  }
+   #projectDescription.text-muted { /* Ensure muted text is correctly styled */
+       color: var(--gh-dark-secondary-text) !important;
+   }
+
+
+  /* PR Form Container (the white box) */
+  .pr-form-container {
+      background-color: var(--gh-dark-header-bg) !important; /* Use card background */
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text);
+  }
+
+  /* Header within the form container */
+  .pr-form-header {
+      background-color: var(--gh-dark-header-bg) !important; /* Match container */
+      border-bottom: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text); /* Ensure title text is light */
+  }
+   .pr-form-title {
+       color: var(--gh-dark-text);
+   }
+
+
+  /* Form content area */
+  .pr-form-content {
+      /* Usually doesn't need specific styling if container is styled */
+      color: var(--gh-dark-text);
+  }
+
+  /* Branch Selector Dropdowns */
+  .branch-selector {
+      background-color: var(--gh-dark-bg) !important; /* Use darker input background */
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text) !important;
+      border-radius: 6px; /* Ensure consistent rounding */
+  }
+   /* Style options within the select if needed (browser support varies) */
+   .branch-selector option {
+        background-color: var(--gh-dark-bg);
+        color: var(--gh-dark-text);
+    }
+
+  /* Branch comparison arrow */
+  .branch-arrow i {
+      color: var(--gh-dark-secondary-text); /* Muted color for the arrow */
+  }
+
+  /* Form labels */
+  .form-label {
+      color: var(--gh-dark-text); /* Ensure labels are light */
+      font-weight: 600;
+  }
+
+  /* Form helper text */
+  .form-text {
+      color: var(--gh-dark-secondary-text) !important; /* Muted color for help text */
+  }
+
+  /* Input fields (redundant if covered by general form rules, but good to be explicit) */
+   .form-control {
+        background-color: var(--gh-dark-bg) !important;
+        border-color: var(--gh-dark-border) !important;
+        color: var(--gh-dark-text) !important;
+    }
+   .form-control:focus {
+        border-color: var(--gh-dark-link) !important;
+        box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
+        background-color: var(--gh-dark-bg) !important; /* Ensure focus bg */
+        color: var(--gh-dark-text) !important; /* Ensure focus text */
+    }
+
+
+  /* Compare Result Section (appears after clicking compare) */
+  #compareResult h4 {
+      color: var(--gh-dark-text);
+  }
+  .compare-summary {
+      background-color: var(--gh-dark-bg) !important; /* Darker bg for summary box */
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-secondary-text); /* Muted text for summary */
+      border-radius: 6px;
+  }
+  .compare-summary #diffStats .addition {
+       color: #3fb950 !important; /* Ensure explicit color */
+       font-weight: 600;
+   }
+  .compare-summary #diffStats .deletion {
+       color: #f85149 !important; /* Ensure explicit color */
+       font-weight: 600;
+   }
+   .compare-summary #diffStats span { /* Target non-addition/deletion spans */
+        color: var(--gh-dark-secondary-text); /* Ensure these parts are muted */
+    }
+   /* Style the changed file list if it appears here */
+   #compareResult .list-group {
+        border: 1px solid var(--gh-dark-border);
+        border-radius: 6px;
+        overflow: hidden; /* Ensures rounding applies */
+    }
+   #compareResult .list-group-item {
+        background-color: var(--gh-dark-header-bg) !important;
+        border-bottom: 1px solid var(--gh-dark-border) !important;
+        color: var(--gh-dark-text);
+    }
+   #compareResult .list-group-item:last-child {
+        border-bottom: none !important;
+    }
+     #compareResult .list-group-item .badge { /* Style add/del badges */
+          color: #fff !important; /* White text on badges */
+      }
+     #compareResult .list-group-item .badge.bg-success {
+          background-color: #238636 !important; /* GitHub dark green */
+      }
+     #compareResult .list-group-item .badge.bg-danger {
+          background-color: #da3633 !important; /* GitHub dark red */
+      }
+
+
+  /* Buttons (Submit is covered by .btn-primary/.btn-success, style Cancel) */
+  .pr-cancel-btn {
+      background-color: var(--gh-dark-button-bg) !important;
+      border-color: var(--gh-dark-border) !important;
+      color: var(--gh-dark-button-text) !important;
+  }
+  .pr-cancel-btn:hover {
+      background-color: var(--gh-dark-button-hover-bg) !important;
+      border-color: var(--gh-dark-secondary-text) !important;
+      color: var(--gh-dark-text) !important;
+  }
+   .pr-submit-btn { /* Ensure specific PR submit button uses primary style */
+       background-color: var(--gh-dark-green-btn-bg) !important;
+       border-color: var(--gh-dark-green-btn-bg) !important;
+       color: var(--gh-dark-green-btn-text) !important;
+   }
+   .pr-submit-btn:hover {
+       background-color: var(--gh-dark-green-btn-hover-bg) !important;
+       border-color: var(--gh-dark-green-btn-hover-bg) !important;
+       color: var(--gh-dark-green-btn-text) !important;
+   }
+   .pr-submit-btn:disabled { /* Style disabled submit button */
+        background-color: #238636;
+        border-color: #238636;
+        color: rgba(255, 255, 255, 0.5);
+        opacity: 0.6;
+    }
+
   
   
   } /* End of html[data-theme="dark"] */

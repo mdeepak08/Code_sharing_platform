@@ -16,6 +16,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     const urlParams = new URLSearchParams(window.location.search);
     projectId = urlParams.get('projectId');
     
+    // Check if projectId is missing and show a warning toast
+    if (!projectId) {
+        console.warn('Project ID is missing from the commit details URL');
+        // You could show a notification or silently redirect
+        showToast('Project information is incomplete. Some navigation may not work correctly.', 'warning');
+    }
+    
     // Get commit IDs from URL
     const commitParam = urlParams.get('commits');
     if (commitParam) {
@@ -40,6 +47,41 @@ document.addEventListener('DOMContentLoaded', async function() {
     loadProjectDetails();
     loadBatchCommitDetails();
 });
+
+// Helper function for showing toast notifications
+function showToast(message, type = 'info') {
+    // Create a Bootstrap toast notification
+    const toastId = `toast-${Date.now()}`;
+    const toast = `
+        <div id="${toastId}" class="toast align-items-center text-white bg-${type}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    // Ensure the toast container exists
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = 1050;
+        document.body.appendChild(container);
+    }
+    
+    // Add the toast to the container
+    container.innerHTML += toast;
+    
+    // Initialize and show the toast
+    const toastEl = document.getElementById(toastId);
+    const bsToast = new bootstrap.Toast(toastEl, { delay: 5000 });
+    bsToast.show();
+}
+
 
 // Set up the toggle button functionality
 function setupToggleButton() {
@@ -119,29 +161,66 @@ function logout() {
     window.location.href = '/login.html';
 }
 
-// Load project details
+// Inside the loadProjectDetails function:
 async function loadProjectDetails() {
+    if (!projectId) { 
+        console.error('Project ID is missing, cannot load project details.');
+         const projectNavLink = document.getElementById('projectNavLink');
+         if (projectNavLink) {
+             projectNavLink.href = '/dashboard.html'; // Fallback
+             projectNavLink.textContent = 'Project (Unknown)'; // Indicate issue
+             projectNavLink.classList.add('disabled'); 
+         }
+        return; 
+    }
+
     try {
-        const response = await fetch(`/api/projects/${projectId}`, {
+        const response = await fetch(`/api/projects/${projectId}`, { 
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        
+
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
                 const project = result.data;
                 document.title = `Commits - ${project.name}`;
-                
-                // Set breadcrumb links
+
                 document.getElementById('projectLink').textContent = project.name;
-                document.getElementById('projectLink').href = `/project.html?id=${projectId}`;
-                document.getElementById('commitsLink').href = `/project.html?id=${projectId}#commits`;
+                document.getElementById('projectLink').href = `/project.html?id=${projectId}`; // Uses 'id' param
+                document.getElementById('commitsLink').href = `/project.html?id=${projectId}#commits`; // Uses 'id' param
+
+                const projectNavLink = document.getElementById('projectNavLink');
+                if (projectNavLink) {
+                    projectNavLink.href = `/project.html?id=${projectId}`;
+                } else {
+                    console.error("Navbar project link element ('projectNavLink') not found.");
+                }
+
+            } else {
+                 console.error('API call for project details was not successful:', result.message);
+                 const projectNavLink = document.getElementById('projectNavLink');
+                 if (projectNavLink) {
+                     projectNavLink.href = '/dashboard.html';
+                     projectNavLink.classList.add('disabled');
+                 }
             }
+        } else {
+             console.error(`Failed to load project details, status: ${response.status}`);
+             const projectNavLink = document.getElementById('projectNavLink');
+             if (projectNavLink) {
+                 projectNavLink.href = '/dashboard.html';
+                 projectNavLink.classList.add('disabled');
+             }
         }
     } catch (error) {
         console.error('Error loading project details:', error);
+         const projectNavLink = document.getElementById('projectNavLink');
+         if (projectNavLink) {
+             projectNavLink.href = '/dashboard.html';
+             projectNavLink.classList.add('disabled');
+         }
     }
 }
 

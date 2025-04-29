@@ -32,7 +32,7 @@
                         <a class="nav-link" href="/dashboard.html">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Project</a>
+                        <a class="nav-link active" id="project-link" href="#">Project</a> <!-- We'll set this href dynamically -->
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
@@ -2222,7 +2222,7 @@ function displayPullRequests(pullRequests) {
         return;
     }
 
-    pullRequestsList.innerHTML = ''; // Clear loading/previous
+    pullRequestsList.innerHTML = '';
 
     pullRequests.forEach(pr => {
         let statusClass = 'bg-secondary';
