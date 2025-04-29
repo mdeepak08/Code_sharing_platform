@@ -3,8 +3,15 @@ const token = localStorage.getItem('jwt_token');
 let projectId;
 let commitIds = [];
 
+// Helper function to extract filename from path
+function getFileName(path) {
+    return path.split('/').pop();
+}
+
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadUserInfo();
+    
     // Parse URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     projectId = urlParams.get('projectId');
@@ -26,10 +33,83 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Setup toggle button
+    setupToggleButton();
+    
+    // Load data
     loadProjectDetails();
     loadBatchCommitDetails();
-    setupEventListeners();
 });
+
+// Set up the toggle button functionality
+function setupToggleButton() {
+    const toggleBtn = document.getElementById('toggleFilesBtn');
+    const filesSidebar = document.getElementById('filesSidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (toggleBtn && filesSidebar && mainContent) {
+        toggleBtn.addEventListener('click', function() {
+            if (filesSidebar.classList.contains('d-none')) {
+                // Show sidebar
+                filesSidebar.classList.remove('d-none');
+                mainContent.classList.remove('col-md-12');
+                mainContent.classList.add('col-md-9');
+                toggleBtn.innerHTML = '<i class="fa fa-chevron-left"></i>';
+                
+                // Update toggle button position (right side of sidebar)
+                toggleBtn.style.position = 'absolute';
+                toggleBtn.style.left = 'auto';
+                toggleBtn.style.right = '-15px';
+            } else {
+                // Hide sidebar
+                filesSidebar.classList.add('d-none');
+                mainContent.classList.remove('col-md-9');
+                mainContent.classList.add('col-md-12');
+                toggleBtn.innerHTML = '<i class="fa fa-chevron-right"></i>';
+                
+                // Update toggle button position (left side of screen)
+                toggleBtn.style.position = 'fixed';
+                toggleBtn.style.left = '15px';
+                toggleBtn.style.right = 'auto';
+            }
+        });
+    }
+}
+
+// Load user info
+async function loadUserInfo() {
+    const userInfoSpan = document.getElementById('userInfo');
+    if (!userInfoSpan) return; // Exit if element doesn't exist
+
+    try {
+        const response = await fetch('/api/auth/user', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data && result.data.username) {
+                const username = typeof escapeHtml === 'function' ? 
+                    escapeHtml(result.data.username) : result.data.username;
+                userInfoSpan.textContent = `Welcome, ${username}`;
+            } else {
+                userInfoSpan.textContent = 'Welcome';
+            }
+        } else {
+            console.error('Failed to load user info, status:', response.status);
+            userInfoSpan.textContent = 'Welcome';
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
+        userInfoSpan.textContent = 'Welcome';
+    }
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('jwt_token');
+    window.location.href = '/login.html';
+}
 
 // Load project details
 async function loadProjectDetails() {
@@ -49,6 +129,7 @@ async function loadProjectDetails() {
                 // Set breadcrumb links
                 document.getElementById('projectLink').textContent = project.name;
                 document.getElementById('projectLink').href = `/project.html?id=${projectId}`;
+                document.getElementById('commitsLink').href = `/project.html?id=${projectId}#commits`;
             }
         }
     } catch (error) {
@@ -58,73 +139,68 @@ async function loadProjectDetails() {
 
 // Load batch commit details
 async function loadBatchCommitDetails() {
-    const filesList = document.getElementById('filesList'); // Get these references earlier
-        const diffContainer = document.getElementById('diffContainer');
+    const filesList = document.getElementById('filesList');
+    const diffContainer = document.getElementById('diffContainer');
     
-         if (!filesList || !diffContainer) {
-            console.error("Core DOM elements for commit details not found.");
-            showError('UI Error: Necessary elements not found.'); // Use showError
-            return;
-        }
+    if (!filesList || !diffContainer) {
+        console.error("Core DOM elements for commit details not found.");
+        showError('UI Error: Necessary elements not found.');
+        return;
+    }
     
     try {
-    // Show loading spinner directly in the diffContainer
-    diffContainer.innerHTML = `
-   <div class="text-center py-5">
-     <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Loading...</span>
-     </div>
-   <p class="mt-3">Loading commit details...</p>
-    </div>
-    `;
-        // Optional: Clear files list spinner/content too
+        // Show loading spinner
+        diffContainer.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Loading commit details...</p>
+            </div>
+        `;
         filesList.innerHTML = `
-                 <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-     <span class="visually-hidden">Loading...</span>
-     </div>
-     </div>
-            `;
-    
-    
-     // Construct the API query string (rest of this is the same)
-    const queryString = commitIds.map(id => `commitIds=${id}`).join('&');
-   const response = await fetch(`/api/version-control/commit-batch?${queryString}`, {
-    headers: {
-    'Authorization': `Bearer ${token}`
-     }
-   });
-    
-     if (!response.ok) {
-    throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-    }
-    
-     const result = await response.json();
-    
-if (result.success && result.data) {
-    const batchDetails = result.data;
-    const commits = batchDetails.commits || [];
-     const fileChanges = batchDetails.fileChanges || {};
-    
-    // Update commit header (uses elements outside diffContainer)
-     updateCommitHeader(commits);
-    
-    // Display file changes (will now correctly find diffContainer and filesList)
-     displayFileChanges(fileChanges); // <-- This function is called AFTER fetch success
-     // Update commit stats
-     updateCommitStats(commits, fileChanges);
-    
-            // Remove spinner from diffContainer if displayFileChanges succeeded
-            // (displayFileChanges clears it anyway, but good practice)
-     } else {
-    throw new Error(result.message || 'Failed to load commit details');
-    }
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        
+        // Construct the API query string
+        const queryString = commitIds.map(id => `commitIds=${id}`).join('&');
+        const response = await fetch(`/api/version-control/commit-batch?${queryString}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const batchDetails = result.data;
+            const commits = batchDetails.commits || [];
+            const fileChanges = batchDetails.fileChanges || {};
+            
+            // Update commit header
+            updateCommitHeader(commits);
+            
+            // Display file changes
+            displayFileChanges(fileChanges);
+            
+            // Update commit stats
+            updateCommitStats(commits, fileChanges);
+        } else {
+            throw new Error(result.message || 'Failed to load commit details');
+        }
     } catch (error) {
-     console.error('Error loading batch commit details:', error);
-    // Use showError to display the error message in commitContent
-     showError(`Failed to load commit details: ${error.message}`);
+        console.error('Error loading batch commit details:', error);
+        showError(`Failed to load commit details: ${error.message}`);
     }
-    }
+}
 
 // Update commit header information
 function updateCommitHeader(commits) {
@@ -185,22 +261,11 @@ function updateCommitHeader(commits) {
 function displayFileChanges(fileChanges) {
     const filesList = document.getElementById('filesList');
     const diffContainer = document.getElementById('diffContainer');
-        // --- Add null checks here based on the error ---
-    // The error is on filesList, so check it specifically
-    if (!filesList) {
-        console.error("DOM element with ID 'filesList' not found. Aborting file changes display.");
-        // Optional: Show a user-friendly message on the page indicating a UI issue
-        // Example: document.getElementById('commitContent').innerHTML = "<div class='alert alert-danger'>UI Error: Could not find the file list area.</div>";
-        return; // Stop execution if the element is missing
+    
+    if (!filesList || !diffContainer) {
+        console.error("DOM elements for file changes not found.");
+        return;
     }
-     // You might as well check diffContainer too for robustness
-     if (!diffContainer) {
-        console.error("DOM element with ID 'diffContainer' not found. Aborting file changes display.");
-        // Optional: Show a user-friendly message
-        // Example: document.getElementById('commitContent').innerHTML = "<div class='alert alert-danger'>UI Error: Could not find the difference viewer area.</div>";
-        return; // Stop execution
-    }
-    // --- End null checks ---
 
     // Clear existing content
     filesList.innerHTML = '';
@@ -224,6 +289,9 @@ function displayFileChanges(fileChanges) {
         const fileItem = document.createElement('div');
         fileItem.className = 'file-item';
         fileItem.dataset.path = filePath;
+        
+        // Extract just the filename for display
+        const fileName = getFileName(filePath);
         
         // Determine file icon based on extension
         const extension = filePath.split('.').pop().toLowerCase();
@@ -254,10 +322,10 @@ function displayFileChanges(fileChanges) {
             if (line.startsWith('-')) deletions++;
         });
         
-        // Create the file item HTML
+        // Create the file item HTML - show filename only
         fileItem.innerHTML = `
             <i class="fa ${fileIcon} me-2"></i>
-            <span class="file-name">${filePath}</span>
+            <span class="file-name" title="${filePath}">${fileName}</span>
             <div class="file-changes">
                 ${additions > 0 ? `<span class="additions">+${additions}</span>` : ''}
                 ${deletions > 0 ? `<span class="deletions">-${deletions}</span>` : ''}
@@ -290,7 +358,7 @@ function displayFileChanges(fileChanges) {
         diffHeader.className = 'diff-header';
         diffHeader.innerHTML = `
             <div class="diff-file-header">
-                <span class="diff-file-name">${filePath}</span>
+                <span class="diff-file-name" title="${filePath}">${fileName}</span>
                 <div class="diff-file-stats">
                     <span class="additions">+${additions}</span>
                     <span class="deletions">-${deletions}</span>
@@ -499,30 +567,6 @@ function updateCommitStats(commits, fileChanges) {
     document.getElementById('deletionsCount').textContent = totalDeletions;
 }
 
-// Set up event listeners
-function setupEventListeners() {
-    // Toggle file tree button
-    const toggleFilesBtn = document.getElementById('toggleFilesBtn');
-    if (toggleFilesBtn) {
-        toggleFilesBtn.addEventListener('click', function() {
-            const filesSidebar = document.querySelector('.files-sidebar');
-            const mainContent = document.querySelector('.main-content');
-            
-            if (filesSidebar.classList.contains('d-none')) {
-                filesSidebar.classList.remove('d-none');
-                mainContent.classList.remove('col-md-12');
-                mainContent.classList.add('col-md-9');
-                this.innerHTML = '<i class="fa fa-chevron-left"></i>';
-            } else {
-                filesSidebar.classList.add('d-none');
-                mainContent.classList.remove('col-md-9');
-                mainContent.classList.add('col-md-12');
-                this.innerHTML = '<i class="fa fa-chevron-right"></i>';
-            }
-        });
-    }
-}
-
 // Helper function: Generate hash from string
 function hashString(str) {
     let hash = 0;
@@ -535,6 +579,7 @@ function hashString(str) {
 
 // Helper function: Escape HTML
 function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return '';
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -545,10 +590,13 @@ function escapeHtml(unsafe) {
 
 // Helper function: Show error message
 function showError(message) {
-    document.getElementById('commitContent').innerHTML = `
-        <div class="alert alert-danger">
-            <i class="fa fa-exclamation-triangle me-2"></i>
-            ${message}
-        </div>
-    `;
+    const commitContent = document.getElementById('commitContent');
+    if (commitContent) {
+        commitContent.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fa fa-exclamation-triangle me-2"></i>
+                ${message}
+            </div>
+        `;
+    }
 }

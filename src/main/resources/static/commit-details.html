@@ -9,9 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <link rel="stylesheet" href="/css/style.css">
-
     <link rel="stylesheet" href="/css/dark-theme.css">
-
     <script src="/js/theme-switcher.js" defer></script>
     <style>
         :root {
@@ -111,6 +109,7 @@
             height: calc(100vh - 220px);
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         
         .files-header {
@@ -145,6 +144,35 @@
         
         .file-name {
             flex-grow: 1;
+        }
+        .file-item .file-name {
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .file-item .file-name:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .file-item .file-name[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 100%;
+            top: 0;
+            z-index: 1000;
+            background-color: #333;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 3px;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-left: 10px;
         }
         
         .file-changes {
@@ -288,22 +316,29 @@
             background-color: #f1f1f1;
         }
         
-        .toggle-sidebar-btn {
-            position: fixed;
-            left: calc(25% - 15px);
+        /* Toggle sidebar button styling */
+        #toggleFilesBtn {
+            position: absolute;
             top: 50%;
+            right: -15px;
             transform: translateY(-50%);
-            z-index: 1000;
             width: 30px;
             height: 30px;
+            background-color: #444;
+            color: white;
+            border: none;
             border-radius: 50%;
-            background-color: white;
-            border: 1px solid var(--gh-border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            z-index: 100;
+        }
+
+        html[data-theme="dark"] #toggleFilesBtn {
+            background-color: #1f2937;
+            color: #e6edf3;
         }
     </style>
 </head>
@@ -320,7 +355,7 @@
                         <a class="nav-link" href="/dashboard.html">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Project</a>
+                        <a class="nav-link active" href="/project.html">Project</a>
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
@@ -330,7 +365,7 @@
             </div>
         </div>
     </nav>
-
+    
     <div class="container mb-5">
         <!-- Breadcrumb navigation -->
         <nav aria-label="breadcrumb" class="mb-4">
@@ -369,14 +404,9 @@
             </div>
         </div>
         
-        <!-- Toggle Sidebar Button -->
-        <button class="toggle-sidebar-btn" id="toggleFilesBtn">
-            <i class="fa fa-chevron-left"></i>
-        </button>
-        
         <div class="row">
             <!-- Files Sidebar -->
-            <div class="col-md-3 files-sidebar">
+            <div class="col-md-3 files-sidebar" id="filesSidebar">
                 <div class="files-header">
                     Changed Files
                 </div>
@@ -387,6 +417,10 @@
                         </div>
                     </div>
                 </div>
+                <!-- Toggle Button -->
+                <button id="toggleFilesBtn" aria-label="Toggle sidebar">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
             </div>
             
             <!-- Main Content -->

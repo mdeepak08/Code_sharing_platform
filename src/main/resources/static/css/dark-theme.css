@@ -1,5 +1,3 @@
-/* static/css/dark-theme.css */
-
 :root {
   /* GitHub Dark Theme Inspired Variables */
   --gh-dark-bg: #0d1117;           /* Deep dark background */
@@ -19,12 +17,6 @@
   --gh-dark-diff-del-bg: rgba(248, 81, 73, 0.15); /* Deleted lines background */
   --gh-dark-icon-color: #8b949e;    /* Default icon color */
 }
-
-/* --- Apply these variables --- */
-
-/* Add this prefix to all selectors below if your theme-switcher.js
-   uses data-theme attribute. If it adds a class like '.dark-theme',
-   use that class instead (e.g., .dark-theme body { ... }) */
 html[data-theme="dark"] {
 
   body {
@@ -351,6 +343,157 @@ html[data-theme="dark"] {
       box-shadow: none;
       transform: none; /* Override transform from base style.css if necessary */
   }
+/* Commit history section fixes */
+.commits-container, 
+.commits-list,
+.commit-item,
+.commits-list .list-group-item,
+.commits-list .list-group-item-action {
+    background-color: var(--gh-dark-header-bg) !important;
+    border-color: var(--gh-dark-border) !important;
+    color: var(--gh-dark-text) !important;
+}
+
+/* Fix for commit date headers */
+.commits-list .list-group-item.bg-light {
+    background-color: var(--gh-dark-bg) !important;
+    color: var(--gh-dark-secondary-text) !important;
+}
+
+/* Fix for commit items hover state */
+.commits-list .list-group-item:hover,
+.commit-item:hover {
+    background-color: var(--gh-dark-button-hover-bg) !important;
+}
+
+/* Fix commit meta info */
+.commit-meta, 
+.commit-header .text-muted {
+    color: var(--gh-dark-secondary-text) !important;
+}
+
+/* Fix commit hash badges */
+.commit-header .badge {
+    background-color: var(--gh-dark-button-bg) !important;
+    color: var(--gh-dark-text) !important;
+}
+
+/* Fix links inside commits */
+.commit-title-link {
+    color: var(--gh-dark-link) !important;
+}
+
+/* Fix commit date headers */
+#commitsList .list-group-item.py-1.px-3 {
+    background-color: var(--gh-dark-bg) !important;
+    color: var(--gh-dark-secondary-text) !important;
+}
+
+/* Date separators in commits list */
+html[data-theme="dark"] #commitsList .bg-light.py-1.px-3,
+html[data-theme="dark"] .list-group-item.bg-light.py-1.px-3 {
+    background-color: var(--gh-dark-bg) !important;
+    color: var(--gh-dark-secondary-text) !important;
+    border-color: var(--gh-dark-border) !important;
+}
+
+/* Target the Changed Files section in commit-details.html */
+html[data-theme="dark"] #Changed-Files,
+html[data-theme="dark"] .Changed-Files {
+    background-color: #161b22 !important;
+    color: #c9d1d9 !important;
+}
+
+/* Target the file items in the list */
+html[data-theme="dark"] #filesList .file-item {
+    background-color: #161b22 !important;
+    border-color: #30363d !important;
+}
+
+/* Target the changed files area */
+html[data-theme="dark"] .diff-file-changes,
+html[data-theme="dark"] .diff-file-header,
+html[data-theme="dark"] .diff-file-content {
+    background-color: #161b22 !important;
+    color: #c9d1d9 !important;
+    border-color: #30363d !important;
+}
+
+html[data-theme="dark"] .file-item .file-name[title]:hover::after {
+  background-color: #2d333b;
+  color: #c9d1d9;
+  border: 1px solid #444c56;
+}
+
+
+html[data-theme="dark"] .toggle-sidebar-btn,
+html[data-theme="dark"] #toggleFilesBtn,
+html[data-theme="dark"] button[id="toggleFilesBtn"] {
+    background-color: #444c56 !important;
+    color: #c9d1d9 !important;
+}
+
+/* Ensure sidebar has position relative for absolute positioning */
+.files-sidebar {
+    position: relative !important;
+}
+
+/* Ensure no padding issues */
+.file-item {
+    padding-right: 10px !important;
+}
+
+/* Direct targeting of the file stats section */
+html[data-theme="dark"] .files-changed,
+html[data-theme="dark"] .commit-stats {
+    background-color: #0d1117 !important;
+    color: #c9d1d9 !important;
+    border-color: #30363d !important;
+}
+
+/* Target any fixed backgrounds in commit-details */
+html[data-theme="dark"] [style*="background-color: white"],
+html[data-theme="dark"] [style*="background-color: #fff"],
+html[data-theme="dark"] [style*="background-color:#fff"] {
+    background-color: #161b22 !important;
+}
+
+/* Target the specific elements in your commit-details screenshot */
+html[data-theme="dark"] .files-sidebar,
+html[data-theme="dark"] .files-list {
+    background-color: #161b22 !important;
+    border-color: #30363d !important;
+}
+
+html[data-theme="dark"] #commitDetailsContent,
+html[data-theme="dark"] .commit-files-list,
+html[data-theme="dark"] .diff-container {
+    background-color: #0d1117 !important;
+    color: #c9d1d9 !important;
+}
+
+/* Make sure file paths are visible */
+html[data-theme="dark"] .file-path,
+html[data-theme="dark"] .diff-file-path {
+    color: #58a6ff !important;
+}
+
+/* Fix the "4 files changed" bar */
+html[data-theme="dark"] .commit-summary,
+html[data-theme="dark"] .file-changes-summary {
+    background-color: #161b22 !important;
+    color: #c9d1d9 !important;
+    border-color: #30363d !important;
+}
+
+/* Improve visibility of additions/deletions */
+html[data-theme="dark"] .additions {
+    color: #3fb950 !important;
+}
+
+html[data-theme="dark"] .deletions {
+    color: #f85149 !important;
+}
 
   /* --- Styles for elements *inside* the commit item --- */
 
