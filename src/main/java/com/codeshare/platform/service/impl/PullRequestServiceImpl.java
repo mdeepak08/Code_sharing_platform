@@ -29,9 +29,11 @@ import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.PullRequest;
 import com.codeshare.platform.model.PullRequestStatus;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.model.UserActivity;
 import com.codeshare.platform.repository.CommentRepository;
 import com.codeshare.platform.repository.CommitRepository;
 import com.codeshare.platform.repository.PullRequestRepository;
+import com.codeshare.platform.service.ActivityService;
 import com.codeshare.platform.service.PullRequestService;
 import com.codeshare.platform.service.VersionControlService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -46,6 +48,8 @@ public class PullRequestServiceImpl implements PullRequestService {
     private final CommentRepository commentRepository;
     private final CommitRepository commitRepository;
     private final ObjectMapper objectMapper;
+    @Autowired
+    private ActivityService activityService;
     
     @Value("${git.repositories.base-path:/tmp/git-repositories}")
     private String gitRepositoriesBasePath;
@@ -71,7 +75,22 @@ public class PullRequestServiceImpl implements PullRequestService {
         // Check if mergeable on creation
         pullRequest.setMergeable(checkMergeable(pullRequest));
         
-        return pullRequestRepository.save(pullRequest);
+        // Save the pull request
+        PullRequest savedPR = pullRequestRepository.save(pullRequest);
+        
+        // Track activity with correct URL format for your existing pull-request.html
+        activityService.trackActivity(
+            pullRequest.getAuthor(),
+            UserActivity.ActivityType.PULL_REQUEST_CREATED,
+            "Created pull request: " + pullRequest.getTitle(),
+            savedPR.getId(),
+            "/pull-request.html?id=" + savedPR.getId() + "&projectId=" + pullRequest.getProject().getId(),
+            "project: " + pullRequest.getProject().getName() + 
+            ", source: " + pullRequest.getSourceBranch().getName() + 
+            ", target: " + pullRequest.getTargetBranch().getName()
+        );
+        
+        return savedPR;
     }
 
     @Override
@@ -430,6 +449,16 @@ public class PullRequestServiceImpl implements PullRequestService {
         pullRequest.setUpdatedAt(LocalDateTime.now());
         
         pullRequestRepository.save(pullRequest);
+        
+        // Track activity with correct URL format
+        activityService.trackActivity(
+            merger,
+            UserActivity.ActivityType.PULL_REQUEST_MERGED,
+            "Merged pull request: " + pullRequest.getTitle(),
+            pullRequest.getId(),
+            "/pull-request.html?id=" + pullRequest.getId() + "&projectId=" + pullRequest.getProject().getId(),
+            mergeMessage
+        );
     }
     
     @Override
@@ -439,6 +468,16 @@ public class PullRequestServiceImpl implements PullRequestService {
         pullRequest.setUpdatedAt(LocalDateTime.now());
         
         pullRequestRepository.save(pullRequest);
+        
+        // Track activity with correct URL format
+        activityService.trackActivity(
+            closer,
+            UserActivity.ActivityType.PULL_REQUEST_CLOSED,
+            "Closed pull request: " + pullRequest.getTitle(),
+            pullRequest.getId(),
+            "/pull-request.html?id=" + pullRequest.getId() + "&projectId=" + pullRequest.getProject().getId(),
+            null
+        );
     }
     
     @Override

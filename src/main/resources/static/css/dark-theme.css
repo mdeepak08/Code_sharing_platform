@@ -1423,6 +1423,54 @@
            border-top-color: var(--gh-dark-border) !important;
        }
 
+        body.dark-theme .btn-outline-dark,
+    [data-theme="dark"] .btn-outline-dark {
+        color: #e6edf3;
+        border-color: #8b949e;
+        background-color: transparent;
+    }
+
+    body.dark-theme .btn-outline-dark:hover,
+    [data-theme="dark"] .btn-outline-dark:hover {
+        color: #ffffff;
+        background-color: #30363d;
+        border-color: #8b949e;
+    }
+
+    body.dark-theme .btn-outline-dark:focus,
+    [data-theme="dark"] .btn-outline-dark:focus,
+    body.dark-theme .btn-outline-dark:active,
+    [data-theme="dark"] .btn-outline-dark:active {
+        color: #ffffff;
+        background-color: #30363d;
+        border-color: #8b949e;
+        box-shadow: 0 0 0 0.25rem rgba(139, 148, 158, 0.5);
+    }
+
+    /* Make profile card background darker in dark mode */
+    body.dark-theme .card,
+    [data-theme="dark"] .card {
+        background-color: #1f2937;
+        border-color: #30363d;
+    }
+
+    /* Make text in profile card more visible in dark mode */
+    body.dark-theme .card-body h5,
+    [data-theme="dark"] .card-body h5 {
+        color: #e6edf3;
+    }
+
+    body.dark-theme .text-muted,
+    [data-theme="dark"] .text-muted {
+        color: #8b949e !important;
+    }
+
+    /* Fix shadow in dark mode */
+    body.dark-theme .shadow-sm,
+    [data-theme="dark"] .shadow-sm {
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.3) !important;
+    }
+
 
            /* Target the specific timeline-content box holding the PR description */
     #conversationTab > .mb-4 > .d-flex > .timeline-content {

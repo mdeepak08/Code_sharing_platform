@@ -10,7 +10,8 @@ public class UserDto {
     private String fullName;
     private String bio;
 
-    // Getter and setter
+    // Even though Lombok @Data should generate these methods,
+    // let's add them explicitly to ensure they're present
     public String getBio() {
         return bio;
     }
@@ -18,5 +19,17 @@ public class UserDto {
     public void setBio(String bio) {
         this.bio = bio;
     }
-    // Exclude password for security
+    
+    // Constructor with bio
+    public UserDto(Long id, String username, String email, String fullName, String bio) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.fullName = fullName;
+        this.bio = bio;
+    }
+    
+    // Default constructor
+    public UserDto() {
+    }
 }

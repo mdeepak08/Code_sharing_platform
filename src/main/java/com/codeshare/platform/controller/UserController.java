@@ -114,20 +114,23 @@ public class UserController {
             }
         }
         
-        // Update bio if provided
+        // Update bio if provided - this is the key part we're checking
         if (profileData.containsKey("bio")) {
             String bio = (String) profileData.get("bio");
-            // Assuming you have a bio field in your User model
-            // If not, you'll need to add this field to your User class
+            // Set the bio field
             user.setBio(bio);
+            // Log to confirm bio is being set
+            System.out.println("Setting user bio to: " + bio);
             updated = true;
         }
         
         // Save changes if any updates were made
         if (updated) {
             User updatedUser = userService.updateUser(user);
+            // Convert to DTO
+            UserDto dto = convertToDto(updatedUser);
             return new ResponseEntity<>(
-                ApiResponse.success("Profile updated successfully", convertToDto(updatedUser)),
+                ApiResponse.success("Profile updated successfully", dto),
                 HttpStatus.OK
             );
         } else {
@@ -139,21 +142,26 @@ public class UserController {
     }
 
 
-    // Helper method to convert User to UserDto (you may already have this)
+
+    // Helper method to convert User to UserDto
     private UserDto convertToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setFullName(user.getFullName());
+        
+        // Make sure we include bio in the DTO response
         dto.setBio(user.getBio());
+        
         return dto;
     }
-        // Helper method to validate email format
-        private boolean isValidEmail(String email) {
-            // Basic email validation using regex
-            String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-            return email.matches(emailRegex);
-        }
+    
+    // Helper method to validate email format
+    private boolean isValidEmail(String email) {
+        // Basic email validation using regex
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email.matches(emailRegex);
+    }
     
 }

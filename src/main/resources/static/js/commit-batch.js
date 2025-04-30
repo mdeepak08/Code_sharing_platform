@@ -235,6 +235,41 @@ async function loadBatchCommitDetails() {
         return;
     }
     
+    // Get projectId from URL or from parent project if available
+    if (!projectId) {
+        // Try to extract projectId from the HTML structure if present
+        const projectLink = document.getElementById('projectLink');
+        if (projectLink && projectLink.href) {
+            const match = projectLink.href.match(/[?&]id=([^&]+)/);
+            if (match && match[1]) {
+                projectId = match[1];
+                console.log("Recovered project ID from link:", projectId);
+            }
+        }
+    }
+    
+    // Check if we still don't have a projectId
+    if (!projectId) {
+        console.warn("Project ID is missing from the commit details URL");
+        
+        // Show a more user-friendly error message in the UI
+        diffContainer.innerHTML = `
+            <div class="alert alert-warning">
+                <h5><i class="fa fa-exclamation-triangle me-2"></i> Missing Project Information</h5>
+                <p>The project ID is missing, which is needed to load the commit details.</p>
+                <p>You can navigate back to the project and try accessing the commit from there.</p>
+                <div class="mt-3">
+                    <a href="/dashboard.html" class="btn btn-secondary btn-sm me-2">
+                        <i class="fa fa-home me-1"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        `;
+        
+        filesList.innerHTML = '';
+        return;
+    }
+    
     try {
         // Show loading spinner
         diffContainer.innerHTML = `

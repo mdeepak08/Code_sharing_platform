@@ -103,11 +103,16 @@ public class AuthController {
         
         if (userOpt.isPresent()) {
             User user = userOpt.get();
+            
+            // Create DTO with all user info including bio
             UserDto userDto = new UserDto();
             userDto.setId(user.getId());
             userDto.setUsername(user.getUsername());
             userDto.setEmail(user.getEmail());
             userDto.setFullName(user.getFullName());
+            userDto.setBio(user.getBio());  // Make sure bio is included!
+            
+            System.out.println("Sending user data with bio: " + user.getBio());
             
             return new ResponseEntity<>(ApiResponse.success(userDto), HttpStatus.OK);
         } else {

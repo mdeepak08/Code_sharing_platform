@@ -15,15 +15,16 @@ import com.codeshare.platform.model.Commit;
 import com.codeshare.platform.model.File;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.model.UserActivity;
 import com.codeshare.platform.repository.BranchRepository;
 import com.codeshare.platform.repository.CommitRepository;
 import com.codeshare.platform.repository.FileRepository;
+import com.codeshare.platform.service.ActivityService;
 import com.codeshare.platform.service.ConcurrencyService;
 import com.codeshare.platform.service.VersionControlService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 @Service
 public class VersionControlServiceImpl implements VersionControlService {
 
@@ -32,6 +33,8 @@ public class VersionControlServiceImpl implements VersionControlService {
     private final FileRepository fileRepository;
     private final ObjectMapper objectMapper;
     private final ConcurrencyService concurrencyService;
+    @Autowired
+    private ActivityService activityService;
 
     @Autowired
     public VersionControlServiceImpl(
@@ -88,10 +91,22 @@ public class VersionControlServiceImpl implements VersionControlService {
                 }
             }
     
-            return commitRepository.save(newCommit);
+            // Save the commit
+            Commit savedCommit = commitRepository.save(newCommit);
+            
+            // Track activity with the correct URL format compatible with your existing commit-details.html
+            activityService.trackActivity(
+                author,
+                UserActivity.ActivityType.COMMIT_PUSHED,
+                "Pushed commit: " + message,
+                savedCommit.getId(),
+                "/commit-details.html?id=" + savedCommit.getId() + "&projectId=" + branch.getProject().getId(),
+                "branch: " + branch.getName() + ", files: " + fileChanges.size()
+            );
+            
+            return savedCommit;
         });
     }
-
     @Override
     public Branch createBranch(Project project, String branchName, User creator) {
         return concurrencyService.executeWithWriteLock(project.getId(), () -> {
@@ -100,19 +115,32 @@ public class VersionControlServiceImpl implements VersionControlService {
             if (existingBranch.isPresent()) {
                 throw new RuntimeException("Branch with name " + branchName + " already exists");
             }
-
+    
             // Create new branch
             Branch newBranch = new Branch();
             newBranch.setName(branchName);
             newBranch.setProject(project);
             newBranch.setCreatedAt(LocalDateTime.now());
-
+    
             // If this is the first branch, set it as default
             if (branchRepository.findByProject(project).isEmpty()) {
                 newBranch.setDefault(true);
             }
-
-            return branchRepository.save(newBranch);
+    
+            // Save the branch
+            Branch savedBranch = branchRepository.save(newBranch);
+            
+            // Track activity with correct URL format
+            activityService.trackActivity(
+                creator,
+                UserActivity.ActivityType.BRANCH_CREATED,
+                "Created branch: " + branchName,
+                savedBranch.getId(),
+                "/project.html?id=" + project.getId() + "&branch=" + branchName,
+                null
+            );
+            
+            return savedBranch;
         });
     }
 
@@ -151,6 +179,15 @@ public class VersionControlServiceImpl implements VersionControlService {
             commitRepository.save(mergeCommit);
             return null;
         });
+                // Track activity
+                activityService.trackActivity(
+                    merger,
+                    UserActivity.ActivityType.PULL_REQUEST_MERGED,
+                    "Merged branch " + sourceBranch.getName() + " into " + targetBranch.getName(),
+                    sourceBranch.getProject().getId(),
+                    "/project.html?id=" + sourceBranch.getProject().getId(),
+                    "source: " + sourceBranch.getName() + ", target: " + targetBranch.getName()
+                );
     }
 
     @Override

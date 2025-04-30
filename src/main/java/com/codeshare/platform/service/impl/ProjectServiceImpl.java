@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.ProjectRole;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.model.UserActivity;
 import com.codeshare.platform.model.UserProject;
 import com.codeshare.platform.repository.ProjectRepository;
 import com.codeshare.platform.repository.UserProjectRepository;
+import com.codeshare.platform.service.ActivityService;
 import com.codeshare.platform.service.ProjectService;
 
 @Service
@@ -20,6 +22,9 @@ public class ProjectServiceImpl implements ProjectService {
     
     private final ProjectRepository projectRepository;
     private final UserProjectRepository userProjectRepository;
+    
+    @Autowired
+    private ActivityService activityService;
 
     @Autowired
     public ProjectServiceImpl(ProjectRepository projectRepository, UserProjectRepository userProjectRepository) {
@@ -29,7 +34,19 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project createProject(Project project) {
-        return projectRepository.save(project);
+        Project savedProject = projectRepository.save(project);
+        
+        // Track activity
+        activityService.trackActivity(
+            project.getOwner(),
+            UserActivity.ActivityType.PROJECT_CREATED,
+            "Created project " + project.getName(),
+            savedProject.getId(),
+            "/project.html?id=" + savedProject.getId(),
+            null
+        );
+        
+        return savedProject;
     }
 
     @Override
@@ -62,7 +79,19 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project updateProject(Project project) {
-        return projectRepository.save(project);
+        Project updatedProject = projectRepository.save(project);
+        
+        // Track activity
+        activityService.trackActivity(
+            project.getOwner(),
+            UserActivity.ActivityType.PROJECT_UPDATED,
+            "Updated project " + project.getName(),
+            updatedProject.getId(),
+            "/project.html?id=" + updatedProject.getId(),
+            null
+        );
+        
+        return updatedProject;
     }
 
     @Override
@@ -74,6 +103,16 @@ public class ProjectServiceImpl implements ProjectService {
     public void addCollaborator(Project project, User user) {
         project.addUser(user, ProjectRole.CONTRIBUTOR);
         projectRepository.save(project);
+        
+        // Track activity
+        activityService.trackActivity(
+            user,
+            UserActivity.ActivityType.PROJECT_UPDATED,
+            "Added as collaborator to " + project.getName(),
+            project.getId(),
+            "/project.html?id=" + project.getId(),
+            null
+        );
     }
 
     @Override

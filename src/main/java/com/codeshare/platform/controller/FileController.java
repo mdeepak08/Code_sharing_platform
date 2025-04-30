@@ -29,6 +29,8 @@ import com.codeshare.platform.model.Branch;
 import com.codeshare.platform.model.File;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.model.UserActivity;
+import com.codeshare.platform.service.ActivityService;
 import com.codeshare.platform.service.BranchService;
 import com.codeshare.platform.service.ConcurrencyService;
 import com.codeshare.platform.service.FileLockManager;
@@ -36,6 +38,7 @@ import com.codeshare.platform.service.FileService;
 import com.codeshare.platform.service.ProjectService;
 import com.codeshare.platform.service.UserService;
 import com.codeshare.platform.service.VersionControlService;
+
 
 @RestController
 @RequestMapping("/api/files")
@@ -50,6 +53,8 @@ public class FileController {
     private BranchService branchService;
     @Autowired
     private VersionControlService versionControlService;
+    @Autowired
+    private ActivityService activityService;
 
     @Autowired
     public FileController(
@@ -202,35 +207,46 @@ public ResponseEntity<ApiResponse<List<FileDto>>> getFilesByProjectAndBranch(
             @PathVariable Long id, 
             @RequestBody String content,
             Authentication authentication) {
-
+    
         // Fallback to SecurityContextHolder if method param is null
         if (authentication == null) {
             authentication = SecurityContextHolder.getContext().getAuthentication();
         }
-
+    
         if (authentication == null || "anonymousUser".equals(authentication.getName())) {
             return new ResponseEntity<>(ApiResponse.error("Authentication required"), HttpStatus.UNAUTHORIZED);
         }
-
+    
         Optional<User> userOpt = userService.getUserByUsername(authentication.getName());
         if (userOpt.isEmpty()) {
             return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.UNAUTHORIZED);
         }
-
+    
         User currentUser = userOpt.get();
-
+    
         Optional<File> existingFileOpt = fileService.getFileById(id);
         if (existingFileOpt.isPresent()) {
             File existingFile = existingFileOpt.get();
-
+    
             return concurrencyService.executeWithWriteLock(existingFile.getProject().getId(), () -> {
                 if (fileLockManager.isLockedByOtherUser(existingFile, currentUser)) {
                     return new ResponseEntity<>(ApiResponse.error("File is locked by another user"), HttpStatus.CONFLICT);
                 }
-
+    
                 existingFile.setContent(content);
                 existingFile.setUpdatedAt(LocalDateTime.now());
                 File updatedFile = fileService.updateFile(existingFile);
+                
+                // Track activity inside the lock - directly after the file is updated
+                activityService.trackActivity(
+                    currentUser,
+                    UserActivity.ActivityType.FILE_EDITED,
+                    "Edited file: " + existingFile.getName(),
+                    existingFile.getId(),
+                    "/project.html?id=" + existingFile.getProject().getId() + "&file=" + existingFile.getId(),
+                    "project: " + existingFile.getProject().getName() + ", path: " + existingFile.getPath()
+                );
+                
                 FileDto fileDto = new FileDto(updatedFile);
                 return new ResponseEntity<>(ApiResponse.success("File content updated successfully", fileDto), HttpStatus.OK);
             });
