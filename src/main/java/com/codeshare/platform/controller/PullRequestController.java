@@ -277,29 +277,15 @@ public class PullRequestController {
         );
     }
 
-    @GetMapping("/user/count")
-    public ResponseEntity<ApiResponse<Integer>> getUserPullRequestCount(Authentication authentication) {
-        String username = authentication.getName();
-        Optional<User> userOpt = userService.getUserByUsername(username);
-        
-        if (userOpt.isEmpty()) {
-            return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.NOT_FOUND);
-        }
-        
-        List<PullRequest> pullRequests = pullRequestService.getPullRequestsByAuthor(userOpt.get());
-        int openPRsCount = (int) pullRequests.stream()
-            .filter(pr -> pr.getStatus() == PullRequestStatus.OPEN)
-            .count();
-        
-        return new ResponseEntity<>(ApiResponse.success(openPRsCount), HttpStatus.OK);
-    }
-
     @GetMapping("/user")
     public ResponseEntity<ApiResponse<List<PullRequest>>> getUserPullRequests(
             @RequestParam(required = false, defaultValue = "created-by-me") String filter,
             @RequestParam(required = false, defaultValue = "open") String status,
             @RequestParam(required = false, defaultValue = "newest") String sort,
             @RequestParam(required = false, defaultValue = "") String search,
+            @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size,
             Authentication authentication) {
         
         try {
@@ -316,26 +302,50 @@ public class PullRequestController {
             // Get pull requests based on filter
             switch (filter) {
                 case "created-by-me":
+                case "me":
                     pullRequests = pullRequestService.getPullRequestsByAuthor(user);
                     break;
                 case "assigned-to-me":
-                    // In a real implementation, you'd have a relationship between PRs and assigned reviewers
+                case "assigned":
                     pullRequests = pullRequestService.getPullRequestsAssignedToUser(user);
                     break;
                 case "mentioned-me":
-                    // This would require searching PR descriptions and comments for @username mentions
+                case "mentioned":
                     pullRequests = pullRequestService.getPullRequestsMentioningUser(user);
                     break;
                 case "participated":
-                    // PRs the user has commented on
                     pullRequests = pullRequestService.getPullRequestsWithUserParticipation(user);
+                    break;
+                case "all":
+                    // For all pull requests, we need to get all projects the user has access to
+                    pullRequests = new ArrayList<>();
+                    List<Project> userProjects = projectService.getProjectsByOwner(user);
+                    
+                    for (Project project : userProjects) {
+                        pullRequests.addAll(pullRequestService.getPullRequestsByProject(project));
+                    }
+                    
+                    // Remove duplicates (in case a user is both author and reviewer of a PR)
+                    pullRequests = pullRequests.stream()
+                        .distinct()
+                        .collect(Collectors.toList());
                     break;
                 default:
                     pullRequests = pullRequestService.getPullRequestsByAuthor(user);
                     break;
             }
+            // Filter by project if specified
+            if (projectId != null) {
+                Optional<Project> projectOpt = projectService.getProjectById(projectId);
+                if (projectOpt.isPresent()) {
+                    Project project = projectOpt.get();
+                    pullRequests = pullRequests.stream()
+                        .filter(pr -> pr.getProject().getId().equals(project.getId()))
+                        .collect(Collectors.toList());
+                }
+            }
             
-            // Filter by status - same as before, but with error handling
+            // Filter by status
             if (!status.equals("all")) {
                 try {
                     PullRequestStatus prStatus = PullRequestStatus.valueOf(status.toUpperCase());
@@ -348,7 +358,7 @@ public class PullRequestController {
                 }
             }
             
-            // Filter by search term - same as before
+            // Filter by search term
             if (!search.isEmpty()) {
                 String searchLower = search.toLowerCase();
                 pullRequests = pullRequests.stream()
@@ -359,7 +369,7 @@ public class PullRequestController {
                     .collect(Collectors.toList());
             }
             
-            // Sort results - same as before
+            // Sort results
             switch (sort) {
                 case "oldest":
                     pullRequests.sort(Comparator.comparing(PullRequest::getCreatedAt));
@@ -379,7 +389,7 @@ public class PullRequestController {
                     });
                     break;
                 case "most-commented":
-                    // This would require a join or subquery to count comments per PR
+                    // This requires counting comments per PR
                     pullRequests.sort((pr1, pr2) -> {
                         int commentCount1 = commentRepository.findByPullRequest(pr1).size();
                         int commentCount2 = commentRepository.findByPullRequest(pr2).size();
@@ -392,25 +402,75 @@ public class PullRequestController {
                     break;
             }
             
-            // Paginate results for better performance
-            int page = 0;
-            int pageSize = 20;
-            List<PullRequest> paginatedResults = pullRequests.stream()
-                .skip(page * pageSize)
-                .limit(pageSize)
-                .collect(Collectors.toList());
+            // Calculate total count for pagination
+            int totalCount = pullRequests.size();
+            
+            // Apply pagination
+            int startIndex = page * size;
+            int endIndex = Math.min(startIndex + size, pullRequests.size());
+            
+            List<PullRequest> pagedResults;
+            if (startIndex < pullRequests.size()) {
+                pagedResults = pullRequests.subList(startIndex, endIndex);
+            } else {
+                pagedResults = new ArrayList<>(); // Empty list for out-of-bounds pages
+            }
             
             // Enhance the response with additional metadata
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("pullRequests", paginatedResults);
-            responseData.put("totalCount", pullRequests.size());
-            responseData.put("hasMorePages", pullRequests.size() > (page * pageSize + pageSize));
+            responseData.put("pullRequests", pagedResults);
+            responseData.put("totalCount", totalCount);
+            responseData.put("hasMorePages", totalCount > (page * size + size));
             
-            return new ResponseEntity<>(ApiResponse.success(paginatedResults), HttpStatus.OK);
+            return new ResponseEntity<>(ApiResponse.success(pagedResults), HttpStatus.OK);
         } catch (Exception e) {
             System.err.println("Error fetching user pull requests: " + e.getMessage());
             return new ResponseEntity<>(ApiResponse.error("Error fetching pull requests: " + e.getMessage()),
-                                    HttpStatus.INTERNAL_SERVER_ERROR);
+                                HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/user/count")
+    public ResponseEntity<ApiResponse<Map<String, Integer>>> getUserPullRequestCounts(Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            Optional<User> userOpt = userService.getUserByUsername(username);
+            
+            if (userOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.NOT_FOUND);
+            }
+            
+            User user = userOpt.get();
+            
+            // Get all pull requests authored by the user
+            List<PullRequest> userPullRequests = pullRequestService.getPullRequestsByAuthor(user);
+            
+            // Count by status
+            int openCount = (int) userPullRequests.stream()
+                .filter(pr -> pr.getStatus() == PullRequestStatus.OPEN)
+                .count();
+                
+            int closedCount = (int) userPullRequests.stream()
+                .filter(pr -> pr.getStatus() == PullRequestStatus.CLOSED)
+                .count();
+                
+            int mergedCount = (int) userPullRequests.stream()
+                .filter(pr -> pr.getStatus() == PullRequestStatus.MERGED)
+                .count();
+            
+            // Create result map
+            Map<String, Integer> counts = new HashMap<>();
+            counts.put("open", openCount);
+            counts.put("closed", closedCount);
+            counts.put("merged", mergedCount);
+            counts.put("total", userPullRequests.size());
+            
+            return new ResponseEntity<>(ApiResponse.success(counts), HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("Error getting user pull request counts: " + e.getMessage());
+            return new ResponseEntity<>(ApiResponse.error("Error getting pull request counts: " + e.getMessage()),
+                                HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

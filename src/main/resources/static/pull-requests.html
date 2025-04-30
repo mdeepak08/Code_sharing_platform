@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pull Requests - Code Sharing Platform</title>
+    <title>My Pull Requests - Code Sharing Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
-
     <link rel="stylesheet" href="/css/dark-theme.css">
-
     <script src="/js/theme-switcher.js" defer></script>
     <style>
         :root {
@@ -158,6 +156,20 @@
             font-size: 24px;
             margin-bottom: 16px;
         }
+        
+        .project-badge {
+            background-color: #eef2ff;
+            color: #4338ca;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-right: 8px;
+        }
+        
+        .dropdown-filter {
+            min-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -206,15 +218,12 @@
     </nav>
 
     <div class="container py-4">
-        <!-- Project Info -->
+        <!-- Page Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 id="projectName" class="mb-0">Project Pull Requests</h2>
-                <p id="projectDescription" class="text-muted mb-0">Loading project information...</p>
+                <h2 class="mb-0">Pull Requests</h2>
+                <p class="text-muted mb-0" id="pullRequestsCount">Loading pull requests...</p>
             </div>
-            <a href="#" id="backToProjectLink" class="btn btn-outline-secondary">
-                <i class="fa fa-arrow-left me-1"></i> Back to project
-            </a>
         </div>
         
         <!-- Pull Request Filters -->
@@ -238,6 +247,30 @@
             </div>
             
             <div class="d-flex flex-wrap">
+                <div class="dropdown me-2 mb-2 mb-md-0">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="projectFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-filter me-1"></i> Project: All
+                    </button>
+                    <ul class="dropdown-menu dropdown-filter" id="projectFilterDropdown">
+                        <li><a class="dropdown-item active" href="#" data-project-id="all">All projects</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Projects will be populated here -->
+                        <li><div class="dropdown-item text-center" id="projectsLoadingIndicator">Loading projects...</div></li>
+                    </ul>
+                </div>
+                
+                <div class="dropdown me-2 mb-2 mb-md-0">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="authorFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-user me-1"></i> Author: Me
+                    </button>
+                    <ul class="dropdown-menu dropdown-filter" id="authorFilterDropdown">
+                        <li><a class="dropdown-item active" href="#" data-author="me">Created by me</a></li>
+                        <li><a class="dropdown-item" href="#" data-author="assigned">Assigned to me</a></li>
+                        <li><a class="dropdown-item" href="#" data-author="mentioned">Mentioning me</a></li>
+                        <li><a class="dropdown-item" href="#" data-author="all">All pull requests</a></li>
+                    </ul>
+                </div>
+                
                 <div class="input-group me-2 mb-2 mb-md-0" style="width: auto;">
                     <input type="text" class="form-control" placeholder="Search pull requests..." id="searchInput">
                     <button class="btn btn-outline-secondary" type="button" id="searchButton">
@@ -245,12 +278,20 @@
                     </button>
                 </div>
                 
-                <button class="btn btn-success mb-2 mb-md-0" id="newPullRequestBtn">
-                    <i class="fa fa-plus me-1"></i> New Pull Request
-                </button>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-sort me-1"></i> Sort: Newest
+                    </button>
+                    <ul class="dropdown-menu dropdown-filter" id="sortFilterDropdown">
+                        <li><a class="dropdown-item active" href="#" data-sort="newest">Newest</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="oldest">Oldest</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="recently-updated">Recently updated</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="least-updated">Least recently updated</a></li>
+                        <li><a class="dropdown-item" href="#" data-sort="most-commented">Most commented</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
-        
         <!-- Pull Requests List -->
         <div id="pullRequestsList" class="mt-4">
             <div class="text-center py-4">
@@ -277,22 +318,31 @@
         }
 
         // Global variables
-        let projectId;
-        let project;
         let currentStatus = 'OPEN';
         let searchQuery = '';
         let pullRequests = [];
         let counts = { OPEN: 0, CLOSED: 0, MERGED: 0 };
+        let userProjects = [];
+        let selectedProjectId = 'all';
+        let selectedAuthorFilter = 'me';
+        let selectedSort = 'newest';
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let totalPages = 1;
         
         // DOM Elements
-        const projectName = document.getElementById('projectName');
-        const projectDescription = document.getElementById('projectDescription');
-        const backToProjectLink = document.getElementById('backToProjectLink');
         const pullRequestsList = document.getElementById('pullRequestsList');
         const filterButtons = document.querySelectorAll('.filter-btn');
         const searchInput = document.getElementById('searchInput');
         const searchButton = document.getElementById('searchButton');
-        const newPullRequestBtn = document.getElementById('newPullRequestBtn');
+        const projectFilterDropdown = document.getElementById('projectFilterDropdown');
+        const authorFilterDropdown = document.getElementById('authorFilterDropdown');
+        const sortFilterDropdown = document.getElementById('sortFilterDropdown');
+        const projectFilterBtn = document.getElementById('projectFilterBtn');
+        const authorFilterBtn = document.getElementById('authorFilterBtn');
+        const sortFilterBtn = document.getElementById('sortFilterBtn');
+        const pullRequestsCount = document.getElementById('pullRequestsCount');
+        const pagination = document.getElementById('pagination');
         
         // Functions
         function logout() {
@@ -302,36 +352,14 @@
         
         // Initialize
         async function initialize() {
-            // Get project ID from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            projectId = urlParams.get('projectId');
-            
-            if (!projectId) {
-                console.error('Missing project ID');
-                pullRequestsList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="fa fa-exclamation-triangle fa-3x"></i>
-                        </div>
-                        <h3>Missing project ID</h3>
-                        <p class="text-muted">Please select a project to view its pull requests.</p>
-                        <a href="/dashboard.html" class="btn btn-primary mt-3">Go to Dashboard</a>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Set up link back to project
-            backToProjectLink.href = `/project.html?id=${projectId}`;
-            
             // Load user info
             await loadUserInfo();
             
-            // Load project info
-            await loadProjectInfo();
+            // Load user's projects
+            await loadUserProjects();
             
-            // Load pull requests
-            await loadPullRequests();
+            // Load user's pull requests
+            await loadUserPullRequests();
             
             // Set up event listeners
             setupEventListeners();
@@ -365,10 +393,10 @@
             }
         }
         
-        // Load project info
-        async function loadProjectInfo() {
+        // Load user's projects
+        async function loadUserProjects() {
             try {
-                const response = await fetch(`/api/projects/${projectId}`, {
+                const response = await fetch('/api/projects', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -377,30 +405,33 @@
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.data) {
-                        project = result.data;
+                        userProjects = result.data;
                         
-                        // Update project info
-                        projectName.textContent = `${project.name} / Pull Requests`;
-                        projectDescription.textContent = project.description || 'No description available';
+                        // Remove loading indicator
+                        document.getElementById('projectsLoadingIndicator').remove();
                         
-                        // Update new PR button link
-                        newPullRequestBtn.setAttribute('data-project-id', project.id);
-                    } else {
-                        projectName.textContent = 'Project not found';
-                        projectDescription.textContent = '';
+                        // Populate project filter dropdown
+                        userProjects.forEach(project => {
+                            const item = document.createElement('li');
+                            item.innerHTML = `<a class="dropdown-item" href="#" data-project-id="${project.id}">${project.name}</a>`;
+                            projectFilterDropdown.appendChild(item);
+                            
+                            // Add click event
+                            item.querySelector('a').addEventListener('click', function(e) {
+                                e.preventDefault();
+                                handleProjectFilterChange(this);
+                            });
+                        });
                     }
-                } else {
-                    throw new Error('Failed to load project information');
                 }
             } catch (error) {
-                console.error('Error loading project info:', error);
-                projectName.textContent = 'Error loading project';
-                projectDescription.textContent = 'Failed to load project information';
+                console.error('Error loading user projects:', error);
+                document.getElementById('projectsLoadingIndicator').textContent = 'Error loading projects';
             }
         }
         
-        // Load pull requests
-        async function loadPullRequests() {
+        // Load user's pull requests
+        async function loadUserPullRequests() {
             try {
                 // Show loading spinner
                 pullRequestsList.innerHTML = `
@@ -411,32 +442,42 @@
                     </div>
                 `;
                 
-                // Fetch counts for all statuses
-                const countsResponse = await fetch(`/api/pull-requests/project/${projectId}/counts`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                // Build the API URL with filters
+                let apiUrl = '/api/pull-requests/user';
                 
-                if (countsResponse.ok) {
-                    const countsResult = await countsResponse.json();
-                    if (countsResult.success && countsResult.data) {
-                        counts = countsResult.data;
-                        
-                        // Update count badges
-                        document.getElementById('openCount').textContent = counts.OPEN || 0;
-                        document.getElementById('closedCount').textContent = counts.CLOSED || 0;
-                        document.getElementById('mergedCount').textContent = counts.MERGED || 0;
-                    }
-                }
+                // Apply filters
+                let queryParams = [];
                 
-                // Fetch pull requests with current status filter
-                let url = `/api/pull-requests/project/${projectId}?status=${currentStatus}`;
+                // Status filter
+                queryParams.push(`status=${currentStatus.toLowerCase()}`);
+                
+                // Author filter
+                queryParams.push(`filter=${selectedAuthorFilter}`);
+                
+                // Sort filter
+                queryParams.push(`sort=${selectedSort}`);
+                
+                // Search filter
                 if (searchQuery) {
-                    url += `&search=${encodeURIComponent(searchQuery)}`;
+                    queryParams.push(`search=${encodeURIComponent(searchQuery)}`);
                 }
                 
-                const response = await fetch(url, {
+                // Project filter
+                if (selectedProjectId !== 'all') {
+                    queryParams.push(`projectId=${selectedProjectId}`);
+                }
+                
+                // Page filter
+                queryParams.push(`page=${currentPage - 1}`); // API uses 0-based pagination
+                queryParams.push(`size=${itemsPerPage}`);
+                
+                // Combine all query parameters
+                if (queryParams.length > 0) {
+                    apiUrl += '?' + queryParams.join('&');
+                }
+                
+                // Make API request
+                const response = await fetch(apiUrl, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -445,8 +486,28 @@
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.data) {
-                        pullRequests = result.data;
+                        // Extract pull requests and metadata
+                        pullRequests = result.data.pullRequests || result.data;
+                        
+                        // Update counts if available
+                        if (result.data.totalCount !== undefined) {
+                            // If pagination info is available
+                            totalPages = Math.ceil(result.data.totalCount / itemsPerPage);
+                            pullRequestsCount.textContent = `Showing ${pullRequests.length} of ${result.data.totalCount} pull requests`;
+                        } else {
+                            // Simple count
+                            pullRequestsCount.textContent = `${pullRequests.length} pull requests`;
+                            totalPages = 1;
+                        }
+                        
+                        // Update counts for each status
+                        updateStatusCounts();
+                        
+                        // Display pull requests
                         displayPullRequests();
+                        
+                        // Update pagination
+                        updatePagination();
                     } else {
                         showEmptyState();
                     }
@@ -464,6 +525,43 @@
                         <p class="text-muted">Please try again later.</p>
                     </div>
                 `;
+            }
+        }
+
+        // Update status counts based on the current pull requests
+        async function updateStatusCounts() {
+            try {
+                // Make API request to get counts
+                const response = await fetch('/api/pull-requests/user/count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        counts = {
+                            OPEN: result.data.open || 0,
+                            CLOSED: result.data.closed || 0,
+                            MERGED: result.data.merged || 0
+                        };
+                    }
+                } else {
+                    // Fallback to counting the loaded pull requests
+                    counts = {
+                        OPEN: pullRequests.filter(pr => pr.status === 'OPEN').length,
+                        CLOSED: pullRequests.filter(pr => pr.status === 'CLOSED').length,
+                        MERGED: pullRequests.filter(pr => pr.status === 'MERGED').length
+                    };
+                }
+                
+                // Update count badges
+                document.getElementById('openCount').textContent = counts.OPEN;
+                document.getElementById('closedCount').textContent = counts.CLOSED;
+                document.getElementById('mergedCount').textContent = counts.MERGED;
+            } catch (error) {
+                console.error('Error updating status counts:', error);
             }
         }
         
@@ -487,6 +585,10 @@
                     pr.status === 'OPEN' ? 'fa-exclamation-circle' : 
                     pr.status === 'MERGED' ? 'fa-code-merge' : 'fa-check-circle';
                 
+                // Get project info
+                const projectName = pr.project ? pr.project.name : 'Unknown Project';
+                const projectId = pr.project ? pr.project.id : '';
+                
                 // Create pull request item
                 const prItem = document.createElement('div');
                 prItem.className = 'pr-item';
@@ -494,9 +596,10 @@
                     <div class="pr-header">
                         <div>
                             <div class="pr-title">
-                                <a href="/pull-request.html?id=${pr.id}">${pr.title}</a>
+                                <a href="/pull-request.html?id=${pr.id}&projectId=${projectId}">${pr.title}</a>
                             </div>
                             <div class="pr-meta">
+                                <span class="project-badge">${projectName}</span>
                                 #${pr.id} opened ${timeAgo(new Date(pr.createdAt))} by 
                                 <img src="https://www.gravatar.com/avatar/${hashString(pr.author.username)}?d=mp&f=y" 
                                     alt="${pr.author.username}" class="avatar-img" width="16" height="16">
@@ -514,11 +617,13 @@
                         <div class="d-flex align-items-center text-muted small">
                             <div class="me-3">
                                 <i class="fa fa-code-branch me-1"></i> 
-                                ${pr.sourceBranchName} → ${pr.targetBranchName}
+                                ${pr.sourceBranch ? pr.sourceBranch.name : ''} → ${pr.targetBranch ? pr.targetBranch.name : ''}
                             </div>
-                            ${pr.mergeable ? 
-                                '<div class="text-success"><i class="fa fa-check-circle me-1"></i> Mergeable</div>' : 
-                                '<div class="text-danger"><i class="fa fa-exclamation-triangle me-1"></i> Conflicts</div>'
+                            ${pr.mergeable !== undefined ? 
+                                (pr.mergeable ? 
+                                    '<div class="text-success"><i class="fa fa-check-circle me-1"></i> Mergeable</div>' : 
+                                    '<div class="text-danger"><i class="fa fa-exclamation-triangle me-1"></i> Conflicts</div>'
+                                ) : ''
                             }
                         </div>
                     </div>
@@ -530,9 +635,29 @@
         
         // Show empty state
         function showEmptyState() {
-            const message = searchQuery ? 
-                'No pull requests found matching your search.' : 
-                `No ${currentStatus.toLowerCase()} pull requests found.`;
+            let message = '';
+            let description = '';
+            
+            if (searchQuery) {
+                message = 'No pull requests found matching your search.';
+                description = 'Try adjusting your search or filter criteria.';
+            } else if (selectedProjectId !== 'all') {
+                const projectName = userProjects.find(p => p.id.toString() === selectedProjectId)?.name || 'this project';
+                message = `No ${currentStatus.toLowerCase()} pull requests found for ${projectName}.`;
+                description = 'Create a new pull request to propose and collaborate on changes.';
+            } else {
+                message = `No ${currentStatus.toLowerCase()} pull requests found.`;
+                
+                if (selectedAuthorFilter === 'me') {
+                    description = 'You haven\'t created any pull requests yet.';
+                } else if (selectedAuthorFilter === 'assigned') {
+                    description = 'No pull requests are assigned to you for review.';
+                } else if (selectedAuthorFilter === 'mentioned') {
+                    description = 'No pull requests mention you.';
+                } else {
+                    description = 'No pull requests found with the current filters.';
+                }
+            }
             
             pullRequestsList.innerHTML = `
                 <div class="empty-state">
@@ -540,23 +665,224 @@
                         <i class="fa fa-code-pull-request fa-3x"></i>
                     </div>
                     <h3>${message}</h3>
-                    <p class="text-muted">
-                        ${currentStatus === 'OPEN' ? 
-                            'Create a new pull request to propose and collaborate on changes.' : 
-                            'Pull requests that are merged or closed will appear here.'}
-                    </p>
-                    ${currentStatus === 'OPEN' ? 
-                        `<button class="btn btn-success mt-3" onclick="createPullRequest()">
-                            <i class="fa fa-plus me-1"></i> New Pull Request
-                        </button>` : 
-                        ''}
+                    <p class="text-muted">${description}</p>
                 </div>
             `;
+            
+            // Update pull request count
+            pullRequestsCount.textContent = '0 pull requests';
+            
+            // Hide pagination
+            pagination.innerHTML = '';
+        }
+        
+        // Update pagination controls
+        function updatePagination() {
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            paginationHTML += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            `;
+            
+            // Page numbers
+            const maxPages = 5; // Maximum number of page links to show
+            let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+            let endPage = Math.min(totalPages, startPage + maxPages - 1);
+            
+            if (endPage - startPage + 1 < maxPages) {
+                startPage = Math.max(1, endPage - maxPages + 1);
+            }
+            
+            // First page
+            if (startPage > 1) {
+                paginationHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="1">1</a>
+                    </li>
+                `;
+                
+                if (startPage > 2) {
+                    paginationHTML += `
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    `;
+                }
+            }
+            
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+            
+            // Last page
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    `;
+                }
+                
+                paginationHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+                    </li>
+                `;
+            }
+            
+            // Next button
+            paginationHTML += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            `;
+            
+            pagination.innerHTML = paginationHTML;
+            
+            // Add event listeners to pagination links
+            document.querySelectorAll('.page-link[data-page]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = parseInt(this.getAttribute('data-page'));
+                    if (page >= 1 && page <= totalPages && page !== currentPage) {
+                        currentPage = page;
+                        loadUserPullRequests();
+                    }
+                });
+            });
+        }
+        
+        // Handle project filter change
+        function handleProjectFilterChange(element) {
+            // Update active class
+            document.querySelectorAll('#projectFilterDropdown .dropdown-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            // Update selected project
+            selectedProjectId = element.getAttribute('data-project-id');
+            
+            // Update button text
+            let buttonText = 'Project: ';
+            if (selectedProjectId === 'all') {
+                buttonText += 'All';
+            } else {
+                const project = userProjects.find(p => p.id.toString() === selectedProjectId);
+                buttonText += project ? project.name : 'Selected';
+            }
+            
+            projectFilterBtn.innerHTML = `<i class="fa fa-filter me-1"></i> ${buttonText}`;
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Reload pull requests
+            loadUserPullRequests();
+        }
+        
+        // Handle author filter change
+        function handleAuthorFilterChange(element) {
+            // Update active class
+            document.querySelectorAll('#authorFilterDropdown .dropdown-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            // Update selected author filter
+            selectedAuthorFilter = element.getAttribute('data-author');
+            
+            // Update button text
+            let buttonText = 'Author: ';
+            switch (selectedAuthorFilter) {
+                case 'me':
+                    buttonText += 'Me';
+                    break;
+                case 'assigned':
+                    buttonText += 'Assigned to me';
+                    break;
+                case 'mentioned':
+                    buttonText += 'Mentioning me';
+                    break;
+                case 'all':
+                    buttonText += 'All';
+                    break;
+                default:
+                    buttonText += 'Me';
+            }
+            
+            authorFilterBtn.innerHTML = `<i class="fa fa-user me-1"></i> ${buttonText}`;
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Reload pull requests
+            loadUserPullRequests();
+        }
+        
+        // Handle sort filter change
+        function handleSortFilterChange(element) {
+            // Update active class
+            document.querySelectorAll('#sortFilterDropdown .dropdown-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            // Update selected sort
+            selectedSort = element.getAttribute('data-sort');
+            
+            // Update button text
+            let buttonText = 'Sort: ';
+            switch (selectedSort) {
+                case 'newest':
+                    buttonText += 'Newest';
+                    break;
+                case 'oldest':
+                    buttonText += 'Oldest';
+                    break;
+                case 'recently-updated':
+                    buttonText += 'Recently updated';
+                    break;
+                case 'least-updated':
+                    buttonText += 'Least updated';
+                    break;
+                case 'most-commented':
+                    buttonText += 'Most commented';
+                    break;
+                default:
+                    buttonText += 'Newest';
+            }
+            
+            sortFilterBtn.innerHTML = `<i class="fa fa-sort me-1"></i> ${buttonText}`;
+            
+            // Reset to first page
+            currentPage = 1;
+            
+            // Reload pull requests
+            loadUserPullRequests();
         }
         
         // Set up event listeners
         function setupEventListeners() {
-            // Filter buttons
+            // Status filter buttons
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     // Update active button
@@ -566,36 +892,51 @@
                     // Update current status
                     currentStatus = this.getAttribute('data-status');
                     
+                    // Reset to first page
+                    currentPage = 1;
+                    
                     // Reload pull requests
-                    loadPullRequests();
+                    loadUserPullRequests();
                 });
             });
             
-            // Search
+            // Search input
             searchButton.addEventListener('click', function() {
                 searchQuery = searchInput.value.trim();
-                loadPullRequests();
+                currentPage = 1;
+                loadUserPullRequests();
             });
             
             searchInput.addEventListener('keyup', function(e) {
                 if (e.key === 'Enter') {
                     searchQuery = this.value.trim();
-                    loadPullRequests();
+                    currentPage = 1;
+                    loadUserPullRequests();
                 }
             });
             
-            // New Pull Request button
-            newPullRequestBtn.addEventListener('click', createPullRequest);
-        }
-        
-        // Create new pull request
-        function createPullRequest() {
-            window.location.href = `/new-pull-request.html?projectId=${projectId}`;
+            // Author filter dropdown
+            document.querySelectorAll('#authorFilterDropdown .dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleAuthorFilterChange(this);
+                });
+            });
+            
+            // Sort filter dropdown
+            document.querySelectorAll('#sortFilterDropdown .dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleSortFilterChange(this);
+                });
+            });
         }
         
         // Helper function: Generate hash from string
         function hashString(str) {
             let hash = 0;
+            if (!str) return hash.toString(16);
+            
             for (let i = 0; i < str.length; i++) {
                 hash = ((hash << 5) - hash) + str.charCodeAt(i);
                 hash |= 0; // Convert to 32bit integer

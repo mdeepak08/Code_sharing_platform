@@ -907,6 +907,568 @@
         opacity: 0.6;
     }
 
+
+        /* Page header */
+        .container h2 { /* Target the main page H2 */
+          color: var(--gh-dark-text);
+     }
+     .container p.text-muted { /* Target the subtitle */
+          color: var(--gh-dark-secondary-text) !important;
+     }
+ 
+     /* Filter Buttons */
+     .filter-btn {
+         background-color: var(--gh-dark-button-bg);
+         border-color: var(--gh-dark-border);
+         color: var(--gh-dark-secondary-text); /* Muted color for inactive filters */
+     }
+     .filter-btn:hover {
+         background-color: var(--gh-dark-button-hover-bg);
+         border-color: var(--gh-dark-secondary-text);
+         color: var(--gh-dark-text);
+     }
+     .filter-btn.active {
+         background-color: var(--gh-dark-link) !important; /* Blue background for active filter */
+         border-color: var(--gh-dark-link) !important;
+         color: #ffffff !important; /* White text for active filter */
+         font-weight: 600;
+     }
+     .filter-btn .filter-count {
+         color: var(--gh-dark-secondary-text); /* Muted count */
+         background-color: rgba(139, 148, 158, 0.2); /* Subtle background for count */
+         padding: 1px 5px;
+         border-radius: 8px;
+         font-size: 11px;
+         margin-left: 6px;
+     }
+     .filter-btn.active .filter-count {
+          background-color: rgba(255, 255, 255, 0.2); /* Lighter background for count on active */
+          color: #ffffff; /* White count text on active */
+     }
+ 
+      /* Dropdown filter buttons (Project, Author, Sort) */
+      .dropdown .btn-outline-secondary { /* Targets Project, Author, Sort buttons */
+           background-color: var(--gh-dark-button-bg);
+           border-color: var(--gh-dark-border);
+           color: var(--gh-dark-text);
+       }
+      .dropdown .btn-outline-secondary:hover {
+           background-color: var(--gh-dark-button-hover-bg);
+           border-color: var(--gh-dark-secondary-text);
+           color: var(--gh-dark-text);
+       }
+ 
+     /* Pull Request Items */
+     .pr-item {
+         background-color: var(--gh-dark-header-bg) !important;
+         border-color: var(--gh-dark-border) !important;
+         color: var(--gh-dark-text);
+     }
+      .pr-item:hover {
+          border-color: var(--gh-dark-secondary-text) !important; /* Slightly highlight border on hover */
+          box-shadow: none; /* Remove light theme shadow */
+      }
+ 
+ 
+     .pr-header {
+         border-bottom-color: var(--gh-dark-border) !important;
+     }
+ 
+     .pr-title a {
+         color: var(--gh-dark-link) !important;
+     }
+      .pr-title a:hover {
+           color: #79c0ff !important; /* Lighter blue on hover */
+       }
+ 
+ 
+     .pr-meta {
+         color: var(--gh-dark-secondary-text) !important;
+     }
+     .pr-meta strong { /* Author name */
+         color: var(--gh-dark-text);
+     }
+      .pr-meta .avatar-img { /* Avatar in meta */
+           filter: brightness(0.9);
+      }
+ 
+ 
+     /* Project Badge */
+     .project-badge {
+         background-color: rgba(88, 166, 255, 0.15); /* Use theme blue, transparent */
+         color: var(--gh-dark-link); /* Use theme blue */
+         border: 1px solid rgba(88, 166, 255, 0.3);
+     }
+ 
+     /* Status Badges */
+     .status-badge {
+          border: 1px solid transparent; /* Add base border */
+      }
+ 
+     .status-open {
+         background-color: rgba(46, 160, 67, 0.15); /* Green transparent */
+         color: #3fb950 !important; /* Bright green text */
+         border-color: rgba(46, 160, 67, 0.3);
+     }
+ 
+     .status-merged {
+         background-color: rgba(139, 80, 255, 0.15); /* Purple transparent */
+         color: #a371f7 !important; /* Bright purple text */
+         border-color: rgba(139, 80, 255, 0.3);
+     }
+ 
+     .status-closed {
+         background-color: rgba(248, 81, 73, 0.1); /* Red transparent */
+         color: #f85149 !important; /* Bright red text */
+         border-color: rgba(248, 81, 73, 0.3);
+     }
+ 
+     .pr-item .p-3 { /* Styling for the bottom part of the PR item */
+          border-top: 1px solid var(--gh-dark-border);
+          color: var(--gh-dark-text); /* Ensure description text is light */
+      }
+     .pr-item .p-3 .text-muted {
+          color: var(--gh-dark-secondary-text) !important; /* Ensure small text is muted */
+      }
+ 
+ 
+     /* Empty State */
+     .empty-state {
+         background-color: var(--gh-dark-header-bg) !important;
+         border-color: var(--gh-dark-border) !important;
+     }
+     .empty-state h3 {
+         color: var(--gh-dark-text);
+     }
+     .empty-state .empty-state-icon i {
+         color: var(--gh-dark-icon-color); /* Muted icon */
+     }
+     .empty-state p.text-muted {
+         color: var(--gh-dark-secondary-text) !important;
+     }
+ 
+      /* Pagination */
+      .pagination .page-link {
+           background-color: var(--gh-dark-button-bg);
+           border-color: var(--gh-dark-border);
+           color: var(--gh-dark-link);
+       }
+      .pagination .page-link:hover {
+           background-color: var(--gh-dark-button-hover-bg);
+           border-color: var(--gh-dark-secondary-text);
+       }
+      .pagination .page-item.active .page-link {
+           background-color: var(--gh-dark-link);
+           border-color: var(--gh-dark-link);
+           color: #ffffff;
+       }
+      .pagination .page-item.disabled .page-link {
+           background-color: var(--gh-dark-button-bg);
+           border-color: var(--gh-dark-border);
+           color: var(--gh-dark-secondary-text);
+           opacity: 0.5;
+       }
+
+
+      /* Breadcrumb (if different from other pages) */
+      .breadcrumb-item a {
+        color: var(--gh-dark-link) !important;
+    }
+    .breadcrumb-item.active {
+        color: var(--gh-dark-secondary-text) !important; /* Muted color for active breadcrumb */
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+         color: var(--gh-dark-secondary-text);
+     }
+
+    /* PR Header */
+    .pr-header {
+        background-color: var(--gh-dark-header-bg) !important;
+        border: 1px solid var(--gh-dark-border) !important;
+        color: var(--gh-dark-text);
+        border-radius: 6px; /* Added rounding */
+    }
+    .pr-title {
+        color: var(--gh-dark-text);
+    }
+    .pr-meta {
+        color: var(--gh-dark-secondary-text) !important;
+    }
+    .pr-meta strong { /* Author name in meta */
+        color: var(--gh-dark-text);
+    }
+     #prAuthor strong { /* Author name below state */
+         color: var(--gh-dark-text);
+     }
+     #prAuthor .text-muted { /* "created this pull request" text */
+          color: var(--gh-dark-secondary-text) !important;
+      }
+      #editTitleBtn, #editDescriptionBtn { /* Edit buttons */
+          background-color: var(--gh-dark-button-bg);
+          border-color: var(--gh-dark-border);
+          color: var(--gh-dark-secondary-text);
+      }
+      #editTitleBtn:hover, #editDescriptionBtn:hover {
+          background-color: var(--gh-dark-button-hover-bg);
+          border-color: var(--gh-dark-secondary-text);
+          color: var(--gh-dark-text);
+      }
+
+
+    /* PR State Badges */
+    .pr-state {
+        border: 1px solid transparent; /* Base border */
+        font-weight: 500;
+    }
+    .pr-state-open {
+        background-color: rgba(46, 160, 67, 0.15) !important; /* Green transparent */
+        color: #3fb950 !important; /* Bright green text */
+        border-color: rgba(46, 160, 67, 0.3) !important;
+    }
+    .pr-state-merged {
+        background-color: rgba(139, 80, 255, 0.15) !important; /* Purple transparent */
+        color: #a371f7 !important; /* Bright purple text */
+        border-color: rgba(139, 80, 255, 0.3) !important;
+    }
+    .pr-state-closed {
+        background-color: rgba(248, 81, 73, 0.1) !important; /* Red transparent */
+        color: #f85149 !important; /* Bright red text */
+        border-color: rgba(248, 81, 73, 0.3) !important;
+    }
+    .pr-state i { /* Ensure icon color matches text */
+        color: inherit !important;
+    }
+
+    /* PR Tabs */
+    .pr-tabs {
+        background-color: var(--gh-dark-header-bg) !important; /* Match card bg */
+        border: 1px solid var(--gh-dark-border) !important;
+        border-bottom: none !important; /* Remove bottom border from container */
+        border-radius: 6px 6px 0 0; /* Round top corners */
+    }
+    .pr-tab {
+        color: var(--gh-dark-secondary-text);
+        border-bottom: 2px solid transparent; /* Ensure transparent bottom border */
+        margin-bottom: -1px; /* Overlap the bottom border of the content */
+    }
+    .pr-tab:hover {
+        color: var(--gh-dark-text);
+        border-bottom-color: var(--gh-dark-border); /* Subtle hover border */
+    }
+    .pr-tab.active {
+        color: var(--gh-dark-text) !important;
+        border-bottom-color: var(--gh-dark-link) !important; /* Blue active border */
+        font-weight: 600;
+    }
+    .pr-tab i {
+        color: inherit; /* Let icon inherit tab color */
+    }
+    .pr-tab .badge { /* Commits/Files count badge */
+        background-color: var(--gh-dark-button-bg) !important;
+        color: var(--gh-dark-secondary-text) !important;
+        border: 1px solid var(--gh-dark-border);
+    }
+    .pr-tab.active .badge {
+         background-color: var(--gh-dark-link) !important;
+         color: #fff !important;
+         border-color: var(--gh-dark-link) !important;
+    }
+
+
+    /* PR Tab Content Area */
+    .pr-content {
+        background-color: var(--gh-dark-header-bg) !important;
+        border: 1px solid var(--gh-dark-border) !important;
+        border-top: none !important; /* Remove top border, handled by tabs */
+        color: var(--gh-dark-text);
+        border-radius: 0 0 6px 6px; /* Round bottom corners */
+    }
+
+    /* Conversation/Timeline */
+    .pr-timeline .timeline-item::before { /* The vertical line */
+        background-color: var(--gh-dark-border);
+    }
+    .pr-timeline .timeline-icon {
+        background-color: var(--gh-dark-bg) !important; /* Match body bg */
+        border: 2px solid var(--gh-dark-border) !important;
+        color: var(--gh-dark-secondary-text) !important;
+    }
+    .pr-timeline .timeline-content { /* Comment box style */
+        background-color: var(--gh-dark-header-bg) !important; /* Match card bg */
+        border: 1px solid var(--gh-dark-border) !important;
+        color: var(--gh-dark-text);
+    }
+    .pr-timeline .comment-author {
+        color: var(--gh-dark-text);
+        font-weight: 600;
+    }
+    .pr-timeline .comment-time {
+        color: var(--gh-dark-secondary-text) !important;
+    }
+    .pr-timeline .comment-body {
+        color: var(--gh-dark-text);
+    }
+    .pr-timeline .avatar-img-large, #currentUserAvatar { /* Avatars */
+        filter: brightness(0.9);
+    }
+    .review-badge { /* Review status badges in timeline */
+         border: 1px solid transparent;
+         font-weight: 500;
+     }
+    .review-approved {
+         background-color: rgba(46, 160, 67, 0.15) !important;
+         color: #3fb950 !important;
+         border-color: rgba(46, 160, 67, 0.3) !important;
+     }
+    .review-changes {
+         background-color: rgba(248, 81, 73, 0.1) !important;
+         color: #f85149 !important;
+         border-color: rgba(248, 81, 73, 0.3) !important;
+     }
+    .review-comment {
+         background-color: rgba(139, 80, 255, 0.15) !important;
+         color: #a371f7 !important;
+         border-color: rgba(139, 80, 255, 0.3) !important;
+     }
+
+
+    /* Add Comment Form */
+    #commentFormContainer .timeline-content { /* Override default timeline content */
+         background-color: transparent !important;
+         border: none !important;
+         padding: 0 !important; /* Remove padding */
+     }
+    #commentInput { /* Textarea inherits from form-control rule */
+          background-color: var(--gh-dark-bg) !important;
+          border-color: var(--gh-dark-border) !important;
+          color: var(--gh-dark-text) !important;
+    }
+     #commentInput::placeholder {
+         color: var(--gh-dark-secondary-text);
+         opacity: 0.7;
+     }
+    #submitCommentBtn { /* Style like primary green button */
+        background-color: var(--gh-dark-green-btn-bg);
+        border-color: var(--gh-dark-green-btn-bg);
+        color: var(--gh-dark-green-btn-text);
+    }
+    #submitCommentBtn:hover {
+         background-color: var(--gh-dark-green-btn-hover-bg);
+         border-color: var(--gh-dark-green-btn-hover-bg);
+         color: var(--gh-dark-green-btn-text);
+     }
+
+
+    /* Commits Tab */
+    #commitsTab .commit-item { /* Container for each commit */
+         background-color: var(--gh-dark-header-bg) !important;
+         border-color: var(--gh-dark-border) !important;
+         color: var(--gh-dark-text);
+     }
+    #commitsTab .commit-header { /* Header within commit item */
+         background-color: transparent; /* No extra background */
+         border-bottom-color: var(--gh-dark-border);
+     }
+    #commitsTab .commit-title {
+         color: var(--gh-dark-text);
+     }
+    #commitsTab .commit-meta {
+         color: var(--gh-dark-secondary-text) !important;
+     }
+    #commitsTab .commit-meta strong {
+         color: var(--gh-dark-text);
+     }
+      #commitsTab .avatar-img-medium {
+           filter: brightness(0.9);
+      }
+
+
+    /* Files Tab */
+    #filesTab .diff-file {
+         border-color: var(--gh-dark-border) !important;
+         background-color: var(--gh-dark-header-bg) !important; /* Match card background */
+         border-radius: 6px;
+         overflow: hidden; /* Important for rounding */
+     }
+    #filesTab .diff-header {
+         background-color: var(--gh-dark-bg) !important; /* Darker header for diff */
+         border-bottom-color: var(--gh-dark-border) !important;
+         color: var(--gh-dark-secondary-text) !important;
+     }
+     #filesTab .diff-header strong { /* File path */
+          color: var(--gh-dark-text);
+     }
+     #filesTab .diff-stats span {
+         font-weight: 600;
+     }
+    #filesTab .diff-additions { color: #3fb950 !important; }
+    #filesTab .diff-deletions { color: #f85149 !important; }
+
+     /* Style diff table lines within Files tab */
+     #filesTab .diff-table {
+          background-color: var(--gh-dark-bg) !important; /* Darkest bg for code */
+      }
+     #filesTab .diff-line { color: var(--gh-dark-text); }
+     #filesTab .diff-line:hover { background-color: rgba(88, 166, 255, 0.05); }
+     #filesTab .diff-line-num {
+         background-color: var(--gh-dark-header-bg);
+         border-right-color: var(--gh-dark-border) !important;
+         color: var(--gh-dark-secondary-text) !important;
+     }
+     #filesTab .diff-add { background-color: var(--gh-dark-diff-add-bg) !important; }
+     #filesTab .diff-add .diff-line-num { background-color: rgba(46, 160, 67, 0.1); border-color: rgba(46, 160, 67, 0.3) !important; }
+     #filesTab .diff-del { background-color: var(--gh-dark-diff-del-bg) !important; }
+     #filesTab .diff-del .diff-line-num { background-color: rgba(248, 81, 73, 0.1); border-color: rgba(248, 81, 73, 0.3) !important; }
+     #filesTab .diff-hunk-header {
+         background-color: rgba(88, 166, 255, 0.1) !important;
+         color: var(--gh-dark-secondary-text);
+     }
+     #filesTab .diff-hunk-header .diff-line-num {
+         background-color: rgba(88, 166, 255, 0.15) !important;
+         border-color: rgba(88, 166, 255, 0.3) !important;
+     }
+
+
+    /* Sidebar */
+    .pr-sidebar-section {
+        background-color: var(--gh-dark-header-bg) !important;
+        border: 1px solid var(--gh-dark-border) !important;
+        color: var(--gh-dark-text);
+    }
+    .pr-sidebar-header {
+        border-bottom-color: var(--gh-dark-border) !important;
+        color: var(--gh-dark-text); /* Header text */
+        font-weight: 600;
+    }
+    .pr-sidebar-content {
+         color: var(--gh-dark-text); /* Content text */
+     }
+     .pr-sidebar-content .text-muted {
+         color: var(--gh-dark-secondary-text) !important;
+     }
+     .pr-sidebar-content strong {
+          color: var(--gh-dark-text);
+     }
+     .pr-sidebar-content .btn-outline-secondary { /* Add reviewers btn */
+         background-color: var(--gh-dark-button-bg);
+         border-color: var(--gh-dark-border);
+         color: var(--gh-dark-button-text);
+     }
+      .pr-sidebar-content .btn-outline-secondary:hover {
+         background-color: var(--gh-dark-button-hover-bg);
+         border-color: var(--gh-dark-secondary-text);
+         color: var(--gh-dark-text);
+     }
+
+
+    /* Merge Section */
+    #mergeStatusText .text-success { color: #3fb950 !important; }
+    #mergeStatusText .text-danger { color: #f85149 !important; }
+    #closePrButton { /* Already .btn-outline-danger, style it */
+         color: #f85149 !important;
+         border-color: var(--gh-dark-border) !important;
+         background-color: var(--gh-dark-button-bg) !important;
+     }
+      #closePrButton:hover {
+           color: #ffffff !important;
+           border-color: #f85149 !important;
+           background-color: #f85149 !important;
+       }
+       #closePrButton:disabled { /* Ensure disabled state is clear */
+            color: var(--gh-dark-secondary-text) !important;
+            background-color: var(--gh-dark-button-bg) !important;
+            border-color: var(--gh-dark-border) !important;
+            opacity: 0.5;
+       }
+
+
+    /* Review Section */
+    #reviewSection p.small {
+         color: var(--gh-dark-secondary-text);
+     }
+     #requestChangesBtn { /* .btn-danger */
+         background-color: #da3633;
+         border-color: #da3633;
+         color: #ffffff;
+      }
+     #requestChangesBtn:hover {
+          background-color: #b62324;
+          border-color: #b62324;
+          color: #ffffff;
+      }
+     #commentBtn { /* .btn-secondary */
+          background-color: var(--gh-dark-button-bg);
+          border-color: var(--gh-dark-border);
+          color: var(--gh-dark-button-text);
+      }
+      #commentBtn:hover {
+           background-color: var(--gh-dark-button-hover-bg);
+           border-color: var(--gh-dark-secondary-text);
+           color: var(--gh-dark-text);
+      }
+
+     /* Modals (Check if general modal styles are sufficient) */
+      .modal-content {
+         background-color: var(--gh-dark-header-bg) !important;
+         border-color: var(--gh-dark-border) !important;
+         color: var(--gh-dark-text);
+      }
+      .modal-header {
+          border-bottom-color: var(--gh-dark-border) !important;
+      }
+      .modal-header .btn-close {
+           filter: invert(1) grayscale(100%) brightness(200%); /* White close button */
+       }
+      .modal-footer {
+           border-top-color: var(--gh-dark-border) !important;
+       }
+
+
+           /* Target the specific timeline-content box holding the PR description */
+    #conversationTab > .mb-4 > .d-flex > .timeline-content {
+      background-color: var(--gh-dark-header-bg) !important; /* Use card background */
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text);
+      border-radius: 6px; /* Ensure rounding */
+      padding: 16px; /* Ensure padding */
+  }
+
+  #conversationTab .timeline-content .comment-author {
+      color: var(--gh-dark-text); /* Ensure author is light */
+      font-weight: 600;
+  }
+  #conversationTab .timeline-content .comment-time {
+      color: var(--gh-dark-secondary-text) !important; /* Ensure time is muted */
+  }
+  #conversationTab .timeline-content .comment-body {
+      color: var(--gh-dark-text); /* Ensure body text is light */
+  }
+
+  /* Style the Edit Description Button */
+  #editDescriptionBtn {
+       background-color: var(--gh-dark-button-bg);
+       border-color: var(--gh-dark-border);
+       color: var(--gh-dark-secondary-text); /* Use muted color for edit */
+   }
+  #editDescriptionBtn:hover {
+       background-color: var(--gh-dark-button-hover-bg);
+       border-color: var(--gh-dark-secondary-text);
+       color: var(--gh-dark-text); /* Brighter on hover */
+   }
+   #editDescriptionBtn i {
+        color: inherit; /* Icon color matches button text */
+    }
+
+
+  /* Reinforce general timeline content styling (from previous step, ensure it exists) */
+  .pr-timeline .timeline-content {
+      background-color: var(--gh-dark-header-bg) !important;
+      border: 1px solid var(--gh-dark-border) !important;
+      color: var(--gh-dark-text);
+      border-radius: 6px;
+      padding: 16px;
+  }
+
   
   
   } /* End of html[data-theme="dark"] */
