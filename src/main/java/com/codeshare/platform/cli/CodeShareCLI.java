@@ -19,20 +19,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codeshare.platform.util.ConfigManager;
 import com.codeshare.platform.util.FileSync;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CodeShareCLI {
     private static final String API_BASE_URL = "http://localhost:8080/api";
     private static String authToken;
     private static final Logger logger = LoggerFactory.getLogger(CodeShareCLI.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) {
         if (args.length == 0) {
@@ -81,7 +82,7 @@ public class CodeShareCLI {
         }
     }
     
-    private static void login(String[] args) { // Removed throws IOException, handle inside
+    private static void login(String[] args) {
         Console console = System.console();
         if (console == null) {
             System.err.println("Error: No console available. Cannot read credentials.");
@@ -92,129 +93,107 @@ public class CodeShareCLI {
         char[] passwordChars = console.readPassword("Password: ");
         String password = new String(passwordChars);
 
-        // --- Best Practice: Clear password from memory ASAP ---
+        // Clear password from memory ASAP
         Arrays.fill(passwordChars, ' ');
-        // ---
 
-        HttpURLConnection conn = null; // Declare outside try for finally block
+        HttpURLConnection conn = null;
 
         try {
             URL url = new URL(API_BASE_URL + "/auth/login");
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; utf-8"); // Specify charset
-            conn.setRequestProperty("Accept", "application/json"); // Still good practice to set Accept
-            conn.setDoOutput(true); // Indicate we are sending data
-            conn.setConnectTimeout(10000); // 10 seconds connection timeout
-            conn.setReadTimeout(10000);    // 10 seconds read timeout
+            conn.setRequestProperty("Content-Type", "application/json; utf-8");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
 
-            // --- Prepare JSON payload ---
-            String jsonInputString = String.format("{\"username\": \"%s\", \"password\": \"%s\"}", username, password);
+            // Prepare JSON payload
+            Map<String, String> loginData = new HashMap<>();
+            loginData.put("username", username);
+            loginData.put("password", password);
+            String jsonInputString = objectMapper.writeValueAsString(loginData);
             password = null; // Clear the String version of the password
 
-            // --- Send request payload (try-with-resources) ---
+            // Send request payload
             try (OutputStream os = conn.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
 
-            // --- Check server response code ---
             int responseCode = conn.getResponseCode();
             System.out.println("DEBUG: Server responded with HTTP code: " + responseCode);
 
-            if (responseCode == HttpURLConnection.HTTP_OK) { // Success (200)
-                // --- Read response body (try-with-resources) ---
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Read response body
                 try (BufferedReader br = new BufferedReader(
                         new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-
                     StringBuilder response = new StringBuilder();
                     String responseLine;
                     while ((responseLine = br.readLine()) != null) {
                         response.append(responseLine.trim());
                     }
+                    
                     String responseStr = response.toString();
                     System.out.println("DEBUG: Raw server response: " + responseStr);
 
-                    // --- Parse response using Regex ---
-                    try {
-                        // Regex explained in previous answer: finds "accessToken":"<value>"
-                        // Slightly improved to be less sensitive to whitespace around colons/braces
-                         Pattern pattern = Pattern.compile("\"data\"\\s*:\\s*\\{\\s*.*?\"accessToken\"\\s*:\\s*\"([^\"]+)\"");
-                         Matcher matcher = pattern.matcher(responseStr);
-
-                        if (matcher.find()) {
-                            // Group 1 contains the captured token value
-                            String extractedToken = matcher.group(1);
-
-                            if (extractedToken != null && !extractedToken.isEmpty()) {
-                                authToken = extractedToken; // Store the token
-
-                                System.out.println("===========================================");
-                                System.out.println("Token extracted successfully using Regex.");
-                                // Avoid printing token unless necessary for debugging
-                                // System.out.println("Token starts with: " + authToken.substring(0, Math.min(10, authToken.length())));
-
-                                ConfigManager.saveToken(authToken); // Save token
-
-                                System.out.println("Login successful!");
-                                // Note: Cannot easily extract server message with this simple Regex
-                                System.out.println("=============================================");
-                            } else {
-                                System.err.println("Login Error: Regex matched, but the extracted 'accessToken' was empty.");
-                            }
+                    // Parse response using Jackson
+                    JsonNode rootNode = objectMapper.readTree(responseStr);
+                    JsonNode dataNode = rootNode.path("data");
+                    if (!dataNode.isMissingNode()) {
+                        String token = dataNode.path("accessToken").asText();
+                        
+                        if (token != null && !token.isEmpty()) {
+                            authToken = token;
+                            System.out.println("===========================================");
+                            System.out.println("Token extracted successfully.");
+                            ConfigManager.saveToken(authToken);
+                            System.out.println("Login successful!");
+                            System.out.println("=============================================");
                         } else {
-                             System.err.println("Login Error: Could not find the 'accessToken' pattern in the server response using Regex.");
-                             System.err.println("Response was: " + responseStr);
+                            System.err.println("Login Error: Could not extract access token from response.");
                         }
-
-                    } catch (PatternSyntaxException e) {
-                        // This catches errors in your Regex pattern itself
-                        System.err.println("Internal Error: Invalid Regex pattern syntax: " + e.getMessage());
-                    } catch (Exception e) {
-                         // Catch other potential runtime errors during matching
-                        System.err.println("Error during Regex processing: " + e.getMessage());
+                    } else {
+                        System.err.println("Login Error: Response data structure is not as expected.");
+                        System.err.println("Response was: " + responseStr);
                     }
-                    // --- End Regex Parsing ---
-
-                } // End try-with-resources for BufferedReader
-
-            } else { // Handle non-200 responses
-                 System.err.println("Login failed. Server responded with HTTP code: " + responseCode + " " + conn.getResponseMessage());
-                // --- Attempt to read error response body ---
-                 try (BufferedReader br = new BufferedReader(
+                }
+            } else {
+                System.err.println("Login failed. Server responded with HTTP code: " + responseCode + " " + conn.getResponseMessage());
+                
+                try (BufferedReader br = new BufferedReader(
                         new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
-                   StringBuilder errorResponse = new StringBuilder();
-                   String responseLine;
-                   while ((responseLine = br.readLine()) != null) {
-                       errorResponse.append(responseLine.trim());
-                   }
+                    StringBuilder errorResponse = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        errorResponse.append(responseLine.trim());
+                    }
+                    
                     if (!errorResponse.toString().isEmpty()) {
-                       System.err.println("Server error details: " + errorResponse.toString());
-                   } else {
-                       System.err.println("No detailed error message body received from server.");
-                   }
-                } catch (IOException | NullPointerException e) { // Catch if getErrorStream() is null or fails
-                     System.err.println("Could not read detailed error message from server.");
+                        System.err.println("Server error details: " + errorResponse.toString());
+                    } else {
+                        System.err.println("No detailed error message body received from server.");
+                    }
+                } catch (IOException | NullPointerException e) {
+                    System.err.println("Could not read detailed error message from server.");
                 }
             }
-
         } catch (MalformedURLException e) {
             System.err.println("Internal Error: Invalid API URL configured: " + e.getMessage());
         } catch (IOException e) {
             System.err.println("Network Error: Could not connect to server or timed out during login.");
             System.err.println("Details: " + e.getMessage());
-             // Consider logging the stack trace for detailed network debugging if needed
-             // e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Unexpected error during login: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             if (conn != null) {
-                conn.disconnect(); // Always disconnect
+                conn.disconnect();
             }
-             // Explicitly nullify potentially sensitive data
-             password = null;
-             username = null;
+            password = null;
+            username = null;
         }
-    } // End login method
-
+    }
     
     private static void initRepository(String[] args) throws IOException {
         if (args.length < 2) {
@@ -271,22 +250,25 @@ public class CodeShareCLI {
                     response.append(responseLine.trim());
                 }
                 
-                // Simple JSON parsing - in real app use proper JSON parser
-                String responseStr = response.toString();
-                int idStart = responseStr.indexOf("\"id\":") + 5;
-                int idEnd = responseStr.indexOf(",", idStart);
-                String projectId = responseStr.substring(idStart, idEnd).trim();
+                // Parse JSON response with Jackson
+                JsonNode rootNode = objectMapper.readTree(response.toString());
                 
-                // Initialize local config
-                Map<String, String> config = new HashMap<>();
-                config.put("projectId", projectId);
-                config.put("projectName", projectName);
-                config.put("remoteUrl", API_BASE_URL);
-                
-                // Save config
-                ConfigManager.saveRepoConfig(currentDir, config);
-                
-                System.out.println("Repository initialized successfully");
+                if (rootNode.has("data") && rootNode.get("data").has("id")) {
+                    String projectId = rootNode.get("data").get("id").asText();
+                    
+                    // Initialize local config
+                    Map<String, String> config = new HashMap<>();
+                    config.put("projectId", projectId);
+                    config.put("projectName", projectName);
+                    config.put("remoteUrl", API_BASE_URL);
+                    
+                    // Save config
+                    ConfigManager.saveRepoConfig(currentDir, config);
+                    
+                    System.out.println("Repository initialized successfully");
+                } else {
+                    System.out.println("Failed to initialize repository: Unexpected response format");
+                }
             }
         } else {
             System.out.println("Failed to initialize repository: " + responseCode);
@@ -350,43 +332,52 @@ public class CodeShareCLI {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-                // Simple JSON parsing - in real app use proper JSON parser
-                // This is very simplified - in a real app use a proper JSON parser
-                Map<String, String> files = parseFilesFromJson(response.toString());
                 
-                // Write files to target directory
-                for (Map.Entry<String, String> entry : files.entrySet()) {
-                    String filePath = entry.getKey();
-                    String content = entry.getValue();
+                // Parse JSON response with Jackson
+                JsonNode rootNode = objectMapper.readTree(response.toString());
+                JsonNode dataNode = rootNode.path("data");
+                
+                if (!dataNode.isMissingNode()) {
+                    // Convert JSON data to Map<String, String>
+                    Map<String, String> files = objectMapper.convertValue(
+                        dataNode, new TypeReference<Map<String, String>>() {});
                     
-                    // Normalize line endings to match the local system
-                    content = content.replaceAll("\r\n|\r|\n", System.lineSeparator());
-                    
-                    File file = new File(targetDir, filePath);
-                    File parentDir = file.getParentFile();
-                    if (!parentDir.exists() && !parentDir.mkdirs()) {
-                        System.out.println("Failed to create directory: " + parentDir);
-                        continue;
+                    // Write files to target directory
+                    for (Map.Entry<String, String> entry : files.entrySet()) {
+                        String filePath = entry.getKey();
+                        String content = entry.getValue();
+                        
+                        // Normalize line endings to match the local system
+                        content = content.replaceAll("\\r\\n|\\r|\\n", System.lineSeparator());
+                        
+                        File file = new File(targetDir, filePath);
+                        File parentDir = file.getParentFile();
+                        if (!parentDir.exists() && !parentDir.mkdirs()) {
+                            System.out.println("Failed to create directory: " + parentDir);
+                            continue;
+                        }
+                        
+                        try (FileWriter writer = new FileWriter(file)) {
+                            writer.write(content);
+                        }
                     }
                     
-                    try (FileWriter writer = new FileWriter(file)) {
-                        writer.write(content);
-                    }
+                    // Initialize local config
+                    Map<String, String> config = new HashMap<>();
+                    config.put("projectId", projectId);
+                    config.put("remoteUrl", API_BASE_URL);
+                    config.put("branch", branch.isEmpty() ? "main" : branch);
+                    
+                    // Save config
+                    ConfigManager.saveRepoConfig(targetDir, config);
+                    
+                    // Save current state
+                    FileSync.saveCurrentState(targetDir, files);
+                    
+                    System.out.println("Repository cloned successfully");
+                } else {
+                    System.out.println("Failed to parse repository data: Data node missing");
                 }
-                
-                // Initialize local config
-                Map<String, String> config = new HashMap<>();
-                config.put("projectId", projectId);
-                config.put("remoteUrl", API_BASE_URL);
-                config.put("branch", branch.isEmpty() ? "main" : branch);
-                
-                // Save config
-                ConfigManager.saveRepoConfig(targetDir, config);
-                
-                // Save current state
-                FileSync.saveCurrentState(targetDir, files);
-                
-                System.out.println("Repository cloned successfully");
             }
         } else {
             System.out.println("Failed to clone repository: " + responseCode);
@@ -398,343 +389,219 @@ public class CodeShareCLI {
             }
         }
     }
-    
-    // Helper method for JSON parsing (simplified)
-    private static Map<String, String> parseFilesFromJson(String json) {
-        Map<String, String> files = new HashMap<>();
+
+    private static void pushChanges(String[] args) throws IOException, NoSuchAlgorithmException {
+        // Parse branch name and commit message
+        String branchName = null;
+        String commitMessage = "Update";
         
-        // Very simplified JSON parsing - in a real app use a proper JSON parser
-        int filesStart = json.indexOf("\"data\":{") + 7;
-        int filesEnd = json.lastIndexOf("}");
-        String filesJson = json.substring(filesStart, filesEnd);
-        
-        // Parse each file entry
-        int currentPos = 0;
-        while (currentPos < filesJson.length()) {
-            // Find the file path (key)
-            int keyStart = filesJson.indexOf("\"", currentPos) + 1;
-            if (keyStart <= 0 || keyStart >= filesJson.length()) break;
-            
-            int keyEnd = filesJson.indexOf("\"", keyStart);
-            if (keyEnd <= 0) break;
-            
-            String key = filesJson.substring(keyStart, keyEnd);
-            
-            // Find the file content (value)
-            int valueStart = filesJson.indexOf("\"", keyEnd + 1) + 1;
-            if (valueStart <= 0) break;
-            
-            int valueEnd = findMatchingQuote(filesJson, valueStart);
-            if (valueEnd <= 0) break;
-            
-            String value = filesJson.substring(valueStart, valueEnd)
-                    .replace("\\\"", "\"")
-                    .replace("\\n", "\n")
-                    .replace("\\t", "\t")
-                    .replace("\\\\", "\\")
-                    .replace("\\r", "\r");
-            files.put(key, value);
-            
-            currentPos = valueEnd + 1;
-        }
-        
-        return files;
-    }
-    
-    // Find matching quote in a JSON string, handling escaped quotes
-    private static int findMatchingQuote(String json, int start) {
-        for (int i = start; i < json.length(); i++) {
-            char c = json.charAt(i);
-            if (c == '\\') {
-                // Skip the escaped character
-                i++;
-            } else if (c == '"') {
-                return i;
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equals("-m") && i + 1 < args.length) {
+                commitMessage = args[i + 1];
+                i++; // Skip the next argument as we've already processed it
+            } else if (!args[i].startsWith("-") && branchName == null) {
+                branchName = args[i];
             }
         }
-        return -1;
-    }
-// Find the pushChanges method in your CodeShareCLI.java file and replace it with this:
-
-
-// Find the pushChanges method in your CodeShareCLI.java file and replace it with this:
-
-private static void pushChanges(String[] args) throws IOException, NoSuchAlgorithmException {
-    // Parse branch name and commit message
-    String branchName = null;
-    String commitMessage = "Update";
-    
-    for (int i = 1; i < args.length; i++) {
-        if (args[i].equals("-m") && i + 1 < args.length) {
-            commitMessage = args[i + 1];
-            i++; // Skip the next argument as we've already processed it
-        } else if (!args[i].startsWith("-") && branchName == null) {
-            branchName = args[i];
-        }
-    }
-    
-    // Check if token exists
-    if (authToken == null) {
-        System.out.println("Please login first: codeshare login");
-        return;
-    }
-    
-    File currentDir = new File(System.getProperty("user.dir"));
-
-    // Check if this is a CodeShare repository
-    File configDir = ConfigManager.getRepoConfigDir(currentDir);
-    if (!configDir.exists()) {
-        System.out.println("Not a CodeShare repository");
-        return;
-    }
-
-    // Load repository config
-    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
-    String projectId = config.get("projectId");
-    if (projectId == null) {
-        System.out.println("Invalid repository configuration");
-        return;
-    }
-
-    // Use branch from config if not specified
-    if (branchName == null) {
-        branchName = config.get("branch");
-        if (branchName == null || branchName.isEmpty()) {
-            System.out.println("Error: Current branch not set. Please specify a branch name.");
+        
+        // Check if token exists
+        if (authToken == null) {
+            System.out.println("Please login first: codeshare login");
             return;
         }
-        System.out.println("Using branch from config: " + branchName);
-    }
-
-    // Detect local changes
-    System.out.println("Detecting changes...");
-    List<String> changedFiles = FileSync.detectLocalChanges(currentDir);
-
-    if (changedFiles.isEmpty()) {
-        System.out.println("No changes detected");
-        return;
-    }
-
-    System.out.println("Found " + changedFiles.size() + " changed files");
-    
-    // Group files by directory for easier viewing - keep this for displaying purposes
-    Map<String, List<String>> filesByDirectory = new HashMap<>();
-    for (String filePath : changedFiles) {
-        String directory = "./";
-        if (filePath.contains("/")) {
-            directory = filePath.substring(0, filePath.lastIndexOf('/'));
-        }
         
-        filesByDirectory.computeIfAbsent(directory, k -> new ArrayList<>()).add(filePath);
-    }
-    
-    // Print files by directory
-    System.out.println("Changes by directory:");
-    for (Map.Entry<String, List<String>> entry : filesByDirectory.entrySet()) {
-        System.out.println("  " + entry.getKey() + "/");
-        for (String file : entry.getValue()) {
-            String fileName = file;
-            if (file.contains("/")) {
-                fileName = file.substring(file.lastIndexOf('/') + 1);
+        File currentDir = new File(System.getProperty("user.dir"));
+
+        // Check if this is a CodeShare repository
+        File configDir = ConfigManager.getRepoConfigDir(currentDir);
+        if (!configDir.exists()) {
+            System.out.println("Not a CodeShare repository");
+            return;
+        }
+
+        // Load repository config
+        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+        String projectId = config.get("projectId");
+        if (projectId == null) {
+            System.out.println("Invalid repository configuration");
+            return;
+        }
+
+        // Use branch from config if not specified
+        if (branchName == null) {
+            branchName = config.get("branch");
+            if (branchName == null || branchName.isEmpty()) {
+                System.out.println("Error: Current branch not set. Please specify a branch name.");
+                return;
             }
-            System.out.println("    " + fileName);
+            System.out.println("Using branch from config: " + branchName);
         }
-    }
-
-    // Create a single map for all file changes
-    Map<String, String> allChanges = new HashMap<>();
-    int totalFileCount = 0;
-    
-    // Process all files at once
-    for (String filePath : changedFiles) {
-        // Read file content
-        File file = new File(currentDir, filePath);
-        if (!file.exists() || !file.isFile()) {
-            System.out.println("Skipping non-existent or non-file: " + filePath);
-            continue;
-        }
-
-        try {
-            // Read file content
-            String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-            
-            // Normalize to Unix line endings (LF) when sending to server
-            content = content.replaceAll("\r\n|\r", "\n");
-            
-            // Filter out null bytes
-            content = content.replace("\u0000", "");
-            
-            allChanges.put(filePath, content);
-            totalFileCount++;
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + filePath + ": " + e.getMessage());
-        }
-    }
-    
-    if (allChanges.isEmpty()) {
-        System.out.println("No valid files to push");
-        return;
-    }
-    
-    System.out.println("Pushing " + totalFileCount + " files as a single commit...");
-    
-    // Now send a single push request with all files
-    try {
-        sendCommit(projectId, branchName, allChanges, commitMessage);
-        
-        // Update state after successful push
-        FileSync.saveCurrentState(currentDir, allChanges);
-        
-        System.out.println("Push completed successfully");
-    } catch (Exception e) {
-        System.err.println("Failed to push changes: " + e.getMessage());
-    }
-}
-
-// Replace pushChunk with a new sendCommit method
-private static void sendCommit(String projectId, String branchName, Map<String, String> changes, String commitMessage) throws IOException {
-    // Create API request
-    URL url = new URL(API_BASE_URL + "/cli/push?projectId=" + projectId + 
-            (branchName != null ? "&branchName=" + URLEncoder.encode(branchName, "UTF-8") : "") +
-            "&commitMessage=" + URLEncoder.encode(commitMessage, "UTF-8"));
-    
-    System.out.println("Sending commit to server...");
-    
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("POST");
-    conn.setRequestProperty("Content-Type", "application/json");
-    conn.setRequestProperty("Authorization", "Bearer " + authToken);
-    // Increase timeouts for large requests
-    conn.setConnectTimeout(60000); // 60 seconds connection timeout
-    conn.setReadTimeout(60000);    // 60 seconds read timeout
-    conn.setDoOutput(true);
-    
-    // Convert changes map to JSON
-    String jsonChanges = convertMapToJson(changes);
-    
-    // Send request
-    try (OutputStream os = conn.getOutputStream()) {
-        byte[] input = jsonChanges.getBytes(StandardCharsets.UTF_8);
-        os.write(input, 0, input.length);
-    }
-    
-    // Check response
-    int responseCode = conn.getResponseCode();
-    if (responseCode >= 200 && responseCode < 300) {
-        System.out.println("Changes pushed successfully");
-    } else {
-        System.out.println("Failed to push changes: " + responseCode);
-        
-        // Safely handle error stream which might be null
-        try {
-            InputStream errorStream = conn.getErrorStream();
-            if (errorStream != null) {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
-                    // Read error details
-                    StringBuilder errorResponse = new StringBuilder();
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        errorResponse.append(line);
-                    }
-                    System.out.println("Error details: " + errorResponse.toString());
-                }
-            } else {
-                System.out.println("No error details available from server");
-            }
-        } catch (Exception e) {
-            System.out.println("Error reading error response: " + e.getMessage());
-        }
-        
-        throw new IOException("Failed to push changes, server returned: " + responseCode);
-    }
-}
-
-private static String convertMapToJson(Map<String, String> map) {
-    StringBuilder json = new StringBuilder("{");
-    boolean first = true;
-    for (Map.Entry<String, String> entry : map.entrySet()) {
-        if (!first) {
-            json.append(",");
-        }
-        first = false;
-        json.append("\"").append(escapeJson(entry.getKey())).append("\":\"")
-                .append(escapeJson(entry.getValue())).append("\"");
-    }
-    json.append("}");
-    return json.toString();
-}
-
-// Simple method to escape JSON string values (Improved)
-private static String escapeJson(String input) {
-    if (input == null) {
-        return null; // Or return "" or throw exception depending on desired behavior for null
-    }
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < input.length(); i++) {
-        char c = input.charAt(i);
-        switch (c) {
-            case '"':
-                sb.append("\\\"");
-                break;
-            case '\\':
-                sb.append("\\\\");
-                break;
-            case '\b': // Backspace
-                sb.append("\\b");
-                break;
-            case '\f': // Form feed
-                sb.append("\\f");
-                break;
-            case '\n': // Newline
-                sb.append("\\n");
-                break;
-            case '\r': // Carriage return
-                sb.append("\\r");
-                break;
-            case '\t': // Tab
-                sb.append("\\t");
-                break;
-            default:
-                // Escape control characters (U+0000 to U+001F)
-                if (c >= '\u0000' && c <= '\u001F') {
-                    String hex = Integer.toHexString(c);
-                    sb.append("\\u");
-                    for (int k = 0; k < 4 - hex.length(); k++) {
-                        sb.append('0');
-                    }
-                    sb.append(hex);
-                } else {
-                    // Normal character
-                    sb.append(c);
-                }
-                break;
-        }
-    }
-    return sb.toString();
-}
-
-private static void commitChanges(String[] args) throws IOException, NoSuchAlgorithmException {
-    // Check command arguments
-    if (args.length < 3 || !args[1].equals("-m")) {
-        System.out.println("Usage: codeshare commit -m \"commit message\"");
-        return;
-    }
-
-    String commitMessage = args[2];
-
-    // Get current directory
-    File currentDir = new File(System.getProperty("user.dir"));
-
-    // Check if this is a CodeShare repository
-    File configDir = ConfigManager.getRepoConfigDir(currentDir);
-    if (!configDir.exists()) {
-        System.out.println("Not a CodeShare repository");
-        return;
-    }
 
         // Detect local changes
         System.out.println("Detecting changes...");
-        List<String> changedFiles = FileSync.detectLocalChanges(currentDir); // Changed the variable name to changedFiles and type to List<String>
+        List<String> changedFiles = FileSync.detectLocalChanges(currentDir);
+
+        if (changedFiles.isEmpty()) {
+            System.out.println("No changes detected");
+            return;
+        }
+
+        System.out.println("Found " + changedFiles.size() + " changed files");
+        
+        // Group files by directory for easier viewing
+        Map<String, List<String>> filesByDirectory = new HashMap<>();
+        for (String filePath : changedFiles) {
+            String directory = "./";
+            if (filePath.contains("/")) {
+                directory = filePath.substring(0, filePath.lastIndexOf('/'));
+            }
+            
+            filesByDirectory.computeIfAbsent(directory, k -> new ArrayList<>()).add(filePath);
+        }
+        
+        // Print files by directory
+        System.out.println("Changes by directory:");
+        for (Map.Entry<String, List<String>> entry : filesByDirectory.entrySet()) {
+            System.out.println("  " + entry.getKey() + "/");
+            for (String file : entry.getValue()) {
+                String fileName = file;
+                if (file.contains("/")) {
+                    fileName = file.substring(file.lastIndexOf('/') + 1);
+                }
+                System.out.println("    " + fileName);
+            }
+        }
+
+        // Create a single map for all file changes
+        Map<String, String> allChanges = new HashMap<>();
+        int totalFileCount = 0;
+        
+        // Process all files at once
+        for (String filePath : changedFiles) {
+            // Read file content
+            File file = new File(currentDir, filePath);
+            if (!file.exists() || !file.isFile()) {
+                System.out.println("Skipping non-existent or non-file: " + filePath);
+                continue;
+            }
+        
+            try {
+                // Read file content
+                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                
+                // FIXED: Normalize to Unix line endings (LF) when sending to server
+                // Use ACTUAL newline characters, not the literal string "\\n"
+                content = content.replaceAll("\\r\\n|\\r", "\n");
+                
+                // Filter out null bytes
+                content = content.replace("\u0000", "");
+                
+                allChanges.put(filePath, content);
+                totalFileCount++;
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + filePath + ": " + e.getMessage());
+            }
+        }
+        
+        if (allChanges.isEmpty()) {
+            System.out.println("No valid files to push");
+            return;
+        }
+        
+        System.out.println("Pushing " + totalFileCount + " files as a single commit...");
+        
+        // Now send a single push request with all files
+        try {
+            sendCommit(projectId, branchName, allChanges, commitMessage);
+            
+            // Update state after successful push
+            FileSync.saveCurrentState(currentDir, allChanges);
+            
+            System.out.println("Push completed successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to push changes: " + e.getMessage());
+        }
+    }
+
+    private static void sendCommit(String projectId, String branchName, Map<String, String> changes, String commitMessage) throws IOException {
+        // Create API request
+        URL url = new URL(API_BASE_URL + "/cli/push?projectId=" + projectId + 
+                (branchName != null ? "&branchName=" + URLEncoder.encode(branchName, "UTF-8") : "") +
+                "&commitMessage=" + URLEncoder.encode(commitMessage, "UTF-8"));
+        
+        System.out.println("Sending commit to server...");
+        
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + authToken);
+        // Increase timeouts for large requests
+        conn.setConnectTimeout(60000); // 60 seconds connection timeout
+        conn.setReadTimeout(60000);    // 60 seconds read timeout
+        conn.setDoOutput(true);
+        
+        // Convert changes map to JSON using Jackson
+        String jsonChanges = objectMapper.writeValueAsString(changes);
+        
+        // Send request
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = jsonChanges.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+        
+        // Check response
+        int responseCode = conn.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            System.out.println("Changes pushed successfully");
+        } else {
+            System.out.println("Failed to push changes: " + responseCode);
+            
+            // Safely handle error stream which might be null
+            try {
+                InputStream errorStream = conn.getErrorStream();
+                if (errorStream != null) {
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
+                        // Read error details
+                        StringBuilder errorResponse = new StringBuilder();
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            errorResponse.append(line);
+                        }
+                        System.out.println("Error details: " + errorResponse.toString());
+                    }
+                } else {
+                    System.out.println("No error details available from server");
+                }
+            } catch (Exception e) {
+                System.out.println("Error reading error response: " + e.getMessage());
+            }
+            
+            throw new IOException("Failed to push changes, server returned: " + responseCode);
+        }
+    }
+
+    private static void commitChanges(String[] args) throws IOException, NoSuchAlgorithmException {
+        // Check command arguments
+        if (args.length < 3 || !args[1].equals("-m")) {
+            System.out.println("Usage: codeshare commit -m \"commit message\"");
+            return;
+        }
+
+        String commitMessage = args[2];
+
+        // Get current directory
+        File currentDir = new File(System.getProperty("user.dir"));
+
+        // Check if this is a CodeShare repository
+        File configDir = ConfigManager.getRepoConfigDir(currentDir);
+        if (!configDir.exists()) {
+            System.out.println("Not a CodeShare repository");
+            return;
+        }
+
+        // Detect local changes
+        System.out.println("Detecting changes...");
+        List<String> changedFiles = FileSync.detectLocalChanges(currentDir);
 
         if (changedFiles.isEmpty()) {
             System.out.println("No changes detected");
@@ -743,73 +610,70 @@ private static void commitChanges(String[] args) throws IOException, NoSuchAlgor
 
         System.out.println("Found " + changedFiles.size() + " changed files");
 
-    // Save the changes for later push
-    // We'll create a pending commit directory
-    File pendingDir = new File(configDir, "pending");
-    if (!pendingDir.exists()) {
-        pendingDir.mkdir();
-    }
+        // Save the changes for later push
+        // We'll create a pending commit directory
+        File pendingDir = new File(configDir, "pending");
+        if (!pendingDir.exists()) {
+            pendingDir.mkdir();
+        }
 
-    // Save commit message
-    try (FileWriter writer = new FileWriter(new File(pendingDir, "message"))) {
-        writer.write(commitMessage);
-    }
+        // Save commit message
+        try (FileWriter writer = new FileWriter(new File(pendingDir, "message"))) {
+            writer.write(commitMessage);
+        }
 
-    // Save the list of changed file paths
-    File changesListFile = new File(pendingDir, "changes.list");
-    try (FileWriter writer = new FileWriter(changesListFile)) {
+        // Save the list of changed file paths
+        File changesListFile = new File(pendingDir, "changes.list");
+        try (FileWriter writer = new FileWriter(changesListFile)) {
+            for (String relativePath : changedFiles) {
+                writer.write(relativePath + "\n");
+            }
+        }
+
+        // Update the local state
+        Map<String, String> currentHashes = new HashMap<>();
         for (String relativePath : changedFiles) {
-            writer.write(relativePath + "\n");
+            File file = new File(currentDir, relativePath);
+            if (file.isFile()) {
+                String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                currentHashes.put(relativePath, FileSync.calculateHash(content));
+            }
         }
+        FileSync.saveCurrentState(currentDir, currentHashes);
+
+        System.out.println("Changes committed locally. Use 'codeshare push' to push to remote repository.");
     }
 
-    // Update the local state - now you need to pass the *list of changed files*
-    // so that saveCurrentState can calculate and store the new hashes.
-    Map<String, String> currentHashes = new HashMap<>();
-    for (String relativePath : changedFiles) {
-        File file = new File(currentDir, relativePath);
-        if (file.isFile()) {
-            String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-            currentHashes.put(relativePath, FileSync.calculateHash(content));
+    private static void pullChanges(String[] args) throws IOException, NoSuchAlgorithmException {
+        // Parse branch name
+        String branchName = args.length > 1 ? args[1] : null;
+        
+        // Check if token exists
+        if (authToken == null) {
+            System.out.println("Please login first: codeshare login");
+            return;
         }
-    }
-    FileSync.saveCurrentState(currentDir, currentHashes);
-
-    System.out.println("Changes committed locally (list of changed files and their hashes saved). Use 'codeshare push' to push to remote repository.");
-}
-
-private static void pullChanges(String[] args) throws IOException, NoSuchAlgorithmException {
-    // Parse branch name
-    String branchName = args.length > 1 ? args[1] : null;
-    
-    // Check if token exists
-    if (authToken == null) {
-        System.out.println("Please login first: codeshare login");
-        return;
-    }
-    
-    // Get current directory
-    File currentDir = new File(System.getProperty("user.dir"));
-    
-    // Check if this is a CodeShare repository
-    File configDir = ConfigManager.getRepoConfigDir(currentDir);
-    if (!configDir.exists()) {
-        System.out.println("Not a CodeShare repository");
-        return;
-    }
-    
-    // Load repository config
-    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
-    String projectId = config.get("projectId");
-    if (projectId == null) {
-        System.out.println("Invalid repository configuration");
-        return;
-    }
-    
-    // Detect local changes first to warn user if there are uncommitted changes
-
+        
+        // Get current directory
+        File currentDir = new File(System.getProperty("user.dir"));
+        
+        // Check if this is a CodeShare repository
+        File configDir = ConfigManager.getRepoConfigDir(currentDir);
+        if (!configDir.exists()) {
+            System.out.println("Not a CodeShare repository");
+            return;
+        }
+        
+        // Load repository config
+        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+        String projectId = config.get("projectId");
+        if (projectId == null) {
+            System.out.println("Invalid repository configuration");
+            return;
+        }
+        
         // Detect local changes first to warn user if there are uncommitted changes
-        List<String> localChanges = FileSync.detectLocalChanges(currentDir); // Change to List<String>
+        List<String> localChanges = FileSync.detectLocalChanges(currentDir);
 
         if (!localChanges.isEmpty()) {
             System.out.println("Warning: You have " + localChanges.size() + " uncommitted local changes.");
@@ -822,349 +686,22 @@ private static void pullChanges(String[] args) throws IOException, NoSuchAlgorit
                 return;
             }
         }
-    
-    // Pull changes from remote
-    System.out.println("Pulling changes from remote...");
-    
-    // Create API request
-    URL url = new URL(API_BASE_URL + "/cli/pull?projectId=" + projectId + 
-            (branchName != null ? "&branchName=" + branchName : ""));
-    
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("GET");
-    conn.setRequestProperty("Authorization", "Bearer " + authToken);
-    
-    // Check response
-    int responseCode = conn.getResponseCode();
-    if (responseCode >= 200 && responseCode < 300) {
-        // Read response and parse files
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-            StringBuilder response = new StringBuilder();
-            String responseLine;
-            while ((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
-            }
-            
-            Map<String, String> remoteFiles = parseFilesFromJson(response.toString());
-            
-            // Write files to local repository
-            int updatedFiles = 0;
-            // Write files to local repository
-            for (Map.Entry<String, String> entry : remoteFiles.entrySet()) {
-                String filePath = entry.getKey();
-                String content = entry.getValue();
-                
-                // Normalize line endings to match the local system
-                content = content.replaceAll("\r\n|\r|\n", System.lineSeparator());
-                
-                File file = new File(currentDir, filePath);
-                File parentDir = file.getParentFile();
-                if (!parentDir.exists() && !parentDir.mkdirs()) {
-                    System.out.println("Failed to create directory: " + parentDir);
-                    continue;
-                }
-                
-                // Check if file exists and content is different
-                boolean shouldUpdate = true;
-                if (file.exists()) {
-                    String currentContent = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                    // Normalize current content for comparison to avoid false positives due to line endings
-                    currentContent = currentContent.replaceAll("\r\n|\r|\n", "\n");
-                    String normalizedNewContent = content.replaceAll("\r\n|\r|\n", "\n");
-                    shouldUpdate = !currentContent.equals(normalizedNewContent);
-                }
-                
-                if (shouldUpdate) {
-                    try (FileWriter writer = new FileWriter(file)) {
-                        writer.write(content);
-                        updatedFiles++;
-                    }
-                }
-            }
-            
-            // Save current state after pull
-            FileSync.saveCurrentState(currentDir, remoteFiles);
-            
-            System.out.println("Pull completed, " + updatedFiles + " files updated");
-        }
-    } else {
-        System.out.println("Failed to pull changes: " + responseCode);
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-            }
-        }
-    }
-}
-
-private static void manageBranches(String[] args) throws IOException, NoSuchAlgorithmException {
-    // Check if token exists
-    if (authToken == null) {
-        System.out.println("Please login first: codeshare login");
-        return;
-    }
-    
-    // Get current directory
-    File currentDir = new File(System.getProperty("user.dir"));
-    
-    // Check if this is a CodeShare repository
-    File configDir = ConfigManager.getRepoConfigDir(currentDir);
-    if (!configDir.exists()) {
-        System.out.println("Not a CodeShare repository");
-        return;
-    }
-    
-    // Load repository config
-    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
-    String projectId = config.get("projectId");
-    if (projectId == null) {
-        System.out.println("Invalid repository configuration");
-        return;
-    }
-    
-    // Determine operation: list, create, or switch
-    if (args.length == 1) {
-        // List branches
-        listBranches(projectId);
-    } else if (args.length == 2) {
-        // Create or switch branch
-        String branchName = args[1];
         
-        // Get current branch from config
-        String currentBranch = config.get("branch");
-        if (currentBranch != null && currentBranch.equals(branchName)) {
-            System.out.println("Already on branch '" + branchName + "'");
-            return;
-        }
+        // Pull changes from remote
+        System.out.println("Pulling changes from remote...");
         
-        // Ask if the user wants to create or switch to the branch
-        Console console = System.console();
-        if (console == null) {
-            System.out.println("No console available");
-            return;
-        }
+        // Create API request
+        URL url = new URL(API_BASE_URL + "/cli/pull?projectId=" + projectId + 
+                (branchName != null ? "&branchName=" + branchName : ""));
         
-        String action = console.readLine("Do you want to (c)reate a new branch or (s)witch to an existing branch? (c/s): ");
-        if (action.equalsIgnoreCase("c")) {
-            createBranch(projectId, branchName);
-        } else if (action.equalsIgnoreCase("s")) {
-            switchBranch(projectId, branchName);
-        } else {
-            System.out.println("Invalid choice");
-        }
-    } else if (args.length == 3) {
-        // Check for specific branch commands
-        if (args[1].equals("switch") || args[1].equals("checkout")) {
-            String branchName = args[2];
-            switchBranch(projectId, branchName);
-        } else if (args[1].equals("create") || args[1].equals("new")) {
-            String branchName = args[2];
-            createBranch(projectId, branchName);
-        } else {
-            System.out.println("Unknown branch command: " + args[1]);
-            System.out.println("Usage: codeshare branch [switch|create] <branch-name>");
-        }
-    } else {
-        System.out.println("Usage: codeshare branch [switch|create] <branch-name>");
-    }
-}
-
-/**
- * Displays the status of the current repository, including branch information
- */
-private static void showStatus(String[] args) throws IOException {
-    // Get current directory
-    File currentDir = new File(System.getProperty("user.dir"));
-    
-    // Check if this is a CodeShare repository
-    File configDir = ConfigManager.getRepoConfigDir(currentDir);
-    if (!configDir.exists()) {
-        System.out.println("Not a CodeShare repository");
-        return;
-    }
-    
-    // Load repository config
-    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
-    String projectId = config.get("projectId");
-    String projectName = config.get("projectName");
-    
-    if (projectId == null) {
-        System.out.println("Invalid repository configuration");
-        return;
-    }
-    
-    System.out.println("On branch: " + (config.get("branch") != null ? config.get("branch") : "default"));
-    System.out.println("Project: " + (projectName != null ? projectName : "unnamed") + " (ID: " + projectId + ")");
-    System.out.println("Remote: " + config.getOrDefault("remoteUrl", API_BASE_URL));
-    
-    // Detect local changes
-    try {
-        List<String> changedFiles = FileSync.detectLocalChanges(currentDir);
-        
-        if (changedFiles.isEmpty()) {
-            System.out.println("\nWorking tree clean. No changes to commit.");
-        } else {
-            System.out.println("\nChanges not staged for commit:");
-            System.out.println("  (use \"codeshare commit -m <message>\" to commit the changes)");
-            System.out.println("  (use \"codeshare push\" to upload your commits to the server)");
-            System.out.println();
-            
-            // Group files by directory for easier viewing
-            Map<String, List<String>> filesByDirectory = new HashMap<>();
-            for (String filePath : changedFiles) {
-                String directory = "./";
-                if (filePath.contains("/")) {
-                    directory = filePath.substring(0, filePath.lastIndexOf('/'));
-                }
-                
-                if (!filesByDirectory.containsKey(directory)) {
-                    filesByDirectory.put(directory, new ArrayList<>());
-                }
-                filesByDirectory.get(directory).add(filePath);
-            }
-            
-            // Print files by directory
-            for (Map.Entry<String, List<String>> entry : filesByDirectory.entrySet()) {
-                System.out.println("  " + entry.getKey() + "/");
-                for (String file : entry.getValue()) {
-                    String fileName = file;
-                    if (file.contains("/")) {
-                        fileName = file.substring(file.lastIndexOf('/') + 1);
-                    }
-                    System.out.println("    modified:   " + fileName);
-                }
-            }
-        }
-    } catch (NoSuchAlgorithmException e) {
-        System.out.println("\nError detecting file changes: " + e.getMessage());
-    }
-}
-
-private static void listBranches(String projectId) throws IOException {
-    System.out.println("Fetching branches...");
-    
-    // Get current branch from config
-    File currentDir = new File(System.getProperty("user.dir"));
-    String currentBranch = null;
-    try {
-        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
-        currentBranch = config.get("branch");
-    } catch (Exception e) {
-        // Ignore error, just won't mark current branch
-    }
-    
-    // Create API request
-    URL url = new URL(API_BASE_URL + "/cli/branches?projectId=" + projectId);
-    
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("GET");
-    conn.setRequestProperty("Authorization", "Bearer " + authToken);
-    System.out.println("DEBUG: Using token: " + (authToken != null ? 
-    authToken.substring(0, Math.min(10, authToken.length())) + "..." : "null"));
-    
-    // Check response
-    int responseCode = conn.getResponseCode();
-    if (responseCode >= 200 && responseCode < 300) {
-        // Read response and parse branches
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-            StringBuilder response = new StringBuilder();
-            String responseLine;
-            while ((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
-            }
-            
-            // This is a simplified parsing - in a real app use a proper JSON parser
-            String responseStr = response.toString();
-            int dataStart = responseStr.indexOf("\"data\":[") + 7;
-            int dataEnd = responseStr.lastIndexOf("]");
-            
-            if (dataStart > 7 && dataEnd > dataStart) {
-                String branchesJson = responseStr.substring(dataStart, dataEnd + 1);
-                
-                // First show current branch
-                if (currentBranch != null && !currentBranch.isEmpty()) {
-                    System.out.println("Current branch: " + currentBranch);
-                }
-                
-                // Very simple parsing of branches array
-                // In a real app, use a JSON parser library
-                String[] branches = branchesJson.split("\\},\\{");
-                System.out.println("Available branches:");
-                
-                for (String branch : branches) {
-                    // Extract branch name and default status
-                    int nameStart = branch.indexOf("\"name\":\"") + 8;
-                    int nameEnd = branch.indexOf("\"", nameStart);
-                    
-                    // Fix: Safely check for default status with bounds checking
-                    boolean isDefault = false;
-                    int defaultStart = branch.indexOf("\"default\":");
-                    if (defaultStart > 0) {
-                        int defaultEnd = Math.min(defaultStart + 10, branch.length());
-                        String defaultStr = branch.substring(defaultStart, defaultEnd);
-                        isDefault = defaultStr.contains("true");
-                    }
-                    
-                    if (nameStart > 8 && nameEnd > nameStart && nameEnd <= branch.length()) {
-                        String name = branch.substring(nameStart, nameEnd);
-                        // Show if this is the current branch
-                        boolean isCurrent = currentBranch != null && currentBranch.equals(name);
-                        System.out.println("  " + name + 
-                                          (isDefault ? " (default)" : "") + 
-                                          (isCurrent ? " *" : ""));
-                    }
-                }
-            } else {
-                System.out.println("No branches found");
-            }
-        }
-    } else { // Handle non-200 responses
-        System.out.println("Failed to fetch branches: " + responseCode);
-        try {
-            InputStream errorStream = conn.getErrorStream();
-            if (errorStream != null) {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        System.out.println(line);
-                    }
-                }
-            } else {
-                System.out.println("No detailed error message body received from server.");
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading error stream: " + e.getMessage());
-        }
-        return;
-    }
-}
-private static void switchBranch(String projectId, String branchName) throws IOException, NoSuchAlgorithmException {
-    System.out.println("Switching to branch: " + branchName);
-    
-    // Get current directory
-    File currentDir = new File(System.getProperty("user.dir"));
-    
-    // Check if this is a CodeShare repository
-    File configDir = ConfigManager.getRepoConfigDir(currentDir);
-    if (!configDir.exists()) {
-        System.out.println("Not a CodeShare repository");
-        return;
-    }
-    
-    // Load repository config
-    Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
-    
-    // Check if branchName exists
-    boolean branchExists = false;
-    try {
-        URL url = new URL(API_BASE_URL + "/cli/branches?projectId=" + projectId);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Authorization", "Bearer " + authToken);
         
+        // Check response
         int responseCode = conn.getResponseCode();
         if (responseCode >= 200 && responseCode < 300) {
+            // Read response and parse files
             try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
                 StringBuilder response = new StringBuilder();
                 String responseLine;
@@ -1172,81 +709,404 @@ private static void switchBranch(String projectId, String branchName) throws IOE
                     response.append(responseLine.trim());
                 }
                 
-                String responseStr = response.toString();
-                branchExists = responseStr.contains("\"name\":\"" + branchName + "\"");
+                // Parse JSON response with Jackson
+                JsonNode rootNode = objectMapper.readTree(response.toString());
+                JsonNode dataNode = rootNode.path("data");
+                
+                if (!dataNode.isMissingNode()) {
+                    // Convert JSON data to Map<String, String>
+                    Map<String, String> remoteFiles = objectMapper.convertValue(
+                        dataNode, new TypeReference<Map<String, String>>() {});
+                    
+                    // Write files to local repository
+                    int updatedFiles = 0;
+                    
+                    for (Map.Entry<String, String> entry : remoteFiles.entrySet()) {
+                        String filePath = entry.getKey();
+                        String content = entry.getValue();
+                        
+                        // Normalize line endings to match the local system
+                        content = content.replaceAll("\\r\\n|\\r|\\n", System.lineSeparator());
+                        
+                        File file = new File(currentDir, filePath);
+                        File parentDir = file.getParentFile();
+                        if (!parentDir.exists() && !parentDir.mkdirs()) {
+                            System.out.println("Failed to create directory: " + parentDir);
+                            continue;
+                        }
+                        
+                        // Check if file exists and content is different
+                        boolean shouldUpdate = true;
+                        if (file.exists()) {
+                            String currentContent = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                            // Normalize current content for comparison to avoid false positives due to line endings
+                            currentContent = currentContent.replaceAll("\\r\\n|\\r|\\n", "\\n");
+                            String normalizedNewContent = content.replaceAll("\\r\\n|\\r|\\n", "\\n");
+                            shouldUpdate = !currentContent.equals(normalizedNewContent);
+                        }
+                        
+                        if (shouldUpdate) {
+                            try (FileWriter writer = new FileWriter(file)) {
+                                writer.write(content);
+                                updatedFiles++;
+                            }
+                        }
+                    }
+                    
+                    // Save current state after pull
+                    FileSync.saveCurrentState(currentDir, remoteFiles);
+                    
+                    System.out.println("Pull completed, " + updatedFiles + " files updated");
+                } else {
+                    System.out.println("Failed to parse repository data: Data node missing");
+                }
             }
         } else {
-            System.out.println("Failed to check branches: " + responseCode);
+            System.out.println("Failed to pull changes: " + responseCode);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                }
+            }
+        }
+    }
+
+    private static void manageBranches(String[] args) throws IOException, NoSuchAlgorithmException {
+        // Check if token exists
+        if (authToken == null) {
+            System.out.println("Please login first: codeshare login");
             return;
         }
-    } catch (Exception e) {
-        System.out.println("Error checking branches: " + e.getMessage());
-        return;
+        
+        // Get current directory
+        File currentDir = new File(System.getProperty("user.dir"));
+        
+        // Check if this is a CodeShare repository
+        File configDir = ConfigManager.getRepoConfigDir(currentDir);
+        if (!configDir.exists()) {
+            System.out.println("Not a CodeShare repository");
+            return;
+        }
+        
+        // Load repository config
+        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+        String projectId = config.get("projectId");
+        if (projectId == null) {
+            System.out.println("Invalid repository configuration");
+            return;
+        }
+        
+        // Determine operation: list, create, or switch
+        if (args.length == 1) {
+            // List branches
+            listBranches(projectId);
+        } else if (args.length == 2) {
+            // Create or switch branch
+            String branchName = args[1];
+            
+            // Get current branch from config
+            String currentBranch = config.get("branch");
+            if (currentBranch != null && currentBranch.equals(branchName)) {
+                System.out.println("Already on branch '" + branchName + "'");
+                return;
+            }
+            
+            // Ask if the user wants to create or switch to the branch
+            Console console = System.console();
+            if (console == null) {
+                System.out.println("No console available");
+                return;
+            }
+            
+            String action = console.readLine("Do you want to (c)reate a new branch or (s)witch to an existing branch? (c/s): ");
+            if (action.equalsIgnoreCase("c")) {
+                createBranch(projectId, branchName);
+            } else if (action.equalsIgnoreCase("s")) {
+                switchBranch(projectId, branchName);
+            } else {
+                System.out.println("Invalid choice");
+            }
+        } else if (args.length == 3) {
+            // Check for specific branch commands
+            if (args[1].equals("switch") || args[1].equals("checkout")) {
+                String branchName = args[2];
+                switchBranch(projectId, branchName);
+            } else if (args[1].equals("create") || args[1].equals("new")) {
+                String branchName = args[2];
+                createBranch(projectId, branchName);
+            } else {
+                System.out.println("Unknown branch command: " + args[1]);
+                System.out.println("Usage: codeshare branch [switch|create] <branch-name>");
+            }
+        } else {
+            System.out.println("Usage: codeshare branch [switch|create] <branch-name>");
+        }
     }
     
-    if (!branchExists) {
-        System.out.println("Branch '" + branchName + "' does not exist. Available branches:");
-        listBranches(projectId);
+    private static void listBranches(String projectId) throws IOException {
+        System.out.println("Fetching branches...");
         
+        // Get current branch from config
+        File currentDir = new File(System.getProperty("user.dir"));
+        String currentBranch = null;
+        try {
+            Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+            currentBranch = config.get("branch");
+        } catch (Exception e) {
+            // Ignore error, just won't mark current branch
+        }
+        
+        // Create API request
+        URL url = new URL(API_BASE_URL + "/cli/branches?projectId=" + projectId);
+        
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Authorization", "Bearer " + authToken);
+        System.out.println("DEBUG: Using token: " + (authToken != null ? 
+            authToken.substring(0, Math.min(10, authToken.length())) + "..." : "null"));
+        
+        // Check response
+        int responseCode = conn.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            // Read response and parse branches
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                
+                // Parse JSON response with Jackson
+                JsonNode rootNode = objectMapper.readTree(response.toString());
+                JsonNode dataNode = rootNode.path("data");
+                
+                if (!dataNode.isMissingNode() && dataNode.isArray()) {
+                    // First show current branch
+                    if (currentBranch != null && !currentBranch.isEmpty()) {
+                        System.out.println("Current branch: " + currentBranch);
+                    }
+                    
+                    System.out.println("Available branches:");
+                    
+                    for (JsonNode branchNode : dataNode) {
+                        String name = branchNode.path("name").asText();
+                        boolean isDefault = branchNode.path("default").asBoolean();
+                        
+                        boolean isCurrent = currentBranch != null && currentBranch.equals(name);
+                        System.out.println("  " + name + 
+                                          (isDefault ? " (default)" : "") + 
+                                          (isCurrent ? " *" : ""));
+                    }
+                } else {
+                    System.out.println("No branches found");
+                }
+            }
+        } else { // Handle non-200 responses
+            System.out.println("Failed to fetch branches: " + responseCode);
+            try {
+                InputStream errorStream = conn.getErrorStream();
+                if (errorStream != null) {
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            System.out.println(line);
+                        }
+                    }
+                } else {
+                    System.out.println("No detailed error message body received from server.");
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading error stream: " + e.getMessage());
+            }
+        }
+    }
+    
+    private static void switchBranch(String projectId, String branchName) throws IOException, NoSuchAlgorithmException {
+        System.out.println("Switching to branch: " + branchName);
+        
+        // Get current directory
+        File currentDir = new File(System.getProperty("user.dir"));
+        
+        // Check if this is a CodeShare repository
+        File configDir = ConfigManager.getRepoConfigDir(currentDir);
+        if (!configDir.exists()) {
+            System.out.println("Not a CodeShare repository");
+            return;
+        }
+        
+        // Load repository config
+        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+        
+        // Check if branchName exists
+        boolean branchExists = false;
+        try {
+            URL url = new URL(API_BASE_URL + "/cli/branches?projectId=" + projectId);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Bearer " + authToken);
+            
+            int responseCode = conn.getResponseCode();
+            if (responseCode >= 200 && responseCode < 300) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                    StringBuilder responseStr = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        responseStr.append(responseLine.trim());
+                    }
+                    
+                    // Parse response with Jackson
+                    JsonNode rootNode = objectMapper.readTree(responseStr.toString());
+                    JsonNode dataNode = rootNode.path("data");
+                    
+                    if (!dataNode.isMissingNode() && dataNode.isArray()) {
+                        for (JsonNode branchNode : dataNode) {
+                            if (branchName.equals(branchNode.path("name").asText())) {
+                                branchExists = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                System.out.println("Failed to check branches: " + responseCode);
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("Error checking branches: " + e.getMessage());
+            return;
+        }
+        
+        if (!branchExists) {
+            System.out.println("Branch '" + branchName + "' does not exist. Available branches:");
+            listBranches(projectId);
+            
+            Console console = System.console();
+            String confirm = console.readLine("Create branch '" + branchName + "'? (y/n): ");
+            if (confirm.equalsIgnoreCase("y")) {
+                createBranch(projectId, branchName);
+            } else {
+                return;
+            }
+        }
+        
+        // Update the branch in config
+        config.put("branch", branchName);
+        ConfigManager.saveRepoConfig(currentDir, config);
+        
+        System.out.println("Switched to branch: " + branchName);
+        
+        // Optionally pull changes from the branch
         Console console = System.console();
-        String confirm = console.readLine("Create branch '" + branchName + "'? (y/n): ");
+        String confirm = console.readLine("Pull latest changes from branch '" + branchName + "'? (y/n): ");
         if (confirm.equalsIgnoreCase("y")) {
-            createBranch(projectId, branchName);
+            pullChanges(new String[]{"pull", branchName});
+        }
+    }
+    
+    private static void createBranch(String projectId, String branchName) throws IOException {
+        System.out.println("Creating branch: " + branchName);
+        
+        // Create API request
+        URL url = new URL(API_BASE_URL + "/cli/branch?projectId=" + projectId + "&branchName=" + URLEncoder.encode(branchName, "UTF-8"));
+        
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Authorization", "Bearer " + authToken);
+        
+        // Check response
+        int responseCode = conn.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            System.out.println("Branch created successfully");
+            
+            // Ask if user wants to switch to the new branch
+            System.out.print("Do you want to switch to the new branch? (y/n): ");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String answer = reader.readLine();
+            
+            if (answer.equalsIgnoreCase("y")) {
+                // Update local config to use the new branch
+                Map<String, String> config = ConfigManager.loadRepoConfig(new File(System.getProperty("user.dir")));
+                config.put("branch", branchName);
+                ConfigManager.saveRepoConfig(new File(System.getProperty("user.dir")), config);
+                System.out.println("Switched to branch: " + branchName);
+            }
         } else {
-            return;
-        }
-    }
-    
-    // Update the branch in config
-    config.put("branch", branchName);
-    ConfigManager.saveRepoConfig(currentDir, config);
-    
-    System.out.println("Switched to branch: " + branchName);
-    
-    // Optionally pull changes from the branch
-    Console console = System.console();
-    String confirm = console.readLine("Pull latest changes from branch '" + branchName + "'? (y/n): ");
-    if (confirm.equalsIgnoreCase("y")) {
-        pullChanges(new String[]{"pull", branchName});
-    }
-}
-private static void createBranch(String projectId, String branchName) throws IOException {
-    System.out.println("Creating branch: " + branchName);
-    
-    // Create API request
-    URL url = new URL(API_BASE_URL + "/cli/branch?projectId=" + projectId + "&branchName=" + branchName);
-    
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("POST");
-    conn.setRequestProperty("Authorization", "Bearer " + authToken);
-    
-    // Check response
-    int responseCode = conn.getResponseCode();
-    if (responseCode >= 200 && responseCode < 300) {
-        System.out.println("Branch created successfully");
-        
-        // Ask if user wants to switch to the new branch
-        System.out.print("Do you want to switch to the new branch? (y/n): ");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String answer = reader.readLine();
-        
-        if (answer.equalsIgnoreCase("y")) {
-            // Update local config to use the new branch
-            Map<String, String> config = ConfigManager.loadRepoConfig(new File(System.getProperty("user.dir")));
-            config.put("branch", branchName);
-            ConfigManager.saveRepoConfig(new File(System.getProperty("user.dir")), config);
-            System.out.println("Switched to branch: " + branchName);
-        }
-    } else {
-        System.out.println("Failed to create branch: " + responseCode);
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
+            System.out.println("Failed to create branch: " + responseCode);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                }
             }
         }
     }
-}
+    
+    private static void showStatus(String[] args) throws IOException {
+        // Get current directory
+        File currentDir = new File(System.getProperty("user.dir"));
+        
+        // Check if this is a CodeShare repository
+        File configDir = ConfigManager.getRepoConfigDir(currentDir);
+        if (!configDir.exists()) {
+            System.out.println("Not a CodeShare repository");
+            return;
+        }
+        
+        // Load repository config
+        Map<String, String> config = ConfigManager.loadRepoConfig(currentDir);
+        String projectId = config.get("projectId");
+        String projectName = config.get("projectName");
+        
+        if (projectId == null) {
+            System.out.println("Invalid repository configuration");
+            return;
+        }
+        
+        System.out.println("On branch: " + (config.get("branch") != null ? config.get("branch") : "default"));
+        System.out.println("Project: " + (projectName != null ? projectName : "unnamed") + " (ID: " + projectId + ")");
+        System.out.println("Remote: " + config.getOrDefault("remoteUrl", API_BASE_URL));
+        
+        // Detect local changes
+        try {
+            List<String> changedFiles = FileSync.detectLocalChanges(currentDir);
+            
+            if (changedFiles.isEmpty()) {
+                System.out.println("\nWorking tree clean. No changes to commit.");
+            } else {
+                System.out.println("\nChanges not staged for commit:");
+                System.out.println("  (use \"codeshare commit -m <message>\" to commit the changes)");
+                System.out.println("  (use \"codeshare push\" to upload your commits to the server)");
+                System.out.println();
+                
+                // Group files by directory for easier viewing
+                Map<String, List<String>> filesByDirectory = new HashMap<>();
+                for (String filePath : changedFiles) {
+                    String directory = "./";
+                    if (filePath.contains("/")) {
+                        directory = filePath.substring(0, filePath.lastIndexOf('/'));
+                    }
+                    
+                    filesByDirectory.computeIfAbsent(directory, k -> new ArrayList<>()).add(filePath);
+                }
+                
+                // Print files by directory
+                for (Map.Entry<String, List<String>> entry : filesByDirectory.entrySet()) {
+                    System.out.println("  " + entry.getKey() + "/");
+                    for (String file : entry.getValue()) {
+                        String fileName = file;
+                        if (file.contains("/")) {
+                            fileName = file.substring(file.lastIndexOf('/') + 1);
+                        }
+                        System.out.println("    modified:   " + fileName);
+                    }
+                }
+            }
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("\nError detecting file changes: " + e.getMessage());
+        }
+    }
+    
     private static void printHelp() {
         System.out.println("CodeShare CLI - Git-like commands for CodeShare Platform");
         System.out.println("Usage: codeshare <command> [options]");
@@ -1264,4 +1124,3 @@ private static void createBranch(String projectId, String branchName) throws IOE
         System.out.println("  login                      Login to CodeShare Platform");
     }
 }
-
