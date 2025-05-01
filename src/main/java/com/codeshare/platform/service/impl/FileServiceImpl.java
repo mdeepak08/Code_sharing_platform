@@ -49,10 +49,27 @@ public class FileServiceImpl implements FileService {
     public Optional<File> getFileById(Long id) {
         return fileRepository.findById(id);
     }
-
     @Override
     public List<File> getFilesByProject(Project project) {
-        return fileRepository.findByProject(project);
+        logger.info("Getting files for project ID: {}", project.getId());
+        
+        // If this is a fork, check if we need special handling
+        if (project.getForkedFrom() != null) {
+            logger.info("This is a fork of project ID: {}", project.getForkedFrom().getId());
+        }
+        
+        List<File> files = fileRepository.findByProject(project);
+        logger.info("Found {} files for project {}", files.size(), project.getId());
+        
+        // If this project has no files and it's a fork, try to get files from the original project
+        // NOTE: This is only appropriate if your system uses pointers/references to original files
+        if (files.isEmpty() && project.getForkedFrom() != null) {
+            logger.warn("No files found for fork. Attempting to use files from original project as fallback.");
+            files = fileRepository.findByProject(project.getForkedFrom());
+            logger.info("Found {} files from original project", files.size());
+        }
+        
+        return files;
     }
 
     @Override

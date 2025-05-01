@@ -460,17 +460,31 @@ public ResponseEntity<ApiResponse<Map<String, Double>>> getLanguageStatistics(@P
         }
         
         Project project = projectOpt.get();
-        List<File> files = fileService.getFilesByProject(project);
         
-        // Calculate language statistics
+        // Get the default branch for this project
+        Optional<Branch> defaultBranchOpt = branchService.getDefaultBranch(project);
+        if (defaultBranchOpt.isEmpty()) {
+            return new ResponseEntity<>(ApiResponse.error("No default branch found"), HttpStatus.NOT_FOUND);
+        }
+        
+        // Get files using the version control service
+        Map<String, String> fileContents = versionControlService.getProjectSnapshot(project, defaultBranchOpt.get());
+        
+        // Calculate language statistics from these files
         Map<String, Long> languageBytes = new HashMap<>();
         long totalBytes = 0;
         
-        for (File file : files) {
-            String language = detectLanguage(file.getName());
+        for (Map.Entry<String, String> entry : fileContents.entrySet()) {
+            String filePath = entry.getKey();
+            String content = entry.getValue();
+            
+            if (content == null) continue;
+            
+            // Improve language detection to match GitHub more closely
+            String language = improvedLanguageDetection(filePath);
             if (language != null) {
                 // Count bytes of content for this language
-                long bytes = file.getContent() != null ? file.getContent().getBytes().length : 0;
+                long bytes = content.getBytes().length;
                 languageBytes.put(language, languageBytes.getOrDefault(language, 0L) + bytes);
                 totalBytes += bytes;
             }
@@ -492,78 +506,63 @@ public ResponseEntity<ApiResponse<Map<String, Double>>> getLanguageStatistics(@P
     }
 }
 
-/**
- * Detect programming language based on file extension
- */
-private String detectLanguage(String filename) {
+private String improvedLanguageDetection(String filename) {
     if (!filename.contains(".")) {
         return "Other";
     }
-    
 
     String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+    String basename = filename.toLowerCase();
     
+    // Special case handling
+    if (basename.equals("dockerfile")) return "Dockerfile";
+    if (basename.equals("makefile")) return "Makefile";
+    if (basename.equals(".gitignore")) return "Git";
+    if (basename.equals("readme.md") || basename.equals("readme.txt")) return "Documentation";
+    
+    // Extension-based classification (more comprehensive)
     switch (ext) {
-        case "java":
-            return "Java";
-        case "js":
-            return "JavaScript";
-        case "jsx":
-            return "JavaScript";
-        case "ts":
-            return "TypeScript";
-        case "html":
-        case "htm":
-            return "HTML";
-        case "css":
-            return "CSS";
-        case "scss":
-        case "sass":
-            return "CSS";
-        case "py":
-            return "Python";
-        case "rb":
-            return "Ruby";
-        case "php":
-            return "PHP";
-        case "c":
-            return "C";
-        case "cpp":
-        case "cc":
-        case "cxx":
-            return "C++";
-        case "cs":
-            return "C#";
-        case "go":
-            return "Go";
-        case "rs":
-            return "Rust";
-        case "swift":
-            return "Swift";
-        case "kt":
-            return "Kotlin";
-        case "sh":
-        case "bash":
-            return "Shell";
-        case "bat":
-            return "Batch";
-        case "ps1":
-            return "PowerShell";
-        case "xml":
-            return "XML";
-        case "json":
-            return "JSON";
-        case "md":
-            return "Markdown";
-        case "txt":
-            return "Text";
-        case "yml":
-        case "yaml":
-            return "YAML";
-        case "gradle":
-            return "Gradle";
-        default:
-            return "Other";
+        // Java files
+        case "java": return "Java";
+        
+        // Web files
+        case "html": case "htm": case "xhtml": case "jsp": return "HTML";
+        case "css": case "scss": case "sass": case "less": return "CSS";
+        case "js": case "jsx": case "mjs": case "cjs": return "JavaScript";
+        case "ts": case "tsx": return "TypeScript";
+        
+        // Config files
+        case "xml": case "xsd": case "xsl": case "svg": return "XML";
+        case "json": case "jsonc": return "JSON";
+        case "yml": case "yaml": return "YAML";
+        case "properties": case "conf": case "config": case "ini": return "Properties";
+        
+        // Documentation files
+        case "md": case "markdown": case "rst": case "adoc": return "Markdown";
+        case "txt": return "Text";
+        
+        // Script files
+        case "sh": case "bash": return "Shell";
+        case "bat": case "cmd": return "Batch";
+        case "ps1": return "PowerShell";
+        case "py": return "Python";
+        case "rb": return "Ruby";
+        case "php": return "PHP";
+        
+        // Build files
+        case "gradle": case "groovy": return "Groovy";
+        case "kt": case "kts": return "Kotlin";
+        
+        // Other common types
+        case "c": return "C";
+        case "cpp": case "cc": case "cxx": case "h": case "hpp": return "C++";
+        case "cs": return "C#";
+        case "go": return "Go";
+        case "rs": return "Rust";
+        case "swift": return "Swift";
+        
+        // Default case
+        default: return "Other";
     }
 }
 

@@ -1261,17 +1261,22 @@ async function loadUserInfo() {
     }
 }
 
-// Load project details
-// Update the loadProjectDetails function to properly display the fork information
 async function loadProjectDetails() {
     try {
+        console.log("Loading project details for ID:", projectId);
         const response = await fetch(`/api/projects/${projectId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
+                // Log the full project data to help with debugging
+                console.log("Project data received:", result.data);
+                
                 currentProject = result.data;
+                
+                // Update UI elements
                 document.title = `${escapeHtml(currentProject.name)} - Code Sharing Platform`;
                 document.getElementById('projectTitle').textContent = escapeHtml(currentProject.name);
                 document.getElementById('projectNameBreadcrumb').innerHTML = `<a href="#project" onclick="navigateToPath('')">${escapeHtml(currentProject.name)}</a>`;
@@ -1279,27 +1284,13 @@ async function loadProjectDetails() {
                 document.getElementById('projectOwner').textContent = escapeHtml(currentProject.owner?.username || 'N/A');
                 document.getElementById('projectCreated').textContent = new Date(currentProject.createdAt).toLocaleDateString();
 
+                // Determine visibility status
                 const isPublic = currentProject.isPublic !== undefined ? currentProject.isPublic : (currentProject.public !== undefined ? currentProject.public : false);
                 document.getElementById('projectVisibility').textContent = isPublic ? 'Public' : 'Private';
                 updateVisibilityDisplay(isPublic);
                 
-                // Handle fork information - new code
-                const forkInfoSection = document.querySelector('.fork-info-section');
-                const forkedFromLink = document.getElementById('forkedFromLink');
-                
-                if (forkInfoSection && forkedFromLink) {
-                    if (currentProject.fork && currentProject.forkedFromId && currentProject.forkedFromName) {
-                        // Update the link and text
-                        forkedFromLink.href = `/project.html?id=${currentProject.forkedFromId}`;
-                        forkedFromLink.textContent = escapeHtml(currentProject.forkedFromName);
-                        
-                        // Show the section
-                        forkInfoSection.style.display = 'flex';
-                    } else {
-                        // Hide the section if not a fork
-                        forkInfoSection.style.display = 'none';
-                    }
-                }
+                // Display fork information
+                displayForkInfo();
                 
                 // Load fork count
                 loadForkCount();
@@ -2025,37 +2016,59 @@ async function updateForkCount() {
         console.error('Error updating fork count:', error);
     }
 }
-
-// Add a function to show fork information when the current project is a fork
-function displayForkInfo() {
-    if (currentProject && currentProject.fork) {
-        // Create a fork info element if it doesn't exist
-        let forkInfoElement = document.getElementById('forkInfo');
-        if (!forkInfoElement) {
-            forkInfoElement = document.createElement('div');
-            forkInfoElement.id = 'forkInfo';
-            forkInfoElement.className = 'alert alert-info mb-3';
-            
-            // Find where to insert it - typically after the project description
-            const projectDescription = document.getElementById('projectDescription');
-            if (projectDescription && projectDescription.parentNode) {
-                projectDescription.parentNode.insertBefore(forkInfoElement, projectDescription.nextSibling);
-            } else {
-                // Fallback - add it to the header
-                const ghHeader = document.querySelector('.gh-header');
-                if (ghHeader) {
-                    ghHeader.appendChild(forkInfoElement);
-                }
-            }
-        }
+    function displayForkInfo() {
+    console.log("Displaying fork info for:", currentProject);
+    
+    // First, handle the fork info box at the top
+    const forkInfoBox = document.getElementById('forkInfo');
+    const mainForkInfoLink = document.getElementById('forkedFromLink');
+    
+    // Second, handle the "Fork of:" text in the stats
+    const forkInfoSection = document.querySelector('.fork-info-section');
+    const statsForkedFromLink = document.querySelector('.fork-info-section a');
+    
+    // Also handle the "Forked from" area for the Git repository stats
+    const forkedFromElement = document.querySelector('[id^="forkedFrom"]');
+    
+    if (currentProject && (currentProject.fork === true || currentProject.forkedFrom)) {
+        console.log("Project is confirmed as a fork");
         
-        // Update the content
-        forkInfoElement.innerHTML = `
-            <i class="fa fa-code-fork me-2"></i>
-            Forked from <a href="/project.html?id=${currentProject.forkedFromId}" class="alert-link">
-                ${escapeHtml(currentProject.forkedFromName)}
-            </a>
-        `;
+        // Get fork info - handle both property formats
+        const forkedFromId = currentProject.forkedFromId;
+        const forkedFromName = currentProject.forkedFromName;
+        
+        if (forkedFromId && forkedFromName) {
+            console.log(`Fork source: ${forkedFromName} (${forkedFromId})`);
+            
+            // Update the fork info box
+            if (forkInfoBox && mainForkInfoLink) {
+                forkInfoBox.style.display = 'block';
+                mainForkInfoLink.href = `/project.html?id=${forkedFromId}`;
+                mainForkInfoLink.textContent = escapeHtml(forkedFromName);
+            }
+            
+            // Update the stats section
+            if (forkInfoSection && statsForkedFromLink) {
+                forkInfoSection.style.display = 'flex';
+                statsForkedFromLink.href = `/project.html?id=${forkedFromId}`;
+                statsForkedFromLink.textContent = escapeHtml(forkedFromName);
+            }
+            
+            // Update Git stats area if it exists
+            if (forkedFromElement) {
+                forkedFromElement.style.display = 'inline';
+                forkedFromElement.textContent = escapeHtml(forkedFromName);
+            }
+        } else {
+            console.warn("Project is marked as fork but missing forkedFromId or forkedFromName");
+        }
+    } else {
+        console.log("Project is not a fork or fork data not found");
+        
+        // Hide fork info sections
+        if (forkInfoBox) forkInfoBox.style.display = 'none';
+        if (forkInfoSection) forkInfoSection.style.display = 'none';
+        if (forkedFromElement) forkedFromElement.style.display = 'none';
     }
 }
 
@@ -2610,48 +2623,71 @@ const languageColors = { /* Keep your languageColors object */
 };
 
 async function loadLanguageStats() {
+    console.log("Loading language stats for project:", projectId);
+    
     const languageBars = document.getElementById('language-bars');
     const languageList = document.getElementById('language-list');
     const loadingBar = document.getElementById('language-bar-loading');
-    const languagesContainer = document.querySelector('.languages-container'); // Get the main container
+    const languagesContainer = document.querySelector('.languages-container');
 
     if (!languageBars || !languageList || !loadingBar || !languagesContainer) {
-         console.warn("Language stats elements not found.");
-         if(languagesContainer) languagesContainer.style.display = 'none'; // Hide container if elements missing
-         return;
+        console.warn("Language stats elements not found");
+        return;
     }
 
     // Show loading state
     loadingBar.style.display = 'block';
     languageBars.style.display = 'none';
-    languageList.innerHTML = ''; // Clear list while loading
-    languagesContainer.style.display = 'block'; // Ensure container is visible
+    languageList.innerHTML = '';
+    languagesContainer.style.display = 'block';
 
     try {
         if (!projectId) throw new Error('Project ID not found');
-
+        
+        console.log("Fetching language stats from API...");
         const response = await fetch(`/api/projects/${projectId}/languages`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        
+        // Log response status for debugging
+        console.log("Language API response status:", response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status} loading language stats`);
+        }
 
         const result = await response.json();
-        if (!result.success || typeof result.data !== 'object') { // Check if data is an object
-            throw new Error('Invalid language data format from server');
+        console.log("Language API response data:", result);
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Server reported failure');
+        }
+        
+        // Handle case when data is missing or empty
+        if (!result.data || typeof result.data !== 'object') {
+            console.warn("Invalid or empty language data from server");
+            languageList.innerHTML = '<li class="text-muted text-small">No language data available.</li>';
+            loadingBar.style.display = 'none';
+            languageBars.style.display = 'flex';
+            languageBars.innerHTML = '<div class="language-bar" style="width: 100%; background-color: #eee;"></div>';
+            return;
         }
 
         const languageData = result.data;
         if (Object.keys(languageData).length === 0) {
+            console.log("No languages detected in repository");
             languageList.innerHTML = '<li class="text-muted text-small">No language data available.</li>';
-            loadingBar.style.display = 'none'; // Hide loading even if empty
-            languageBars.style.display = 'flex'; // Show empty bar container
-            languageBars.innerHTML = '<div class="language-bar" style="width: 100%; background-color: #eee;"></div>'; // Optional: show gray bar
+            loadingBar.style.display = 'none';
+            languageBars.style.display = 'flex';
+            languageBars.innerHTML = '<div class="language-bar" style="width: 100%; background-color: #eee;"></div>';
             return;
         }
 
+        // Sort languages by percentage (highest first)
         const sortedLanguages = Object.entries(languageData).sort((a, b) => b[1] - a[1]);
+        console.log("Sorted languages:", sortedLanguages);
 
-        // Generate bars
+        // Generate language bars
         let barsHtml = '';
         sortedLanguages.forEach(([language, percentage]) => {
             const color = languageColors[language] || languageColors['Other'];
@@ -2661,7 +2697,8 @@ async function loadLanguageStats() {
         });
         languageBars.innerHTML = barsHtml;
 
-        // Generate list
+        // Generate language list
+        languageList.innerHTML = ''; // Clear any previous content
         sortedLanguages.forEach(([language, percentage]) => {
             if (percentage >= 0.1) { // Threshold for displaying
                 const color = languageColors[language] || languageColors['Other'];
@@ -2679,16 +2716,16 @@ async function loadLanguageStats() {
         // Hide loading, show content
         loadingBar.style.display = 'none';
         languageBars.style.display = 'flex';
+        console.log("Language stats loaded and displayed successfully");
 
     } catch (error) {
         console.error('Error loading language statistics:', error);
-        languageList.innerHTML = `<li class="text-muted text-small">Error loading stats.</li>`;
-        loadingBar.style.display = 'none'; // Hide loading on error
-         languageBars.style.display = 'flex';
-         languageBars.innerHTML = '<div class="language-bar bg-danger" style="width: 100%;" title="Error loading stats"></div>'; // Show error bar
+        languageList.innerHTML = `<li class="text-muted">Error loading language stats: ${error.message}</li>`;
+        loadingBar.style.display = 'none';
+        languageBars.style.display = 'flex';
+        languageBars.innerHTML = '<div class="language-bar bg-danger" style="width: 100%;" title="Error loading stats"></div>';
     }
 }
-
 
 // --- Utility Functions --- (Keep timeAgo, hashString, escapeHtml)
 function timeAgo(date) {
