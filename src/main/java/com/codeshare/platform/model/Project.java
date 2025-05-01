@@ -69,6 +69,17 @@ public class Project {
     @JsonIgnoreProperties("project")
     private List<PullRequest> pullRequests = new ArrayList<>();
 
+    // New field to track fork relationships
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "forked_from_id")
+    @JsonIgnoreProperties({"forks", "branches", "files", "userProjects", "pullRequests"})
+    private Project forkedFrom;
+    
+    // Bidirectional relationship to track forks of this project
+    @OneToMany(mappedBy = "forkedFrom")
+    @JsonIgnoreProperties({"forkedFrom", "branches", "files", "userProjects", "pullRequests"})
+    private List<Project> forks = new ArrayList<>();
+
     // Helper method to add a user with role
     public void addUser(User user, ProjectRole role) {
         UserProject userProject = new UserProject(user, this, role);

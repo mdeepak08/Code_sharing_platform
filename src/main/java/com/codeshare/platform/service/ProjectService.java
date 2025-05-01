@@ -1,10 +1,10 @@
 package com.codeshare.platform.service;
 
-import com.codeshare.platform.model.Project;
-import com.codeshare.platform.model.User;
-
 import java.util.List;
 import java.util.Optional;
+
+import com.codeshare.platform.model.Project;
+import com.codeshare.platform.model.User;
 
 public interface ProjectService {
     Project createProject(Project project);
@@ -17,4 +17,5 @@ public interface ProjectService {
     void deleteProject(Long id);
     void addCollaborator(Project project, User user);
     void removeCollaborator(Project project, User user);
+    Project forkProject(Project sourceProject, User newOwner);
 }

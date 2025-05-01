@@ -12,4 +12,7 @@ public class ProjectDto {
     private boolean isPublic;
     private LocalDateTime createdAt;
     private UserDto owner;
+    private Long forkedFromId;
+    private String forkedFromName;
+    private boolean fork;
 }

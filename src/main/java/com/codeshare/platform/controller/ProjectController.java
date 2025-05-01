@@ -27,6 +27,7 @@ import com.codeshare.platform.model.Branch;
 import com.codeshare.platform.model.File;
 import com.codeshare.platform.model.Project;
 import com.codeshare.platform.model.User;
+import com.codeshare.platform.repository.ProjectRepository;
 import com.codeshare.platform.service.BranchService;
 import com.codeshare.platform.service.FileService;
 import com.codeshare.platform.service.ProjectService;
@@ -40,11 +41,13 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final UserService userService;
+    private final ProjectRepository projectRepository;
 
     @Autowired
-    public ProjectController(ProjectService projectService, UserService userService) {
+    public ProjectController(ProjectService projectService, UserService userService, ProjectRepository projectRepository) {
         this.projectService = projectService;
         this.userService = userService;
+        this.projectRepository = projectRepository;
     }
     @Autowired
     private FileService fileService;
@@ -334,6 +337,117 @@ private String generateDefaultReadme(Project project) {
         }
     }
 
+
+
+    @PostMapping("/{id}/fork")
+    public ResponseEntity<ApiResponse<ProjectDto>> forkProject(@PathVariable Long id, Authentication authentication) {
+        try {
+            // Verify the source project exists
+            Optional<Project> sourceProjectOpt = projectService.getProjectById(id);
+            if (sourceProjectOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+            }
+            
+            Project sourceProject = sourceProjectOpt.get();
+            
+            // Check if the project is public or the user has access
+            if (!sourceProject.isPublic()) {
+                // Get current user
+                String username = authentication.getName();
+                Optional<User> userOpt = userService.getUserByUsername(username);
+                
+                if (userOpt.isEmpty()) {
+                    return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.UNAUTHORIZED);
+                }
+                
+                User user = userOpt.get();
+                
+                // Check if user is owner or collaborator
+                boolean hasAccess = sourceProject.getOwner().getId().equals(user.getId()) || 
+                    sourceProject.getUserProjects().stream()
+                        .anyMatch(up -> up.getUser().getId().equals(user.getId()));
+                
+                if (!hasAccess) {
+                    return new ResponseEntity<>(
+                        ApiResponse.error("You don't have access to fork this private project"), 
+                        HttpStatus.FORBIDDEN
+                    );
+                }
+            }
+            
+            // Get the current user as new owner
+            String username = authentication.getName();
+            Optional<User> newOwnerOpt = userService.getUserByUsername(username);
+            
+            if (newOwnerOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("User not found"), HttpStatus.UNAUTHORIZED);
+            }
+            
+            // Create the fork
+            Project forkedProject = projectService.forkProject(sourceProject, newOwnerOpt.get());
+            
+            // Convert to DTO and return response
+            ProjectDto forkedProjectDto = convertToDto(forkedProject);
+            
+            return new ResponseEntity<>(
+                ApiResponse.success("Project forked successfully", forkedProjectDto),
+                HttpStatus.CREATED
+            );
+            
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                ApiResponse.error("Failed to fork project: " + e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @GetMapping("/{id}/forks/count")
+    public ResponseEntity<ApiResponse<Integer>> getForksCount(@PathVariable Long id) {
+        try {
+            Optional<Project> projectOpt = projectService.getProjectById(id);
+            if (projectOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+            }
+            
+            // Use the repository to count forks directly
+            int forkCount = projectRepository.countByForkedFrom(projectOpt.get());
+            
+            return new ResponseEntity<>(ApiResponse.success(forkCount), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                ApiResponse.error("Error retrieving fork count: " + e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+    
+    // Add this method to get all forks of a repository
+    @GetMapping("/{id}/forks")
+    public ResponseEntity<ApiResponse<List<ProjectDto>>> getProjectForks(@PathVariable Long id) {
+        try {
+            Optional<Project> projectOpt = projectService.getProjectById(id);
+            if (projectOpt.isEmpty()) {
+                return new ResponseEntity<>(ApiResponse.error("Project not found"), HttpStatus.NOT_FOUND);
+            }
+            
+            // Get all forks of this project
+            List<Project> forks = projectRepository.findByForkedFrom(projectOpt.get());
+            
+            // Convert to DTOs
+            List<ProjectDto> forkDtos = forks.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+            
+            return new ResponseEntity<>(ApiResponse.success(forkDtos), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                ApiResponse.error("Error retrieving forks: " + e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
     /**
  * Get language statistics for a project
  */
@@ -453,22 +567,31 @@ private String detectLanguage(String filename) {
     }
 }
 
-    // Helper method to convert Project to ProjectDto (already exists in your original code)
-    private ProjectDto convertToDto(Project project) {
-        ProjectDto dto = new ProjectDto();
-        dto.setId(project.getId());
-        dto.setName(project.getName());
-        dto.setDescription(project.getDescription());
-        dto.setPublic(project.isPublic());
-        dto.setCreatedAt(project.getCreatedAt());
-        
-        UserDto ownerDto = new UserDto();
-        ownerDto.setId(project.getOwner().getId());
-        ownerDto.setUsername(project.getOwner().getUsername());
-        ownerDto.setEmail(project.getOwner().getEmail());
-        ownerDto.setFullName(project.getOwner().getFullName());
-        
-        dto.setOwner(ownerDto);
-        return dto;
+private ProjectDto convertToDto(Project project) {
+    ProjectDto dto = new ProjectDto();
+    dto.setId(project.getId());
+    dto.setName(project.getName());
+    dto.setDescription(project.getDescription());
+    dto.setPublic(project.isPublic());
+    dto.setCreatedAt(project.getCreatedAt());
+    
+    UserDto ownerDto = new UserDto();
+    ownerDto.setId(project.getOwner().getId());
+    ownerDto.setUsername(project.getOwner().getUsername());
+    ownerDto.setEmail(project.getOwner().getEmail());
+    ownerDto.setFullName(project.getOwner().getFullName());
+    
+    dto.setOwner(ownerDto);
+    
+    // Add fork information
+    if (project.getForkedFrom() != null) {
+        dto.setFork(true);  // Changed from setIsFork to setFork
+        dto.setForkedFromId(project.getForkedFrom().getId());
+        dto.setForkedFromName(project.getForkedFrom().getName());
+    } else {
+        dto.setFork(false);  // Changed from setIsFork to setFork
     }
+    
+    return dto;
+}
 }

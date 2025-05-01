@@ -13,4 +13,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByOwner(User owner);
     List<Project> findByIsPublicTrue();
     List<Project> findByIsPublic(boolean isPublic);
+    List<Project> findByForkedFrom(Project sourceProject);
+    int countByForkedFrom(Project sourceProject);
 }

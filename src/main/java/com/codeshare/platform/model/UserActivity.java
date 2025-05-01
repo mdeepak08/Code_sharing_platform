@@ -27,6 +27,7 @@ public class UserActivity {
     public enum ActivityType {
         PROJECT_CREATED,
         PROJECT_UPDATED,
+        PROJECT_FORKED,
         COMMIT_PUSHED,
         BRANCH_CREATED,
         PULL_REQUEST_CREATED,
