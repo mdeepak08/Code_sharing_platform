@@ -1,10 +1,13 @@
 package com.codeshare.platform.controller;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -474,13 +477,32 @@ public ResponseEntity<ApiResponse<Map<String, Double>>> getLanguageStatistics(@P
         Map<String, Long> languageBytes = new HashMap<>();
         long totalBytes = 0;
         
+        // Set of files to ignore (similar to .gitattributes linguist-vendored)
+        Set<String> ignoredPaths = new HashSet<>(Arrays.asList(
+            "gradlew", "gradlew.bat", "build.gradle",  // Build files
+            ".gitignore", ".gitattributes",           // Git files
+            "README.md", "LICENSE", "CHANGELOG.md",   // Documentation
+            "package-lock.json", "yarn.lock"          // Package lock files
+        ));
+        
+        // Set of directories to ignore
+        Set<String> ignoredDirs = new HashSet<>(Arrays.asList(
+            "node_modules/", "vendor/", "build/", "dist/", 
+            "target/", "bin/", "obj/", ".git/"
+        ));
+        
         for (Map.Entry<String, String> entry : fileContents.entrySet()) {
             String filePath = entry.getKey();
             String content = entry.getValue();
             
             if (content == null) continue;
             
-            // Improve language detection to match GitHub more closely
+            // Skip files that should be ignored
+            if (shouldIgnoreFile(filePath, ignoredPaths, ignoredDirs)) {
+                continue;
+            }
+            
+            // Improved language detection - more like GitHub's Linguist
             String language = improvedLanguageDetection(filePath);
             if (language != null) {
                 // Count bytes of content for this language
@@ -490,11 +512,32 @@ public ResponseEntity<ApiResponse<Map<String, Double>>> getLanguageStatistics(@P
             }
         }
         
+        // Combine small categories into "Other"
+        final double THRESHOLD = 0.5; // Percentage threshold to be shown individually
+        Map<String, Long> combinedLanguageBytes = new HashMap<>();
+        long otherBytes = 0;
+        
+        for (Map.Entry<String, Long> entry : languageBytes.entrySet()) {
+            double percentage = (entry.getValue() * 100.0) / totalBytes;
+            if (percentage >= THRESHOLD) {
+                combinedLanguageBytes.put(entry.getKey(), entry.getValue());
+            } else {
+                otherBytes += entry.getValue();
+            }
+        }
+        
+        // Add "Other" category if it's not empty
+        if (otherBytes > 0) {
+            combinedLanguageBytes.put("Other", otherBytes);
+        }
+        
         // Convert byte counts to percentages
         Map<String, Double> languagePercentages = new HashMap<>();
         if (totalBytes > 0) {
-            for (Map.Entry<String, Long> entry : languageBytes.entrySet()) {
+            for (Map.Entry<String, Long> entry : combinedLanguageBytes.entrySet()) {
                 double percentage = (entry.getValue() * 100.0) / totalBytes;
+                // Round to 1 decimal place
+                percentage = Math.round(percentage * 10.0) / 10.0;
                 languagePercentages.put(entry.getKey(), percentage);
             }
         }
@@ -506,9 +549,41 @@ public ResponseEntity<ApiResponse<Map<String, Double>>> getLanguageStatistics(@P
     }
 }
 
+private boolean shouldIgnoreFile(String filePath, Set<String> ignoredPaths, Set<String> ignoredDirs) {
+    // Check exact path matches
+    if (ignoredPaths.contains(filePath)) {
+        return true;
+    }
+    
+    // Check if file is in an ignored directory
+    for (String dir : ignoredDirs) {
+        if (filePath.startsWith(dir)) {
+            return true;
+        }
+    }
+    
+    // Skip hidden files (dotfiles)
+    if (filePath.startsWith(".") || filePath.contains("/.")) {
+        return true;
+    }
+    
+    // Skip binary files (this is a simple heuristic)
+    String lowercasePath = filePath.toLowerCase();
+    if (lowercasePath.endsWith(".png") || lowercasePath.endsWith(".jpg") || 
+        lowercasePath.endsWith(".jpeg") || lowercasePath.endsWith(".gif") ||
+        lowercasePath.endsWith(".ico") || lowercasePath.endsWith(".pdf") ||
+        lowercasePath.endsWith(".zip") || lowercasePath.endsWith(".jar") ||
+        lowercasePath.endsWith(".class")) {
+        return true;
+    }
+    
+    return false;
+}
+
 private String improvedLanguageDetection(String filename) {
     if (!filename.contains(".")) {
-        return "Other";
+        // No extension, try to detect by shebang or other means
+        return detectLanguageByName(filename);
     }
 
     String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
@@ -517,29 +592,29 @@ private String improvedLanguageDetection(String filename) {
     // Special case handling
     if (basename.equals("dockerfile")) return "Dockerfile";
     if (basename.equals("makefile")) return "Makefile";
-    if (basename.equals(".gitignore")) return "Git";
-    if (basename.equals("readme.md") || basename.equals("readme.txt")) return "Documentation";
+    if (basename.equals(".gitignore")) return null; // Skip git files
+    if (basename.equals("readme.md") || basename.equals("readme.txt")) return "Markdown";
     
-    // Extension-based classification (more comprehensive)
+    // Extension mapping that more closely aligns with GitHub
     switch (ext) {
         // Java files
         case "java": return "Java";
         
-        // Web files
-        case "html": case "htm": case "xhtml": case "jsp": return "HTML";
+        // Web files - more specific than before
+        case "html": case "htm": case "xhtml": return "HTML";
         case "css": case "scss": case "sass": case "less": return "CSS";
         case "js": case "jsx": case "mjs": case "cjs": return "JavaScript";
         case "ts": case "tsx": return "TypeScript";
         
-        // Config files
-        case "xml": case "xsd": case "xsl": case "svg": return "XML";
-        case "json": case "jsonc": return "JSON";
+        // Config files - Map these to their actual languages instead of generic "Config"
+        case "xml": case "xsd": case "xsl": return "XML";
+        case "json": return "JSON";
         case "yml": case "yaml": return "YAML";
         case "properties": case "conf": case "config": case "ini": return "Properties";
         
         // Documentation files
-        case "md": case "markdown": case "rst": case "adoc": return "Markdown";
-        case "txt": return "Text";
+        case "md": case "markdown": return "Markdown";
+        case "txt": return null; // Skip plain text files or count as "Other"
         
         // Script files
         case "sh": case "bash": return "Shell";
@@ -549,11 +624,11 @@ private String improvedLanguageDetection(String filename) {
         case "rb": return "Ruby";
         case "php": return "PHP";
         
-        // Build files
+        // Build files - More accurately labeled
         case "gradle": case "groovy": return "Groovy";
         case "kt": case "kts": return "Kotlin";
         
-        // Other common types
+        // Other common languages
         case "c": return "C";
         case "cpp": case "cc": case "cxx": case "h": case "hpp": return "C++";
         case "cs": return "C#";
@@ -561,8 +636,19 @@ private String improvedLanguageDetection(String filename) {
         case "rs": return "Rust";
         case "swift": return "Swift";
         
-        // Default case
-        default: return "Other";
+        // Default case - return null to skip or categorize as Other
+        default: return null;
+    }
+}
+
+private String detectLanguageByName(String filename) {
+    // Common files without extensions
+    switch (filename.toLowerCase()) {
+        case "makefile": return "Makefile";
+        case "dockerfile": return "Dockerfile";
+        case "jenkinsfile": return "Groovy";
+        case "rakefile": return "Ruby";
+        default: return null; // Skip or categorize as Other
     }
 }
 
