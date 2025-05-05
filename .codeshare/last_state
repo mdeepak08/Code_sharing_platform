@@ -18,7 +18,7 @@ src/main/java/com/codeshare/platform/repository/UserProjectRepository.java:ye4Vh
 src/main/java/com/codeshare/platform/controller/CliController.java:HLNM8lKo79OW67PkoSF6hpnf+lL0v2qcFSxYYvM/ubs=
 src/main/java/com/codeshare/platform/controller/ActivityController.java:9xus6FX3DKT9gnNHeWTBihsCTtjhxzs1bv5OKL73nPI=
 src/main/java/com/codeshare/platform/ui/JavaFxApplication.java:CHZsGuo4TzxFRpPf0tfJCvSO+idIdJmGH6C/k1/vpRI=
-src/main/java/com/codeshare/platform/controller/ProjectController.java:ctLMDc/Y1Z4vVn7BsT0N9eCB2rkqDV1ZbHbOfcc8ExQ=
+src/main/java/com/codeshare/platform/controller/ProjectController.java:7R767E07QIMLA6ZMDkVJQjStlMGprPIgJ/l8FvYtRPQ=
 src/main/java/com/codeshare/platform/dto/CommitDTO.java:bwnqSJY/4DFiFMmbKrqeXGz+W3YT7tgGezHz2dOLhyE=
 src/main/java/com/codeshare/platform/service/CliService.java:XwyyP+MA9xmqqebUdEeHqL0Quo4Yaw8RrnMX9sccxws=
 src/main/java/com/codeshare/platform/security/JwtAuthenticationFilter.java:jkSzz4f4HSyUZRPMP3qcw/QjeRLOd/lLpD3PDT9o8Uw=
@@ -88,7 +88,7 @@ src/main/java/com/codeshare/platform/repository/FileRepository.java:MBcyIqLc4RN6
 src/main/java/com/codeshare/platform/model/Branch.java:V3rppNL0vMsj8qabkOyGUdzlfMkT4iNghs/jUFFy6xc=
 src/main/java/com/codeshare/platform/service/impl/CommitServiceImpl.java:+d4F21Ja7jK4sd6WdC0aSwrUoxOc+OoUjc0ISxdh2yE=
 src/main/java/com/codeshare/platform/dto/ProjectDto.java:VD9AMntjLlHJPAiu8hbOENTv657pIvShJmzfW0CO/4c=
-src/main/resources/static/index.html:AXtjz+v1qFeL+7f9KE7N7fYXd8UjD8xFfViPGknLhM8=
+src/main/resources/static/index.html:mFPA7N6KWhaGZLaP0PKnQydjL0MUsLj+dYt6YdOcglY=
 src/main/java/com/codeshare/platform/dto/FileDto.java:nGW61bQFZ0b8ALfzaiv/GbSzPINudHmULcl6YDpuV40=
 src/main/java/com/codeshare/platform/service/impl/UserServiceImpl.java:mQ56jO4KqxlGJP1QiDxoPChilNi7aaalygL1f6zDgGI=
 psql commands.txt:nLScEAeBeXDpfeRivxOBknqcXG/Hcly0bq4FbtA6AXU=
