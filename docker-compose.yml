@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Application service
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/code_sharing_platform
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: Deepak@99
+      SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+      APP_JWT_SECRET: verylongandsecurekeyusedforhashingthesignature0123456789
+      APP_JWT_EXPIRATION: 86400000
+      SERVER_PORT: 8080
+      GIT_REPOSITORIES_BASE_PATH: /app/git-repositories
+    volumes:
+      - git_repos:/app/git-repositories
+    networks:
+      - codeshare-network
+
+  # Database service
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: code_sharing_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Deepak@99
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - codeshare-network
+
+# Persistent volume for database data
+volumes:
+  postgres_data:
+  git_repos:
+
+# Network for communication between containers
+networks:
+  codeshare-network:
+    driver: bridge
