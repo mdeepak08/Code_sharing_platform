@@ -31,6 +31,7 @@ src/main/resources/fxml/MainView.fxml:TS21hiKHbV7AtN5QcjZhJ911y5g0pZioWgdPVeyZIo
 src/main/java/com/codeshare/platform/model/PullRequest.java:OIRBlpzgMXViYSHiEwhIk34Z+4wIdVtrqNPVtoV+oYw=
 src/main/resources/static/login.html:LHvH0z4MR8XtIzDAY60BEzXhXgZBz63ErNIWncbzCrw=
 src/main/resources/static/js/commit-batch.js:Ywi3O6o1OlPkiSGoqEG37IoQCAs8yjGw3FwUYGnau6w=
+docker-compose.yml:eQAhPBPXZXL9lLcU1zCgUPBRJqWpWr6IOV9Klkj/yHY=
 src/main/java/com/codeshare/platform/controller/CommitController.java:GoNV4n+pqRTIEsACuhpW25H6U6OqOyQAJ8pzdW/hBmI=
 create_dirs_and_files.sh:8+NS4BltDZDYgGaVcSCcVtDNru0Alu3GiU1wHbfr3hw=
 src/main/java/com/codeshare/platform/controller/AuthController.java:re5zWLzFLUDhH+79uIfJ1JUeTnTZwrAQ/PMrzOqiZ4U=
@@ -82,6 +83,7 @@ codeshare.bat:OfA3y5GRchEwSWkWhcJaDQ8Cz8M1FRlCCaivBorevaU=
 src/main/resources/static/pull-requests.html:23pdrfRQuOYJBSa49Cn7lzOtiC8icdZScVYLH/E51Pk=
 src/main/java/com/codeshare/platform/security/CustomUserDetailsService.java:feyvYWKTRu15QGYhmpRNwcVZ84/FO1z2oDqwymy076g=
 gradlew:c0s4edNQHc5HHPBSLTvLr+doc9n8USk0W2f7Q70V6TM=
+.dockerignore:bvn8IItuYrHI+ehNL458jo/fFW9Y2IZKY22lsbTPHzo=
 src/main/resources/static/css/dark-theme.css:iHCddCogF5gdnF6maQQoh69gqk/8NzefDrIR0gi6dyU=
 src/main/java/com/codeshare/platform/controller/VersionControlController.java:N42pDBWbb2YGnT996K6C8Em12WywxrVM8BYx0teMaMA=
 src/main/java/com/codeshare/platform/repository/FileRepository.java:MBcyIqLc4RN6tQGd1gxLmvvj2LA0RGQY1sM55ZmH3l0=
@@ -115,6 +117,7 @@ src/main/java/com/codeshare/platform/service/UserService.java:AjCYtPmZan35n8I2rU
 src/main/resources/static/favicon.ico:uC7ppcXNls/iutXYT3miXP2lDchOmy3V4+U50/inGhQ=
 src/main/java/com/codeshare/platform/model/Project.java:HijfsaoYrsEiXb4KpeTayL7xXaR5sBoREKbSslxf8aM=
 src/main/resources/fxml/LoginView.fxml:PqgjiKAa7lwmlbSB5JIquGGsa4XX77n9Mi1e1tCMAmk=
+Dockerfile:uFUUxLOlL+t+fUfDKl4J38tQsOOn1N/o6/qnlwtYZ/A=
 src/main/java/com/codeshare/platform/util/FileSync.java:HkP+OImnvg0PQaA+1ZFSFt1yoN8kFTeUBm+5FGgC/8w=
 src/main/pox.xml:rD9y9mj52kTL75vXm1WvXtN0kgFCTDTxpQd2Lj3+xRo=
 src/main/java/com/codeshare/platform/service/PullRequestService.java:ElapE8EkMZrW/VJZkZTuq0+l9JD6xb8hYdN2SX5LUTM=

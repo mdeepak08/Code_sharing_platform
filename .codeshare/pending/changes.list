@@ -1,7 +1,10 @@
+.dockerignore
 Areas for Potential Enhancement.txt
 codeshare.bat
 create_dirs_and_files.sh
 dependencies_after_exclude.txt
+docker-compose.yml
+Dockerfile
 gradle/wrapper/gradle-wrapper.properties
 gradlew.bat
 settings.gradle
