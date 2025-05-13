@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: codeshare-postgres
+    environment:
+      POSTGRES_DB: code_sharing_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Deepak@99
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codeshare-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - REPO_URL=https://github.com/mdeepak08/Code_sharing_platform.git
+        - BRANCH=master
+    container_name: codeshare-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/code_sharing_platform
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: Deepak@99
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: 'true'
+      LOGGING_LEVEL_COM_CODESHARE_PLATFORM: INFO
+      GIT_REPOSITORIES_BASE_PATH: /app/git-repositories
+    volumes:
+      - git_repositories:/app/git-repositories
+    networks:
+      - codeshare-network
+
+networks:
+  codeshare-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  git_repositories:

@@ -93,7 +93,6 @@ public class CodeShareCLI {
         char[] passwordChars = console.readPassword("Password: ");
         String password = new String(passwordChars);
 
-        // Clear password from memory ASAP
         Arrays.fill(passwordChars, ' ');
 
         HttpURLConnection conn = null;
@@ -108,7 +107,6 @@ public class CodeShareCLI {
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
 
-            // Prepare JSON payload
             Map<String, String> loginData = new HashMap<>();
             loginData.put("username", username);
             loginData.put("password", password);
@@ -214,10 +212,8 @@ public class CodeShareCLI {
         String encodedProjectName = URLEncoder.encode(projectName, StandardCharsets.UTF_8.toString());
         String encodedDescription = URLEncoder.encode(description, StandardCharsets.UTF_8.toString());
         
-        // Get current directory
         File currentDir = new File(System.getProperty("user.dir"));
         
-        // Check if directory is empty
         if (currentDir.list().length > 0) {
             System.out.println("Warning: Directory is not empty");
             Console console = System.console();

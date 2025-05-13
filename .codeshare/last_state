@@ -7,7 +7,7 @@ src/main/java/com/codeshare/platform/dto/BranchDTO.java:BWSpT65FwxtN4v7HvB7LnTlE
 src/main/resources/static/css/tree-view.css:8jOkwnGFmLW0MfZRQXeDHTxzUqS98n9eiSTaK5ZPJoU=
 src/main/java/com/codeshare/platform/dto/JwtAuthResponse.java:o3HuiAJexBBz5v3JGzODzDy0qIKfnkX6jZDa2gqIHbg=
 src/main/resources/static/css/style.css:KBtJLkfsuLU+SoRLUqO6Yp66nngpmiOXIOhcEryspok=
-src/main/java/com/codeshare/platform/cli/CodeShareCLI.java:vLu4S4FjAfDYw03oS72djXxzdwH4C1aYqb+lRJebOMQ=
+src/main/java/com/codeshare/platform/cli/CodeShareCLI.java:pzH5IKS3pdeq6UR7KHdOSsgY9pRq5yx68m59Urd/RmU=
 src/main/resources/static/js/theme-switcher.js:H8Ps0aNsKRsl5BVsc9TUStN9NU0A9niZ4+D8MyamY4A=
 src/main/java/com/codeshare/platform/service/impl/PullRequestServiceImpl.java:BcZp0ayszCVPUGDyTdp++Kcr6KJKEH10z2sgQNhLFSM=
 src/main/resources/styles/code-editor.css:ooO3uGQr6eYCVO3UDf7X52PCYIPLo3jtcKh/9cgiEqk=
@@ -18,7 +18,7 @@ src/main/java/com/codeshare/platform/repository/UserProjectRepository.java:ye4Vh
 src/main/java/com/codeshare/platform/controller/CliController.java:HLNM8lKo79OW67PkoSF6hpnf+lL0v2qcFSxYYvM/ubs=
 src/main/java/com/codeshare/platform/controller/ActivityController.java:9xus6FX3DKT9gnNHeWTBihsCTtjhxzs1bv5OKL73nPI=
 src/main/java/com/codeshare/platform/ui/JavaFxApplication.java:CHZsGuo4TzxFRpPf0tfJCvSO+idIdJmGH6C/k1/vpRI=
-src/main/java/com/codeshare/platform/controller/ProjectController.java:ctLMDc/Y1Z4vVn7BsT0N9eCB2rkqDV1ZbHbOfcc8ExQ=
+src/main/java/com/codeshare/platform/controller/ProjectController.java:7R767E07QIMLA6ZMDkVJQjStlMGprPIgJ/l8FvYtRPQ=
 src/main/java/com/codeshare/platform/dto/CommitDTO.java:bwnqSJY/4DFiFMmbKrqeXGz+W3YT7tgGezHz2dOLhyE=
 src/main/java/com/codeshare/platform/service/CliService.java:XwyyP+MA9xmqqebUdEeHqL0Quo4Yaw8RrnMX9sccxws=
 src/main/java/com/codeshare/platform/security/JwtAuthenticationFilter.java:jkSzz4f4HSyUZRPMP3qcw/QjeRLOd/lLpD3PDT9o8Uw=
@@ -42,7 +42,7 @@ src/main/java/com/codeshare/platform/repository/CommentRepository.java:gbI3RLZhT
 src/main/java/com/codeshare/platform/repository/ProjectRepository.java:V5bIKRoyTrSqvyt+o6qacpME5yJGG6lKO84zLCdjL8g=
 src/main/java/com/codeshare/platform/repository/PullRequestReviewRepository.java:XVmZYXebBDVpNsQWBmdFbx+R7wbOy49JforekL8jbm8=
 gradle/wrapper/gradle-wrapper.properties:zasf+0OSGbHbEl48mahs8kJPh2K5s/qkBO0GHjY17N4=
-src/main/resources/static/project.html:XmXfWIH1r+579ekfslJOjmvLkEMvzqNez9Y1ctepJzg=
+src/main/resources/static/project.html:YFGMki7YwM4OIh9a5woR/NQtl8eRIMnfRjsyr+TJGEQ=
 src/main/java/com/codeshare/platform/dto/UserDto.java:AEyvKjkjDlf7bIKbxgUHCtxOWjiGLc0QeaXqS+dp8do=
 src/main/java/com/codeshare/platform/service/impl/FileServiceImpl.java:Q7r1ybD6DkLkFqLcpS/rAp9Rs7kj+Rbkp4q9a+xSlrk=
 src/main/resources/static/explore.html:nKU9XRlvK/1Jm/VTS71F59KBN/GqKYhG6DHUO46zjFU=
@@ -56,11 +56,11 @@ src/main/java/com/codeshare/platform/exception/ResourceNotFoundException.java:8S
 src/main/java/com/codeshare/platform/ui/controller/LoginViewController.java:ao5pmNz6zW7jpMVg5IxzgnXQJQeeRpZj9/edj2v4AKQ=
 Areas for Potential Enhancement.txt:z9dJyNCIfZ9HI/u7ZuZ3IKRFxv6HUVBRqDWQOylvcdY=
 src/main/java/com/codeshare/platform/model/ReviewStatus.java:aTtPS/kZ+3D6SmTtOK/tT/D2vNdUxbboSty8cC7y5SI=
-src/main/java/com/codeshare/platform/config/JacksonConfig.java:uD0tiv6UWQOId24kBCj/GCNJG1hrUSK7Tj3ipAiVU/8=
+src/main/java/com/codeshare/platform/config/JacksonConfig.java:iExs5mGoN65C9RI81Dxx2rfwcrwrg8xVYPeOHJTXpHY=
 src/main/resources/static/js/main.js:MSQGfJt8vcjn83jyAXpWz67K8WTotSlvMCa/E5WxjbI=
 src/main/java/com/codeshare/platform/ui/JavaFxLauncher.java:53GZi2QyFSWnkp6ilbR5NZbBXBOYlvv1tA6doWFxj1k=
 src/main/resources/static/commit-details.html:O5BNkf2W28Wm/8OWowagiUWEtzGXgRtZN6K078gqqzQ=
-src/main/java/com/codeshare/platform/config/DatabaseConfig.java:oSQAxfdm2S6+JIjC8Q7ZSdkY/dCcpwalCRLLSnDakBo=
+src/main/java/com/codeshare/platform/config/DatabaseConfig.java:y39HiDTxB/n4MrUGjyE4cIdTHQtC8649OBwmdI4K278=
 src/main/java/com/codeshare/platform/controller/BranchController.java:kXlppKDtpDeM08g7PIsiAVoXDM9u63aoVF8PEOWRDSE=
 src/main/java/com/codeshare/platform/service/FileService.java:wfMhpoR09tkcaYHx0D6Q5DQ5sJPxj8B2xGcQcWhxVGU=
 src/main/java/com/codeshare/platform/dto/ApiResponse.java:9KMnTo8wTDXixHqPKBGeo+0JA/r7Rhd57g4n1Dj4XG8=
@@ -88,7 +88,7 @@ src/main/java/com/codeshare/platform/repository/FileRepository.java:MBcyIqLc4RN6
 src/main/java/com/codeshare/platform/model/Branch.java:V3rppNL0vMsj8qabkOyGUdzlfMkT4iNghs/jUFFy6xc=
 src/main/java/com/codeshare/platform/service/impl/CommitServiceImpl.java:+d4F21Ja7jK4sd6WdC0aSwrUoxOc+OoUjc0ISxdh2yE=
 src/main/java/com/codeshare/platform/dto/ProjectDto.java:VD9AMntjLlHJPAiu8hbOENTv657pIvShJmzfW0CO/4c=
-src/main/resources/static/index.html:AXtjz+v1qFeL+7f9KE7N7fYXd8UjD8xFfViPGknLhM8=
+src/main/resources/static/index.html:mFPA7N6KWhaGZLaP0PKnQydjL0MUsLj+dYt6YdOcglY=
 src/main/java/com/codeshare/platform/dto/FileDto.java:nGW61bQFZ0b8ALfzaiv/GbSzPINudHmULcl6YDpuV40=
 src/main/java/com/codeshare/platform/service/impl/UserServiceImpl.java:mQ56jO4KqxlGJP1QiDxoPChilNi7aaalygL1f6zDgGI=
 psql commands.txt:nLScEAeBeXDpfeRivxOBknqcXG/Hcly0bq4FbtA6AXU=

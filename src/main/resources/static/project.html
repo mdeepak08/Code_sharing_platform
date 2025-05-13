@@ -2744,10 +2744,6 @@ function timeAgo(date) {
     const roundedSeconds = Math.floor(seconds);
     return roundedSeconds + " second" + (roundedSeconds === 1 ? "" : "s") + " ago";
 }
-
-
-// --- Initial Load Trigger ---
-// Use DOMContentLoaded to ensure elements exist before running scripts
 document.addEventListener('DOMContentLoaded', initialize);
 
 </script>

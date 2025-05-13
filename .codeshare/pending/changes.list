@@ -9,6 +9,7 @@ src/main/java/com/codeshare/platform/cli/CodeShareCLI.java
 src/main/java/com/codeshare/platform/CodeSharingPlatformApplication.java
 src/main/java/com/codeshare/platform/config/DatabaseConfig.java
 src/main/java/com/codeshare/platform/config/SecurityConfig.java
+src/main/java/com/codeshare/platform/controller/ActivityController.java
 src/main/java/com/codeshare/platform/controller/AuthController.java
 src/main/java/com/codeshare/platform/controller/BranchController.java
 src/main/java/com/codeshare/platform/controller/CliController.java
@@ -30,12 +31,15 @@ src/main/java/com/codeshare/platform/model/Commit.java
 src/main/java/com/codeshare/platform/model/File.java
 src/main/java/com/codeshare/platform/model/Project.java
 src/main/java/com/codeshare/platform/model/ProjectRole.java
+src/main/java/com/codeshare/platform/model/PullRequest.java
 src/main/java/com/codeshare/platform/model/User.java
+src/main/java/com/codeshare/platform/model/UserActivity.java
 src/main/java/com/codeshare/platform/model/UserProject.java
 src/main/java/com/codeshare/platform/repository/BranchRepository.java
 src/main/java/com/codeshare/platform/repository/CommitRepository.java
 src/main/java/com/codeshare/platform/repository/FileRepository.java
 src/main/java/com/codeshare/platform/repository/ProjectRepository.java
+src/main/java/com/codeshare/platform/repository/PullRequestRepository.java
 src/main/java/com/codeshare/platform/repository/UserProjectRepository.java
 src/main/java/com/codeshare/platform/repository/UserRepository.java
 src/main/java/com/codeshare/platform/security/CustomUserDetailsService.java

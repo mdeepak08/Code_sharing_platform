@@ -9,10 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-/**
- * Jackson configuration for properly handling Hibernate lazy loading
- * and bidirectional relationships when serializing to JSON
- */
 @Configuration
 public class JacksonConfig {
 

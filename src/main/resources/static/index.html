@@ -3,109 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeShare - Collaborative Coding Platform</title>
+    <title>CodeShare - Collaborative Development Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
-
     <link rel="stylesheet" href="/css/dark-theme.css">
-
     <script src="/js/theme-switcher.js" defer></script>
     <style>
+        /* Hero and section styling */
         :root {
             --primary-color: #4e73df;
             --secondary-color: #2e59d9;
             --dark-color: #1e3a8a;
             --light-color: #f8f9fc;
+            --accent-color: #2ea44f;
         }
         
+        /* Core styles */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--light-color) 0%, #e2e8f0 100%);
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            color: #24292e;
+            overflow-x: hidden;
         }
         
         .navbar {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background-color: #24292e;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
         }
         
+        /* Hero section */
         .hero-section {
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+            color: white;
             padding: 6rem 0;
-            background: var(--light-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
             margin-bottom: 2rem;
         }
         
-        .btn-primary {
+        .hero-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        /* Feature section */
+        .features-section {
+            padding: 5rem 0;
+            background-color: var(--light-color);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
             background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            padding: 0.5rem 1.5rem;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-            padding: 0.5rem 1.5rem;
-            transition: all 0.3s;
-        }
-        
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 1rem auto 0;
         }
         
         .feature-card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
+            padding: 2rem;
+            border-radius: 8px;
             height: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: none;
         }
         
         .feature-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         
         .feature-icon {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-
-        .stats-section {
-            background-color: var(--primary-color);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
             color: white;
-            padding: 3rem 0;
-            margin: 3rem 0;
         }
         
-        .stat-item {
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        /* How it works section */
+        .how-it-works {
+            padding: 5rem 0;
+            background-color: white;
+        }
+        
+        .step-card {
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: none;
+        }
+        
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        /* Testimonials section */
+        .testimonials {
+            padding: 5rem 0;
+            background-color: var(--light-color);
+        }
+        
+        .testimonial-card {
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: none;
+        }
+        
+        .testimonial-content {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .testimonial-author img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+        
+        /* Pricing section */
+        .pricing {
+            padding: 5rem 0;
+            background-color: white;
+        }
+        
+        .pricing-card {
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: none;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .pricing-header {
+            margin-bottom: 2rem;
+        }
+        
+        .pricing-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        
+        .pricing-price span {
+            font-size: 1rem;
+            font-weight: 400;
+        }
+        
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+        
+        .pricing-features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+        
+        /* CTA section */
+        .cta-section {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
             text-align: center;
         }
         
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
+        /* Footer */
+        .footer {
+            background-color: #24292e;
+            color: white;
+            padding: 4rem 0 2rem;
         }
         
-        .footer {
-            background-color: #2c3e50;
-            color: white;
-            padding: 2rem 0;
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.75rem;
         }
         
         .footer-links a {
-            color: #ddd;
+            color: rgba(255,255,255,0.7);
             text-decoration: none;
             transition: color 0.3s;
         }
@@ -115,227 +286,372 @@
         }
         
         .social-icons {
-            font-size: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
         }
         
         .social-icons a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.1);
             color: white;
-            margin: 0 0.5rem;
-            transition: transform 0.3s;
+            transition: background-color 0.3s;
         }
         
         .social-icons a:hover {
-            transform: translateY(-3px);
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 2rem;
+            margin-top: 2rem;
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* Custom Animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        /* Button styling */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+            color: var(--dark-color);
+            transform: translateY(-1px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        
+        .btn-accent {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+        
+        .btn-accent:hover {
+            background-color: #2b9345;
+            border-color: #2b9345;
+            transform: translateY(-1px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Media queries */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.25rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 4rem 0;
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+            }
+            
+            .hero-image {
+                margin-top: 2rem;
+            }
+        }
+        
+        /* Background pattern */
+        .bg-pattern {
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%234e73df' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="fas fa-code me-2"></i>CodeShare
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="fa fa-code-branch me-2"></i>
+                CodeShare
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Home</a>
+                        <a class="nav-link" href="#features">Features</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Features</a>
+                        <a class="nav-link" href="#how-it-works">How It Works</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">About</a>
+                        <a class="nav-link" href="#pricing">Pricing</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Contact</a>
+                        <a class="nav-link" href="/explore.html">Explore</a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            Resources
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Documentation</a></li>
-                            <li><a class="dropdown-item" href="#">Tutorials</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Community Forum</a></li>
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#docs">Documentation</a>
                     </li>
                 </ul>
                 <div class="theme-toggle d-flex align-items-center ms-3">
-                    <style>
-                        /* Basic Styles for the Toggle Switch */
-                        /* Note: It's better to move these styles to your CSS file */
-                        .theme-switch { position: relative; display: inline-block; width: 50px; height: 24px; margin: 0 10px; vertical-align: middle; }
-                        .theme-switch input { opacity: 0; width: 0; height: 0; }
-                        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4c566a; transition: .4s; border-radius: 24px; }
-                        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-                        input:checked + .slider { background-color: var(--gh-dark-link, #58a6ff); }
-                        input:checked + .slider:before { transform: translateX(26px); }
-                        .theme-switch .sun-icon, .theme-switch .moon-icon { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; color: #d8dee9; transition: opacity 0.3s; pointer-events: none; }
-                        .theme-switch .sun-icon { left: 5px; opacity: 1; }
-                        .theme-switch .moon-icon { right: 5px; opacity: 0; }
-                        input:checked ~ .sun-icon { opacity: 0; }
-                        input:checked ~ .moon-icon { opacity: 1; }
-                        html[data-theme="light"] .theme-switch .sun-icon { color: #434c5e; }
-                        html[data-theme="dark"] .theme-switch .moon-icon { color: #eceff4; }
-                        html[data-theme="dark"] .slider { background-color: #434c5e; }
-                    </style>
                     <label class="theme-switch" for="theme-toggle" title="Toggle theme">
                         <input type="checkbox" id="theme-toggle">
                         <span class="slider"></span>
-                         <i class="fas fa-sun sun-icon"></i>
-                         <i class="fas fa-moon moon-icon"></i>
+                        <i class="fas fa-sun sun-icon"></i>
+                        <i class="fas fa-moon moon-icon"></i>
                     </label>
                 </div>
                 <div class="d-flex ms-3">
-                    <a href="/login.html" class="btn btn-outline-primary me-2">Login</a>
-                    <a href="/signup.html" class="btn btn-primary">Sign Up</a>
+                    <a href="/login.html" class="btn btn-outline-light me-2">Login</a>
+                    <a href="/signup.html" class="btn btn-accent">Sign Up</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section text-center">
+    <section class="hero-section">
+        <div class="hero-particles" id="particles-js"></div>
         <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <h1 class="display-4 fw-bold mb-4">Code Together, Build Together</h1>
-                    <p class="lead mb-5">A powerful collaborative coding platform designed for teams to write, share, and manage code in real-time.</p>
-                    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-                        <a href="/signup.html" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
-                        <a href="#features" class="btn btn-outline-primary btn-lg px-4">Learn More</a>
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <h1 class="hero-title">Code Together, Build Better</h1>
+                    <p class="hero-subtitle">A powerful collaborative development platform to share code, track changes, and build amazing software with your team.</p>
+                    <div class="hero-cta">
+                        <a href="/signup.html" class="btn btn-accent btn-lg">Get Started for Free</a>
+                        <a href="#how-it-works" class="btn btn-secondary btn-lg">See How It Works</a>
                     </div>
+                    <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center me-4">
+                            <i class="fas fa-users me-2 text-white-50"></i>
+                            <span>10,000+ Active Users</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-star me-2 text-white-50"></i>
+                            <span>4.9/5 Rating</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://placehold.co/600x400/3498db/FFFFFF/png?text=CodeShare+Platform" alt="CodeShare Platform" class="hero-image float-animation">
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="py-5">
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
         <div class="container">
-            <h2 class="text-center mb-5">Powerful Features</h2>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-code-branch"></i>
-                            </div>
-                            <h4>Version Control</h4>
-                            <p>Track changes, create branches, and manage your code history with ease.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <h4>Team Collaboration</h4>
-                            <p>Work together in real-time with multiple users on the same project.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
-                            <h4>Secure Storage</h4>
-                            <p>Keep your code secure with encrypted storage and access controls.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-laptop-code"></i>
-                            </div>
-                            <h4>Smart Editor</h4>
-                            <p>Enjoy syntax highlighting, auto-completion, and code analysis.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-project-diagram"></i>
-                            </div>
-                            <h4>Project Management</h4>
-                            <p>Organize your work with projects, files, and team management.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-mobile-alt"></i>
-                            </div>
-                            <h4>Mobile Access</h4>
-                            <p>Access your projects from anywhere on any device.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Stats Section -->
-    <section class="stats-section">
-        <div class="container">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="text-center text-muted mb-5">Choose the plan that's right for your team, from solo developers to large enterprises</p>
+            
             <div class="row">
-                <div class="col-md-4">
-                    <div class="stat-item">
-                        <div class="stat-number">10,000+</div>
-                        <div class="stat-label">Active Users</div>
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Free</h3>
+                            <p class="text-muted">For individual developers</p>
+                        </div>
+                        <div class="pricing-price">
+                            $0 <span>/month</span>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check text-success me-2"></i> Unlimited public repositories</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Basic code editor</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Community support</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Basic collaboration tools</li>
+                            <li><i class="fas fa-times text-danger me-2"></i> Private repositories (up to 3)</li>
+                            <li><i class="fas fa-times text-danger me-2"></i> Advanced security features</li>
+                        </ul>
+                        <a href="/signup.html" class="btn btn-outline-primary w-100">Get Started</a>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="stat-item">
-                        <div class="stat-number">50,000+</div>
-                        <div class="stat-label">Projects Created</div>
+                
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card" style="transform: scale(1.05); border: 2px solid var(--primary-color);">
+                        <div class="badge bg-primary position-absolute top-0 end-0 m-3">Popular</div>
+                        <div class="pricing-header">
+                            <h3>Pro</h3>
+                            <p class="text-muted">For professional developers & teams</p>
+                        </div>
+                        <div class="pricing-price">
+                            $12 <span>/month per user</span>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check text-success me-2"></i> Unlimited public repositories</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Advanced code editor</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Priority email support</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Advanced collaboration tools</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Unlimited private repositories</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Basic security features</li>
+                        </ul>
+                        <a href="/signup.html" class="btn btn-primary w-100">Try 14 Days Free</a>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="stat-item">
-                        <div class="stat-number">99.9%</div>
-                        <div class="stat-label">Uptime</div>
+                
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-card">
+                        <div class="pricing-header">
+                            <h3>Enterprise</h3>
+                            <p class="text-muted">For large teams & organizations</p>
+                        </div>
+                        <div class="pricing-price">
+                            $25 <span>/month per user</span>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check text-success me-2"></i> Everything in Pro</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Premium code editor</li>
+                            <li><i class="fas fa-check text-success me-2"></i> 24/7 dedicated support</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Enterprise collaboration tools</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Advanced security & compliance</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Custom integrations</li>
+                        </ul>
+                        <a href="/contact.html" class="btn btn-outline-primary w-100">Contact Sales</a>
                     </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted">All plans include our core features. Need a custom solution?</p>
+                <a href="/contact.html" class="btn btn-link">Contact our sales team</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Integrations Section -->
+    <section class="bg-pattern py-5">
+        <div class="container">
+            <h2 class="section-title">Seamless Integrations</h2>
+            <p class="text-center text-muted mb-5">CodeShare works with your favorite tools and services</p>
+            
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-10">
+                    <div class="row g-4">
+                        <div class="col-4 col-md-2">
+                            <img src="https://placehold.co/80/4e73df/FFFFFF/png?text=JIRA" alt="JIRA" class="img-fluid mb-2">
+                            <p class="small">JIRA</p>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://placehold.co/80/4e73df/FFFFFF/png?text=Slack" alt="Slack" class="img-fluid mb-2">
+                            <p class="small">Slack</p>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://placehold.co/80/4e73df/FFFFFF/png?text=Jenkins" alt="Jenkins" class="img-fluid mb-2">
+                            <p class="small">Jenkins</p>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://placehold.co/80/4e73df/FFFFFF/png?text=GitHub" alt="GitHub" class="img-fluid mb-2">
+                            <p class="small">GitHub</p>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://placehold.co/80/4e73df/FFFFFF/png?text=AWS" alt="AWS" class="img-fluid mb-2">
+                            <p class="small">AWS</p>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <img src="https://placehold.co/80/4e73df/FFFFFF/png?text=Azure" alt="Azure" class="img-fluid mb-2">
+                            <p class="small">Azure</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h2 class="display-4 fw-bold">10K+</h2>
+                    <p class="text-uppercase">Active Users</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h2 class="display-4 fw-bold">50K+</h2>
+                    <p class="text-uppercase">Projects</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h2 class="display-4 fw-bold">2M+</h2>
+                    <p class="text-uppercase">Code Commits</p>
+                </div>
+                <div class="col-md-3">
+                    <h2 class="display-4 fw-bold">99.9%</h2>
+                    <p class="text-uppercase">Uptime</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="py-5">
+    <section class="cta-section">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
-                    <h2 class="mb-4">Ready to start coding together?</h2>
+                    <h2 class="display-5 fw-bold mb-4">Ready to Start Coding Together?</h2>
                     <p class="lead mb-5">Join thousands of developers who are already building amazing projects on our platform.</p>
-                    <a href="/signup.html" class="btn btn-primary btn-lg px-5">Sign Up Now</a>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="/signup.html" class="btn btn-light btn-lg px-5">Sign Up Now</a>
+                        <a href="#features" class="btn btn-outline-light btn-lg px-4">Learn More</a>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer mt-auto">
+    <footer class="footer">
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-4 mb-lg-0">
-                    <h5 class="mb-3">CodeShare</h5>
-                    <p>Helping developers collaborate effectively since 2023. Build better software together.</p>
+                    <div class="footer-logo d-flex align-items-center">
+                        <i class="fa fa-code-branch me-2"></i>
+                        CodeShare
+                    </div>
+                    <p class="mb-4">A collaborative development platform for teams of any size. Build better software, together.</p>
                     <div class="social-icons">
                         <a href="#"><i class="fab fa-github"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
@@ -343,42 +659,346 @@
                         <a href="#"><i class="fab fa-facebook"></i></a>
                     </div>
                 </div>
-                <div class="col-lg-2 mb-4 mb-lg-0">
+                <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
                     <h5 class="mb-3">Product</h5>
-                    <ul class="list-unstyled footer-links">
-                        <li><a href="#">Features</a></li>
-                        <li><a href="#">Pricing</a></li>
-                        <li><a href="#">Integrations</a></li>
-                        <li><a href="#">FAQ</a></li>
+                    <ul class="footer-links">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#docs">Documentation</a></li>
+                        <li><a href="#">Releases</a></li>
+                        <li><a href="#">Roadmap</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-2 mb-4 mb-lg-0">
+                <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
                     <h5 class="mb-3">Company</h5>
-                    <ul class="list-unstyled footer-links">
-                        <li><a href="#">About</a></li>
-                        <li><a href="#">Blog</a></li>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
                         <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Press</a></li>
                         <li><a href="#">Contact</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-4">
-                    <h5 class="mb-3">Stay Updated</h5>
-                    <p>Subscribe to our newsletter for the latest updates.</p>
-                    <div class="input-group mb-3">
-                        <input type="email" class="form-control" placeholder="Email address">
-                        <button class="btn btn-primary" type="button">Subscribe</button>
-                    </div>
+                <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                    <h5 class="mb-3">Resources</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Community</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Status</a></li>
+                        <li><a href="#">API</a></li>
+                        <li><a href="#">Partners</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h5 class="mb-3">Legal</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Terms</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Security</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
                 </div>
             </div>
-            <hr class="my-4 bg-light">
-            <div class="row">
-                <div class="col text-center">
-                    <p class="mb-0">&copy; 2025 CodeShare. All rights reserved.</p>
-                </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 CodeShare. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>                                                                                     
+    
+    <!-- Particles.js for hero section background effect -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize particles.js
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS("particles-js", {
+                    "particles": {
+                        "number": {
+                            "value": 80,
+                            "density": {
+                                "enable": true,
+                                "value_area": 800
+                            }
+                        },
+                        "color": {
+                            "value": "#ffffff"
+                        },
+                        "shape": {
+                            "type": "circle",
+                            "stroke": {
+                                "width": 0,
+                                "color": "#000000"
+                            },
+                            "polygon": {
+                                "nb_sides": 5
+                            }
+                        },
+                        "opacity": {
+                            "value": 0.5,
+                            "random": false,
+                            "anim": {
+                                "enable": false,
+                                "speed": 1,
+                                "opacity_min": 0.1,
+                                "sync": false
+                            }
+                        },
+                        "size": {
+                            "value": 3,
+                            "random": true,
+                            "anim": {
+                                "enable": false,
+                                "speed": 40,
+                                "size_min": 0.1,
+                                "sync": false
+                            }
+                        },
+                        "line_linked": {
+                            "enable": true,
+                            "distance": 150,
+                            "color": "#ffffff",
+                            "opacity": 0.4,
+                            "width": 1
+                        },
+                        "move": {
+                            "enable": true,
+                            "speed": 2,
+                            "direction": "none",
+                            "random": false,
+                            "straight": false,
+                            "out_mode": "out",
+                            "bounce": false,
+                            "attract": {
+                                "enable": false,
+                                "rotateX": 600,
+                                "rotateY": 1200
+                            }
+                        }
+                    },
+                    "interactivity": {
+                        "detect_on": "canvas",
+                        "events": {
+                            "onhover": {
+                                "enable": true,
+                                "mode": "grab"
+                            },
+                            "onclick": {
+                                "enable": true,
+                                "mode": "push"
+                            },
+                            "resize": true
+                        },
+                        "modes": {
+                            "grab": {
+                                "distance": 140,
+                                "line_linked": {
+                                    "opacity": 1
+                                }
+                            },
+                            "bubble": {
+                                "distance": 400,
+                                "size": 40,
+                                "duration": 2,
+                                "opacity": 8,
+                                "speed": 3
+                            },
+                            "repulse": {
+                                "distance": 200,
+                                "duration": 0.4
+                            },
+                            "push": {
+                                "particles_nb": 4
+                            },
+                            "remove": {
+                                "particles_nb": 2
+                            }
+                        }
+                    },
+                    "retina_detect": true
+                });
+            }
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Developer Tools</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #4e73df;">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <h3 class="feature-title">Version Control</h3>
+                        <p>Track changes, create branches, and manage your code history with our powerful Git integration.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #2ea44f;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="feature-title">Real-time Collaboration</h3>
+                        <p>Work together with your team in real-time, regardless of location, with instant code sharing.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #e74a3b;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Secure Storage</h3>
+                        <p>Keep your code secure with encrypted storage, access controls, and comprehensive permissions.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #f6c23e;">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <h3 class="feature-title">Intelligent Editor</h3>
+                        <p>Code smarter with syntax highlighting, auto-completion, code analysis, and real-time suggestions.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #1cc88a;">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3 class="feature-title">Project Management</h3>
+                        <p>Organize your work with project tracking, issue management, and progress visualization tools.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #36b9cc;">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Cross-platform Access</h3>
+                        <p>Access your projects anytime, anywhere, on any device with our responsive platform.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works bg-pattern" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How CodeShare Works</h2>
+            <div class="row mt-5">
+                <div class="col-lg-6 mb-4">
+                    <div class="step-card d-flex">
+                        <div class="step-number me-3">1</div>
+                        <div>
+                            <h3>Create a Repository</h3>
+                            <p>Start by creating a new repository or importing an existing one. Set up your project structure and invite your team members.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="step-card d-flex">
+                        <div class="step-number me-3">2</div>
+                        <div>
+                            <h3>Collaborate on Code</h3>
+                            <p>Work together on your code with real-time editing, branching, and merging capabilities.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="step-card d-flex">
+                        <div class="step-number me-3">3</div>
+                        <div>
+                            <h3>Review and Approve</h3>
+                            <p>Use pull requests to review code changes, provide feedback, and ensure quality before merging.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="step-card d-flex">
+                        <div class="step-number me-3">4</div>
+                        <div>
+                            <h3>Track and Deploy</h3>
+                            <p>Track project progress, manage issues, and seamlessly deploy your code with our integrated tools.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="/signup.html" class="btn btn-accent btn-lg">Start Your Project</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Developers Say</h2>
+            <div class="row mt-5">
+                <div class="col-lg-4 mb-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            "CodeShare has completely transformed how our team collaborates. The real-time editing and branch management features have increased our productivity by 40%."
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah Johnson">
+                            <div>
+                                <h5 class="mb-0">Sarah Johnson</h5>
+                                <p class="text-muted mb-0">Lead Developer, TechCorp</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            "As a remote team, we needed a platform that could keep us all on the same page. CodeShare's collaboration tools make it feel like we're all working in the same room."
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Michael Chen">
+                            <div>
+                                <h5 class="mb-0">Michael Chen</h5>
+                                <p class="text-muted mb-0">CTO, StartupX</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            "The security features in CodeShare give us peace of mind when working with sensitive code. Plus, the UI is intuitive enough for even our non-technical team members."
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Amanda Rodriguez">
+                            <div>
+                                <h5 class="mb-0">Amanda Rodriguez</h5>
+                                <p class="text-muted mb-0">Security Engineer, SecureData</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
